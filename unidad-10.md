@@ -1,775 +1,840 @@
-# Unidad 10 — Documentación de Componentes con Storybook
+# Unidad 10 — Arquitectura de Interfaces con Angular
 
 ---
 
 ## Portada
 
 ### Módulo 0488 — Desarrollo de Interfaces
-## Storybook
-#### Documentación viva + Testing visual + Integración Figma
+## Arquitectura de Interfaces con Angular
+#### Smart Components, Standalone y Señales
 
 Note:
-Bienvenidos a la última unidad del módulo. Storybook es la herramienta que cierra el círculo: convierte nuestro catálogo de componentes en documentación viva, testeable y compartible. Hoy aprenderéis a instalar Storybook en Angular, escribir stories CSF3, documentar con MDX, testear interacciones y publicar vuestro Design System.
+Bienvenidos a la Unidad 6. Hoy vamos a abordar cómo estructurar aplicaciones Angular profesionales usando patrones arquitectónicos modernos. Vamos a ver Standalone Components, el patrón Smart vs Presentational, Signals, y comunicación entre componentes. Todo orientado a construir interfaces escalables y mantenibles.
 
 ---
 
 ## Objetivos de aprendizaje
 
-- Instalar y configurar <mark>Storybook</mark> en Angular + Tailwind 4 <!-- .element: class="fragment" -->
-- Escribir stories con formato <mark>CSF3</mark> (Component Story Format 3) <!-- .element: class="fragment" -->
-- Documentar con <mark>MDX</mark> + stories interactivas <!-- .element: class="fragment" -->
-- Usar addons: <mark>Controls, a11y, Interactions, Viewport, Figma</mark> <!-- .element: class="fragment" -->
-- Implementar <mark>play functions</mark> para testing de interacciones <!-- .element: class="fragment" -->
-- Configurar <mark>Chromatic</mark> para visual testing y despliegue <!-- .element: class="fragment" -->
+- Diferenciar Smart y Presentational Components <!-- .element: class="fragment" -->
+- Configurar Standalone Components con imports explícitos <!-- .element: class="fragment" -->
+- Integrar <mark>Tailwind CSS</mark> en plantillas Angular <!-- .element: class="fragment" -->
+- Comunicar componentes con @Input, @Output y Model Inputs <!-- .element: class="fragment" -->
+- Gestionar estado de interfaz con Signals <!-- .element: class="fragment" -->
+- Acceder al DOM con viewChild y contentChild <!-- .element: class="fragment" -->
 
 Note:
-Seis objetivos que os convertirán en expertos en Storybook. Desde la instalación hasta el despliegue en producción, pasando por testing de interacciones y visual testing automatizado. Al final de esta unidad, vuestro Design System tendrá documentación profesional.
+Al finalizar esta unidad seréis capaces de diseñar la arquitectura completa de una interfaz Angular profesional. Los 6 objetivos cubren desde la estructura de componentes hasta la manipulación avanzada del DOM.
 
 ---
 
-## Motivación: Documentación que NO se desactualiza
+## Motivación: El problema del "componente Dios"
+
+```typescript
+// ❌ 847 líneas, 23 imports, 15 responsabilidades
+export class GodComponent {
+  // Obtiene datos, renderiza, valida,
+  // gestiona errores, anima, rutea...
+}
+```
+
+### Consecuencias: <!-- .element: class="fragment" -->
+- Imposible de testear <!-- .element: class="fragment" -->
+- Imposible de reutilizar <!-- .element: class="fragment" -->
+- Conflictos constantes en equipo <!-- .element: class="fragment" -->
+
+Note:
+Imaginad un componente que lo hace todo: obtiene datos de la API, renderiza HTML, valida formularios, gestiona errores, anima transiciones y controla la navegación. Esto es un "componente Dios". En equipos de 3+ personas, este antipatrón genera conflictos diarios. La solución es separar responsabilidades. ¿Alguien ha sufrido un componente así?
+
+---
+
+## La solución: Separación de responsabilidades
+
+```mermaid
+graph TD
+    A[Smart Component<br/>DashboardPage] --> B[StatCard]
+    A --> C[ChartWidget]
+    A --> D[DataTable]
+    A --> E[RecentActivity]
+    A --> F[PageHeader]
+```
+
+Note:
+La solución es descomponer. Un Smart Component se encarga de orquestar datos y delegar la presentación a múltiples componentes pequeños y especializados. Cada uno hace una sola cosa y la hace bien. Así es como escalan las aplicaciones reales.
+
+---
+
+## Standalone Components
+
+```typescript
+@Component({
+  selector: 'app-stat-card',
+  standalone: true,  // ← Clave
+  imports: [NgClass, CurrencyPipe],
+  template: `...`,
+  styles: [`...`],
+})
+export class StatCardComponent {
+  @Input({ required: true }) data!: StatData;
+}
+```
+
+Note:
+Desde Angular 15, los Standalone Components eliminan la necesidad de NgModules. Cada componente declara explícitamente sus dependencias en el array `imports`. Esto hace que el código sea más explícito, fácil de entender y que el tree-shaking sea más efectivo. La propiedad `standalone: true` es obligatoria para marcar el componente como autónomo.
+
+---
+
+## Selector, Template y Styles
+
+```typescript
+@Component({
+  selector: 'app-stat-card',        // Etiqueta HTML
+  templateUrl: './stat-card.html',  // Markup + Tailwind
+  styleUrl: './stat-card.css',      // Estilos encapsulados
+  standalone: true,
+  imports: [NgClass],
+})
+```
+
+| Propiedad | Función |
+|-----------|---------|
+| `selector` | Nombre de etiqueta HTML personalizada |
+| `template`/`templateUrl` | Markup con clases Tailwind |
+| `styles`/`styleUrls` | Estilos encapsulados del componente |
+
+Note:
+Tres atributos fundamentales definen un componente. El `selector` es el nombre de la etiqueta HTML que usaréis en las plantillas. El `template` contiene el HTML con clases Tailwind. Los `styles` definen estilos específicos encapsulados que no afectan al resto de la aplicación.
+
+---
+
+## Template con Tailwind CSS
+
+```html
+<div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+  <div class="flex items-center justify-between">
+    <h3 class="text-sm font-medium text-gray-500">{{ title }}</h3>
+    <span class="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+      {{ badge }}
+    </span>
+  </div>
+  <p class="mt-3 text-3xl font-bold text-gray-900">{{ value }}</p>
+</div>
+```
+
+Note:
+Tailwind en Angular supone un cambio de paradigma: en lugar de escribir CSS separado, aplicáis clases utilitarias directamente en el HTML. Esto elimina la fricción de nombrar clases, garantiza consistencia con el sistema de diseño y acelera el desarrollo. Cada clase describe un aspecto visual: `rounded-xl` (borde redondeado), `p-6` (padding de 1.5rem), `shadow-sm` (sombra pequeña).
+
+---
+
+## Tailwind: Variantes arbitrarias con clases Angular
+
+```html
+<input
+  [formControl]="emailControl"
+  class="block w-full rounded-lg border px-3 py-2
+         focus:outline-none focus:ring-2
+         [&.ng-invalid.ng-touched]:border-red-400
+         [&.ng-valid.ng-touched]:border-green-400" />
+```
+
+<br/>
+
+`[&.ng-invalid.ng-touched]:border-red-400` reacciona a las clases CSS que Angular añade automáticamente
+
+Note:
+Esta sintaxis es muy potente. Las variantes arbitrarias de Tailwind como `[&.ng-invalid.ng-touched]:border-red-400` permiten reaccionar a las clases que Angular añade automáticamente a los controles de formulario. Así eliminamos lógica TypeScript adicional para gestionar clases condicionales. Todo queda en el template.
+
+---
+
+## Encapsulación de estilos: ViewEncapsulation
+
+| Estrategia | Comportamiento | Cuándo usarla |
+|-----------|---------------|---------------|
+| `Emulated` | Aísla con atributos únicos | **Por defecto**, recomendada |
+| `None` | Estilos globales | Componente raíz, themes |
+| `ShadowDom` | Shadow DOM nativo | Widgets embebidos |
+
+Note:
+Angular ofrece 3 estrategias de encapsulación. Emulated es el valor por defecto y aísla los estilos añadiendo atributos únicos a los elementos y selectores CSS. None desactiva el encapsulamiento — rara vez recomendable. ShadowDom usa Shadow DOM nativo pero presenta limitaciones con Tailwind porque las clases globales no penetran el Shadow DOM.
+
+---
+
+## :host y ::ng-deep
+
+```css
+/* Afecta al elemento contenedor del componente */
+:host {
+  display: block;
+  width: 100%;
+}
+:host(.highlighted) {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* ⚠️ Usar con moderación — estiliza componentes hijos */
+::ng-deep .third-party-slider .track {
+  background-color: theme('colors.blue.500');
+}
+```
+
+Note:
+`:host` selecciona el elemento anfitrión del componente, es decir, la etiqueta HTML personalizada como `<app-stat-card>`. Es muy útil para definir display, márgenes o dimensiones del contenedor. `::ng-deep` fuerza a que los estilos atraviesen la encapsulación — está deprecado por Angular pero sigue siendo la única solución para estilizar componentes de terceros. Pregunta al aula: ¿qué alternativas a ::ng-deep conocéis?
+
+---
+
+## Ciclo de vida relevante para interfaces
 
 ```mermaid
 graph LR
-    subgraph "Documentación estática ❌"
-        A[Wiki/PDF] --> B[Componente cambia]
-        B --> C[Wiki NO se actualiza]
-        C --> D[Documentación miente]
-    end
+    A[constructor] --> B[ngOnInit]
+    B --> C[ngAfterViewInit]
+    C --> D[ngOnDestroy]
     
-    subgraph "Storybook ✅"
-        E[Stories = código] --> F[Componente cambia API]
-        F --> G[Story NO compila]
-        G --> H[Desarrollador obligado<br/>a actualizar]
-    end
+    B -.-> E[Inicializar datos<br/>Signals<br/>Suscripciones]
+    C -.-> F[Gráficos<br/>Mapas<br/>Medir DOM]
+    D -.-> G[Limpiar suscripciones<br/>Destruir librerías<br/>Cancelar timers]
 ```
 
-### Storybook: documentación que vive y respira junto al código
-
 Note:
-La diferencia fundamental: la documentación tradicional (wikis, PDFs, READMEs) se desactualiza inevitablemente. Las stories de Storybook son código que se ejecuta. Si cambiáis la API de un componente, la story falla al compilar. Esto fuerza a mantener la documentación sincronizada. Es documentación viva.
+Tres hooks son fundamentales para interfaces. `ngOnInit`: inicializar datos y suscripciones. `ngAfterViewInit`: el DOM ya está disponible para librerías externas como Chart.js o mapas. `ngOnDestroy`: limpiar todo para evitar memory leaks. El uso de `takeUntilDestroyed()` desde Angular 16 simplifica enormemente la limpieza de suscripciones.
 
 ---
 
-## Sección A: Qué es Storybook
+## ngOnInit con Signals y takeUntilDestroyed
+
+```typescript
+private dataService = inject(DashboardService);
+
+loading = signal(true);
+stats = signal<Stat[]>([]);
+error = signal<string | null>(null);
+
+ngOnInit(): void {
+  this.dataService.getDashboardStats().pipe(
+    takeUntilDestroyed()
+  ).subscribe({
+    next: (data) => { this.stats.set(data); this.loading.set(false); },
+    error: () => { this.error.set('Error al cargar'); this.loading.set(false); }
+  });
+}
+```
+
+Note:
+`takeUntilDestroyed()` vincula la suscripción al ciclo de vida del componente. Cuando el componente se destruye, la suscripción se cancela automáticamente. Ya no necesitamos gestionar manualmente Subjects de destrucción. Las Signals almacenan el estado de UI de forma reactiva: `loading`, `stats`, `error`.
+
+---
+
+## ngAfterViewInit: Inicializar librerías externas
+
+```typescript
+private chartContainer = viewChild<ElementRef>('chartContainer');
+
+ngAfterViewInit(): void {
+  const container = this.chartContainer();
+  if (container) {
+    const ctx = container.nativeElement.querySelector('canvas')?.getContext('2d');
+    if (ctx) {
+      new Chart(ctx, { type: 'line', data: {...}, options: {...} });
+    }
+  }
+}
+```
+
+Note:
+`viewChild` con señales devuelve una referencia reactiva que se actualiza cuando el elemento está disponible. En `ngAfterViewInit`, el DOM ya está renderizado y podemos inicializar librerías como Chart.js, mapas de Leaflet, o editores de texto enriquecido. Es crítico que estas inicializaciones ocurran aquí y no en ngOnInit.
+
+---
+
+## Sección B: Organización de proyectos profesionales
+
+```
+src/app/
+├── core/          # Servicios singleton, guards, interceptors
+├── shared/        # Componentes UI reutilizables
+│   └── components/
+│       ├── button/
+│       ├── modal/
+│       ├── card/
+│       ├── input/
+│       └── data-table/
+├── features/      # Pantallas por funcionalidad
+│   ├── dashboard/
+│   ├── products/
+│   └── users/
+├── layout/        # Shell: header, sidebar, footer
+└── design-system/ # Tokens, tipografía, tema
+```
+
+Note:
+Esta estructura feature-based es el estándar profesional. `core/` contiene servicios singleton. `shared/` alberga componentes reutilizables sin lógica de negocio. `features/` organiza las pantallas por funcionalidad. `layout/` define el shell de la aplicación. `design-system/` centraliza los tokens de diseño. Esta estructura es predecible y escala bien con equipos grandes.
+
+---
+
+## Feature-based vs Layer-based
+
+```mermaid
+graph TD
+    subgraph "Layer-based ❌"
+        L1[components/] --> L1a[50+ archivos sin relación]
+        L2[services/] --> L2a[Mezcla de responsabilidades]
+        L3[models/] --> L3a[Sin contexto de uso]
+    end
+    
+    subgraph "Feature-based ✅"
+        F1[dashboard/] --> F1a[Página + componentes propios]
+        F2[products/] --> F2a[Página + componentes propios]
+        F3[shared/] --> F3a[Solo lo reutilizable]
+    end
+```
+
+Note:
+Layer-based agrupa por tipo técnico: todos los componentes juntos, todos los servicios juntos. Cuando la app crece, se convierte en un vertedero. Feature-based agrupa por funcionalidad de negocio: todo lo relacionado con "dashboard" está junto. Esto reduce la carga cognitiva y permite trabajar en features de forma independiente.
+
+---
+
+## Principio de Responsabilidad Única (SRP)
+
+> "Un componente debe tener una, y solo una, razón para cambiar"
+
+<div class="fragment">
+
+### ❌ Componente página monolítico
+- Obtiene datos de 3 endpoints
+- Renderiza 5 secciones distintas
+- Gestiona 4 estados de UI
+- Maneja errores, navegación, animaciones
+
+</div>
+
+<div class="fragment">
+
+### ✅ Descomposición correcta
+- **DashboardPage**: orquesta datos
+- **StatCard**: renderiza estadística
+- **ChartWidget**: renderiza gráfico
+- **RecentActivity**: renderiza lista de actividad
+
+</div>
+
+Note:
+La S de SOLID aplicada a componentes UI. Un componente página no debería contener directamente el HTML de tarjetas, gráficos y tablas. Debe delegar cada sección en un componente especializado. El DashboardPage orquesta, los componentes presentacionales renderizan. Esto facilita el testing, la reutilización y el trabajo en paralelo.
+
+---
+
+## Sección C: Smart vs Presentational Components
 
 ```mermaid
 graph TB
-    SB[Storybook] --> DEV[Desarrollo aislado<br/>Component-Driven Development]
-    SB --> DOC[Documentación viva<br/>Stories = código ejecutable]
-    SB --> CAT[Catálogo de componentes<br/>Para todo el equipo]
-    SB --> TEST[Testing visual<br/>Chromatic, Percy]
-    SB --> COLAB[Colaboración<br/>Diseño ↔ Desarrollo]
-```
-
-Note:
-Storybook cumple 5 roles en el ecosistema de desarrollo. 1) Desarrollo aislado: trabajar en un componente sin arrancar la app completa. 2) Documentación viva: código que se ejecuta. 3) Catálogo: diseñadores y PMs exploran componentes sin preguntar a devs. 4) Testing visual: detecta regresiones píxel a píxel. 5) Colaboración: cierra la brecha diseño-desarrollo.
-
----
-
-## Sección B: Instalación en Angular
-
-```bash
-npx storybook@latest init
-```
-
-### Qué hace este comando: <!-- .element: class="fragment" -->
-1. Detecta Angular por `angular.json` <!-- .element: class="fragment" -->
-2. Instala `@storybook/angular` + addons <!-- .element: class="fragment" -->
-3. Crea `.storybook/main.ts` y `.storybook/preview.ts` <!-- .element: class="fragment" -->
-4. Añade scripts: `storybook` y `build-storybook` <!-- .element: class="fragment" -->
-5. Crea stories de ejemplo en `src/stories/` <!-- .element: class="fragment" -->
-
-Note:
-La instalación es un solo comando. Storybook detecta automáticamente que es un proyecto Angular, instala las dependencias necesarias, crea la configuración y añade scripts a package.json. Tras la instalación, `npm run storybook` arranca el servidor en `http://localhost:6006`.
-
----
-
-## Archivos de configuración: main.ts
-
-```typescript
-import type { StorybookConfig } from '@storybook/angular';
-
-const config: StorybookConfig = {
-  stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
-  addons: [
-    '@storybook/addon-essentials',    // Controls, Actions, Viewport, Docs
-    '@storybook/addon-interactions',  // Play functions
-    '@storybook/addon-a11y',          // Auditoría accesibilidad
-    '@storybook/addon-designs',       // Incrustar Figma
-  ],
-  framework: {
-    name: '@storybook/angular',
-    options: {},
-  },
-  docs: {
-    autodocs: 'tag',  // Generar docs automáticas
-  },
-};
-
-export default config;
-```
-
-Note:
-`main.ts` es la configuración principal. `stories`: patrón glob para encontrar archivos de stories. `addons`: los 4 addons esenciales. `framework`: Angular. `docs.autodocs: 'tag'`: genera documentación automática para componentes con el tag `'autodocs'`. Cada addon añade funcionalidad: Controls para manipular inputs, a11y para auditoría, interactions para play functions, designs para Figma.
-
----
-
-## Archivos de configuración: preview.ts
-
-```typescript
-import type { Preview } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import { provideZoneChangeDetection } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
-
-// ⚠️ CRÍTICO: importar Tailwind
-import '!style-loader!css-loader!postcss-loader!../src/styles.css';
-
-const preview: Preview = {
-  parameters: {
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
-      },
-    },
-    backgrounds: {
-      default: 'light',
-      values: [
-        { name: 'light', value: '#ffffff' },
-        { name: 'dark', value: '#1f2937' },
-      ],
-    },
-    viewport: {
-      viewports: {
-        mobile: { name: 'Mobile', styles: { width: '375px', height: '812px' } },
-        tablet: { name: 'Tablet', styles: { width: '768px', height: '1024px' } },
-        desktop: { name: 'Desktop', styles: { width: '1280px', height: '800px' } },
-      },
-    },
-  },
-  decorators: [
-    applicationConfig({
-      providers: [
-        provideZoneChangeDetection({ eventCoalescing: true }),
-        provideHttpClient(),
-        provideRouter([]),
-      ],
-    }),
-  ],
-  tags: ['autodocs'],
-};
-
-export default preview;
-```
-
-Note:
-`preview.ts` configura cómo se renderizan todas las stories. La línea de import de Tailwind es CRÍTICA: sin ella, los componentes aparecen sin estilos. Viewports predefinidos para móvil, tablet y desktop. Backgrounds para probar sobre fondo claro y oscuro. Los providers de Angular (HttpClient, Router) deben configurarse aquí para que los componentes funcionen.
-
----
-
-## Sección C: CSF3 — Estructura de una story
-
-```typescript
-import type { Meta, StoryObj } from '@storybook/angular';
-import { ButtonComponent } from './button.component';
-
-const meta: Meta<ButtonComponent> = {
-  title: 'UI/Button',           // Jerarquía en la barra lateral
-  component: ButtonComponent,
-  tags: ['autodocs'],           // Generar docs automáticas
-  argTypes: {
-    variant: {
-      control: 'select',
-      options: ['primary', 'secondary', 'outline', 'ghost', 'danger'],
-      description: 'Variante visual del botón',
-    },
-    disabled: {
-      control: 'boolean',
-      description: 'Deshabilita el botón',
-    },
-    clicked: {
-      action: 'clicked',        // Registrar en panel Actions
-    },
-  },
-  args: {
-    variant: 'primary',         // Valores por defecto
-    size: 'md',
-    disabled: false,
-    label: 'Botón',
-  },
-};
-
-export default meta;
-type Story = StoryObj<ButtonComponent>;
-```
-
-Note:
-CSF3 es el formato moderno para stories. `Meta<>` define metadatos: título (con `/` para jerarquía), argTypes (controles en el panel), args (valores por defecto). `StoryObj<>` es el tipo para las stories individuales. `tags: ['autodocs']` genera documentación automática con tabla de argumentos. `action: 'clicked'` registra eventos en el panel Actions.
-
----
-
-## CSF3 — Stories para cada variante
-
-```typescript
-// Por defecto (usa los args del meta)
-export const Primary: Story = {};
-
-// Variantes
-export const Secondary: Story = {
-  args: { variant: 'secondary', label: 'Cancelar' },
-};
-
-export const Outline: Story = {
-  args: { variant: 'outline', label: 'Ver más' },
-};
-
-export const Danger: Story = {
-  args: { variant: 'danger', label: 'Eliminar cuenta' },
-};
-
-// Estados
-export const Disabled: Story = {
-  args: { disabled: true, label: 'Deshabilitado' },
-};
-
-export const Loading: Story = {
-  args: { loading: true, label: 'Guardando...' },
-};
-
-// Tamaños
-export const Small: Story = {
-  args: { size: 'sm', label: 'Pequeño' },
-};
-
-export const Large: Story = {
-  args: { size: 'lg', label: 'Grande' },
-};
-```
-
-Note:
-Cada variante y estado es una story independiente. Esto es mucho más útil que una sola story con todos los controles. Las stories son auto-documentadas: el nombre de la exportación aparece en la barra lateral. Cada story sobrescribe solo los args que necesita. El panel Controls permite modificar cualquier arg en tiempo real.
-
----
-
-## Stories con proyección de contenido (ng-content)
-
-```typescript
-const meta: Meta<CardComponent> = {
-  title: 'UI/Card',
-  component: CardComponent,
-  args: { variant: 'default', padding: 'md' },
-};
-
-export const WithHeaderAndFooter: Story = {
-  render: (args) => ({
-    props: args,
-    template: `
-      <ui-card [variant]="variant" [padding]="padding">
-        <div card-header>
-          <h3 class="text-lg font-semibold">Tarjeta con header y footer</h3>
-        </div>
-        <p class="text-gray-600">Contenido principal de la tarjeta.</p>
-        <div card-footer>
-          <div class="flex justify-end gap-2">
-            <ui-button variant="ghost" size="sm">Cancelar</ui-button>
-            <ui-button variant="primary" size="sm">Aceptar</ui-button>
-          </div>
-        </div>
-      </ui-card>
-    `,
-  }),
-};
-```
-
-Note:
-Para componentes con `<ng-content>`, usamos `render` con un template inline. Esto permite proyectar contenido en los slots definidos (`card-header`, `card-footer`, contenido por defecto). Las props se pasan mediante `args` y están disponibles en el template con interpolación. Este patrón funciona para Card, Modal, Tabs y cualquier componente con proyección.
-
----
-
-## Sección D: Documentación con MDX
-
-### Página de introducción del Design System
-
-```mdx
-import { Meta } from '@storybook/blocks';
-
-<Meta title="Introducción" />
-
-# Bienvenido al Design System
-
-Este Design System contiene todos los componentes UI utilizados en MiApp.
-
-## Principios de diseño
-
-1. **Consistencia** — Elementos similares se comportan igual
-2. **Accesibilidad** — WCAG 2.1 AA por defecto
-3. **Simplicidad** — API intuitiva y predecible
-
-## Design Tokens
-
-| Token | Valor | Uso |
-|-------|-------|-----|
-| `--color-primary` | `#2563eb` | Acciones principales |
-| `--color-success` | `#059669` | Confirmaciones |
-| `--color-error` | `#dc2626` | Errores |
-| `--spacing-4` | `1rem` | Padding estándar |
-
-## Cómo usar
-
-```typescript
-import { ButtonComponent } from '@shared/components/button';
-// <ui-button variant="primary" (clicked)="handleSave()">Guardar</ui-button>
-```
-```
-
-Note:
-MDX combina Markdown con componentes de Storybook. Podéis escribir texto narrativo, tablas, ejemplos de código, y embeber stories interactivas. La página de introducción es lo primero que ve quien entra en Storybook. Debe explicar qué es el Design System, sus principios, los tokens disponibles y cómo empezar a usar los componentes.
-
----
-
-## MDX: Documentación de componente con stories incrustadas
-
-```mdx
-import { Meta, Canvas, Controls } from '@storybook/blocks';
-import * as ButtonStories from './button.stories';
-import { Figma } from '@storybook/addon-designs/blocks';
-
-<Meta of={ButtonStories} />
-
-# Button
-
-El componente `Button` es el bloque fundamental para acciones del usuario.
-
-## Cuándo usar
-- Acciones principales en formularios y modales
-- Acciones secundarias que complementan una acción principal
-
-## Cuándo NO usar
-- Para navegación entre páginas: usar `<a routerLink>`
-- Para enlaces externos: usar `<a>` nativo
-
-## Variantes
-
-<Canvas of={ButtonStories.Primary} />
-<Canvas of={ButtonStories.Secondary} />
-<Canvas of={ButtonStories.Outline} />
-<Canvas of={ButtonStories.Danger} />
-
-## Estados
-
-<Canvas of={ButtonStories.Disabled} />
-<Canvas of={ButtonStories.Loading} />
-
-## API del componente
-
-<Controls />
-
-## Diseño en Figma
-
-<Figma url="https://www.figma.com/file/xxxxx/Design-System?node-id=42-123" />
-```
-
-Note:
-El MDX de un componente debe cubrir el "por qué" y el "cuándo", no solo el "qué" (que ya cubre la documentación automática). `<Canvas>` incrusta una story interactiva. `<Controls>` muestra la tabla de argumentos. `<Figma>` incrusta el diseño original. Esto permite comparar implementación vs diseño lado a lado.
-
----
-
-## Sección E: Addons esenciales
-
-### @storybook/addon-essentials (incluye)
-
-| Addon | Función |
-|-------|---------|
-| **Controls** | Modificar inputs en tiempo real |
-| **Actions** | Registrar eventos emitidos (outputs) |
-| **Viewport** | Cambiar tamaño de pantalla |
-| **Backgrounds** | Cambiar color de fondo |
-| **Docs** | Documentación automática |
-| **Toolbars** | Barras de herramientas contextuales |
-
-Note:
-`addon-essentials` es un meta-paquete que incluye los 6 addons fundamentales. Controls es el más usado: permite cambiar cualquier arg del componente y ver el resultado instantáneamente. Actions muestra en una consola cada vez que se emite un evento. Viewport simula dispositivos. Backgrounds permite probar sobre fondos claros y oscuros.
-
----
-
-## @storybook/addon-a11y
-
-```typescript
-// En preview.ts
-parameters: {
-  a11y: {
-    config: {
-      rules: [
-        { id: 'color-contrast', enabled: true },
-        { id: 'button-name', enabled: true },
-        { id: 'aria-required-attr', enabled: true },
-      ],
-    },
-    element: '#storybook-root',
-  },
-},
-```
-
-### Panel de resultados: <!-- .element: class="fragment" -->
-- 🔴 **Violations** — Problemas que deben corregirse <!-- .element: class="fragment" -->
-- 🟢 **Passes** — Reglas cumplidas <!-- .element: class="fragment" -->
-- 🟡 **Incomplete** — Necesitan revisión manual <!-- .element: class="fragment" -->
-
-Note:
-El addon a11y integra axe-core y audita cada story automáticamente. Las violaciones se muestran en un panel con descripción, severidad y elemento afectado. Un componente no está terminado hasta que pasa la auditoría sin violaciones. Las violaciones de accesibilidad deben tratarse con la misma seriedad que los bugs funcionales.
-
----
-
-## @storybook/addon-interactions: Play functions
-
-```typescript
-import { within, userEvent, expect } from '@storybook/test';
-
-export const ClickInteraction: Story = {
-  args: { label: 'Haz clic', variant: 'primary' },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const button = canvas.getByRole('button', { name: /haz clic/i });
-
-    // Verificar estado inicial
-    await expect(button).toBeEnabled();
-    await expect(button).toHaveTextContent('Haz clic');
-
-    // Simular click
-    await userEvent.click(button);
-  },
-};
-
-export const KeyboardNavigation: Story = {
-  args: { label: 'Teclado' },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await userEvent.tab();
-    await expect(canvas.getByRole('button')).toHaveFocus();
-    await userEvent.keyboard('{Enter}');
-  },
-};
-
-export const DisabledNoInteraction: Story = {
-  args: { label: 'Deshabilitado', disabled: true },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const button = canvas.getByRole('button');
-    await expect(button).toBeDisabled();
-  },
-};
-```
-
-Note:
-Las play functions son tests de interacción que se ejecutan en un navegador real. Usan la API de `@storybook/test` (basada en Testing Library). `within(canvasElement)` crea un scope de búsqueda. `userEvent` simula interacciones reales (click, teclado, tab). `expect` verifica aserciones. Se ejecutan automáticamente en CI/CD.
-
----
-
-## Flujo completo: Componente → Story → Testing
-
-```mermaid
-graph LR
-    A[Componente<br/>Angular] --> B[Stories CSF3<br/>Variantes + Estados]
-    B --> C[Documentación<br/>MDX + autodocs]
-    B --> D[Testing interacciones<br/>Play functions]
-    B --> E[Testing accesibilidad<br/>addon-a11y]
-    B --> F[Testing visual<br/>Chromatic]
-    
-    C --> G[Catálogo<br/>para el equipo]
-    D --> H[CI/CD<br/>no regresiones]
-    E --> H
-    F --> H
-```
-
-Note:
-El flujo completo: cada componente tiene su archivo de stories CSF3. Las stories alimentan la documentación MDX, los tests de interacción (play functions), la auditoría de accesibilidad (a11y) y el testing visual (Chromatic). Todo se integra en CI/CD para detectar regresiones automáticamente en cada PR.
-
----
-
-## Sección F: Testing visual con Chromatic
-
-```mermaid
-graph LR
-    A[PR en GitHub] --> B[Chromatic captura<br/>screenshots]
-    B --> C[Compara píxel a píxel<br/>con main]
-    C --> D{¿Diferencias?}
-    D -->|Sí| E[UI de revisión<br/>Aceptar o rechazar]
-    D -->|No| F[✅ PR aprobado]
-    E --> G[Equipo revisa<br/>diseñadores + devs]
-```
-
-### Instalación: <!-- .element: class="fragment" -->
-```bash
-npm install --save-dev chromatic
-npx chromatic --project-token=<your-token>
-```
-
-Note:
-Chromatic es el servicio de testing visual de los creadores de Storybook. Captura una screenshot de cada story, la compara con la versión base, y muestra las diferencias en una UI de revisión. Diseñadores y desarrolladores pueden aceptar (cambio intencionado) o rechazar (regresión) cada diferencia. Se integra con GitHub Actions para ejecutarse en cada PR.
-
----
-
-## Chromatic en CI/CD (GitHub Actions)
-
-```yaml
-# .github/workflows/chromatic.yml
-name: Chromatic
-on: push
-jobs:
-  chromatic:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npx chromatic --project-token=${{ secrets.CHROMATIC_TOKEN }}
-```
-
-### Beneficios: <!-- .element: class="fragment" -->
-- Detecta cambios visuales no intencionados <!-- .element: class="fragment" -->
-- Cada PR tiene su propio Storybook desplegado (URL única) <!-- .element: class="fragment" -->
-- UI de revisión para aceptar/rechazar cambios <!-- .element: class="fragment" -->
-
-Note:
-Este workflow ejecuta Chromatic en cada push. Si hay cambios visuales, Chromatic los muestra en su UI. Si no hay cambios, el check pasa. Chromatic también despliega una versión de Storybook por cada PR, permitiendo a stakeholders revisar los componentes sin necesidad de clonar el repo. Esto es invaluable para la colaboración diseño-desarrollo.
-
----
-
-## Sección G: Integración Figma ↔ Storybook
-
-```mermaid
-graph LR
-    subgraph "Figma → Storybook"
-        A[Diseño en Figma] -->|addon-designs| B[Storybook<br/>pestaña Design]
+    subgraph "Smart Components (Containers)"
+        S1[DashboardPage]
+        S2[ProductsPage]
+        S3[UserProfilePage]
     end
     
-    subgraph "Storybook → Figma"
-        C[Story publicada] -->|Storybook Connect<br/>plugin Figma| D[Componente Figma<br/>enlazado a story]
+    subgraph "Presentational Components (Dumb)"
+        P1[StatCard]
+        P2[ChartWidget]
+        P3[DataTable]
+        P4[Button]
+        P5[Modal]
+        P6[Card]
+    end
+    
+    S1 -->|@Input data| P1
+    S1 -->|@Input data| P2
+    S1 -->|@Input data| P3
+    P1 -->|@Output events| S1
+    P2 -->|@Output events| S1
+```
+
+Note:
+Este es el patrón arquitectónico más importante para interfaces Angular. Los Smart Components obtienen datos de servicios y contienen lógica de negocio. Los Presentational Components solo reciben datos por @Input y emiten eventos por @Output. No inyectan servicios, no conocen rutas, son puramente visuales y 100% reutilizables.
+
+---
+
+## Smart Component: DashboardPage
+
+```typescript
+@Component({
+  selector: 'app-dashboard-page',
+  standalone: true,
+  imports: [StatCardComponent, ChartWidgetComponent, DataTableComponent],
+  template: `
+    <app-page-header [title]="'Dashboard'" />
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      @for (stat of stats(); track stat.id) {
+        <app-stat-card [data]="stat" />
+      }
+    </div>
+  `,
+})
+export class DashboardPageComponent implements OnInit {
+  private dashboardService = inject(DashboardService);
+  stats = signal<StatData[]>([]);
+  loading = signal(true);
+  // ...
+}
+```
+
+Note:
+Observad el template: es una composición de componentes presentacionales. No contiene prácticamente HTML nativo ni clases de estilo. El Smart Component se limita a orquestar: inyecta el servicio, obtiene datos y los distribuye. Las Signals (`stats`, `loading`) gestionan el estado de UI de forma reactiva.
+
+---
+
+## Presentational Component: StatCard
+
+```typescript
+@Component({
+  selector: 'app-stat-card',
+  standalone: true,
+  imports: [NgClass],
+  template: `
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-gray-500">{{ data.label }}</p>
+      <p class="mt-3 text-3xl font-bold text-gray-900">{{ data.value }}</p>
+      <span [ngClass]="data.trend >= 0 ? 'text-green-600' : 'text-red-600'">
+        {{ data.trend }}%
+      </span>
+    </div>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class StatCardComponent {
+  @Input({ required: true }) data!: StatData;
+}
+```
+
+Note:
+Reglas de oro del Presentational Component: 1) Recibe todo por @Input. 2) Emite todo por @Output. 3) No inyecta servicios. 4) No conoce rutas ni features. 5) Altamente reutilizable. Observad `ChangeDetectionStrategy.OnPush`: mejora el rendimiento porque solo se reevalúa cuando cambian sus inputs.
+
+---
+
+## Las 5 reglas de oro del Presentational Component
+
+1. Reciben <mark>TODO</mark> lo que necesitan mediante `@Input()` <!-- .element: class="fragment" -->
+2. Emiten <mark>TODO</mark> lo que sucede mediante `@Output()` <!-- .element: class="fragment" -->
+3. <mark>NO</mark> inyectan servicios de datos ni estado global <!-- .element: class="fragment" -->
+4. <mark>NO</mark> conocen la estructura de la aplicación <!-- .element: class="fragment" -->
+5. Son <mark>altamente reutilizables</mark> en diferentes contextos <!-- .element: class="fragment" -->
+
+Note:
+Estas 5 reglas definen un componente presentacional puro. Si vuestro componente inyecta HttpClient o Router, es un Smart Component. Si solo recibe datos y emite eventos, es presentacional. La pureza de los presentacionales los hace infinitamente reutilizables y trivialmente testeables.
+
+---
+
+## Sección D: Comunicación entre componentes
+
+```mermaid
+graph LR
+    A[Padre<br/>Smart] -->|@Input<br/>datos ↓| B[Hijo<br/>Presentational]
+    B -->|@Output<br/>eventos ↑| A
+    A -->|"[()]<br/>two-way"| C[Hijo<br/>Model Input]
+```
+
+Note:
+Tres mecanismos de comunicación: @Input para pasar datos hacia abajo, @Output para emitir eventos hacia arriba, y Model Inputs para two-way binding. El flujo de datos es unidireccional descendente. Los eventos fluyen hacia arriba. Esto hace que la aplicación sea predecible y fácil de depurar.
+
+---
+
+## @Input con required y transform
+
+```typescript
+// Input obligatorio — el compilador exige que el padre lo proporcione
+@Input({ required: true }) title!: string;
+@Input({ required: true }) items!: MenuItem[];
+
+// Input con transformación automática
+@Input({
+  required: true,
+  transform: (value: string) => value.toLowerCase().trim()
+}) email!: string;
+
+@Input({
+  transform: (value: Date | string) =>
+    value instanceof Date ? value : new Date(value)
+}) createdAt!: Date;
+```
+
+Note:
+`required: true` elimina errores en tiempo de ejecución: el compilador de Angular exige que el padre proporcione el valor. El operador `!` (non-null assertion) indica a TypeScript que Angular inicializará la propiedad. La función `transform` aplica una transformación al valor antes de asignarlo — muy útil para normalizar datos (emails en minúsculas, strings de fecha a objetos Date).
+
+---
+
+## @Output: Emitir eventos hacia el padre
+
+```typescript
+// En el componente hijo (Presentational)
+@Output() itemSelected = new EventEmitter<MenuItem>();
+@Output() actionClicked = new EventEmitter<string>();
+
+selectItem(item: MenuItem): void {
+  this.itemSelected.emit(item);
+}
+
+// En el componente padre (Smart) — template
+// <app-menu (itemSelected)="onItemSelected($event)" />
+```
+
+Note:
+`@Output` + `EventEmitter<T>` permite a los hijos comunicar eventos. El hijo emite describiendo qué hizo el usuario. El padre recibe y decide la acción de negocio. Es importante tipar el `EventEmitter` con genéricos para tener seguridad de tipos tanto al emitir como al recibir.
+
+---
+
+## Model Inputs: Two-way binding
+
+```typescript
+// En el componente hijo — declara una propiedad "model"
+checked = model(false);
+label = model<string>('');
+
+// En el componente padre — binding bidireccional con [()]
+// <app-toggle [(checked)]="isDarkMode" label="Modo oscuro" />
+```
+
+<br/>
+
+<div class="fragment">
+
+Reemplaza el patrón tradicional de `@Input` + `@Output(XXXChange)`
+
+Ideal para: switches, selectores, sliders, cualquier control de formulario personalizado
+
+</div>
+
+Note:
+Los Model Inputs, introducidos en Angular 17.2, simplifican el two-way binding. La función `model()` crea una propiedad que actúa como input y output simultáneamente. El hijo puede leer y escribir la propiedad como una señal normal, y Angular propaga los cambios al padre automáticamente. Esto reemplaza el patrón verboso de @Input + @Output con nombre `xxxChange`.
+
+---
+
+## Signals para estado de interfaz
+
+```typescript
+// Estado local del componente
+searchTerm = signal('');
+isSidebarOpen = signal(true);
+selectedFilters = signal<Filter[]>([]);
+
+// Valores derivados (computados) — lazy + memoizados
+sidebarWidth = computed(() =>
+  this.isSidebarOpen() ? '16rem' : '4rem'
+);
+
+isEmptyState = computed(() =>
+  this.data().length === 0 && !this.loading()
+);
+```
+
+Note:
+Las Signals son el nuevo sistema de reactividad de Angular. A diferencia de RxJS, siempre tienen un valor actual y su API es síncrona. `computed()` crea valores derivados que solo se recalculan cuando cambian sus dependencias — son lazy y memoizados. Esto es ideal para estado de UI: clases CSS condicionales, visibilidad, textos dinámicos.
+
+---
+
+## Servicio de estado global con Signals
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UIStateService {
+  private sidebarOpen = signal(true);
+  private theme = signal<'light' | 'dark'>('light');
+
+  isSidebarOpen = this.sidebarOpen.asReadonly();
+  currentTheme = this.theme.asReadonly();
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update(v => !v);
+  }
+
+  setTheme(theme: 'light' | 'dark'): void {
+    this.theme.set(theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }
+}
+```
+
+Note:
+El estado compartido se implementa con servicios que exponen Signals. `asReadonly()` expone la señal para lectura pero impide modificaciones externas — las mutaciones solo ocurren a través de los métodos del servicio. Este patrón es suficiente para estado de UI global y evita la complejidad de NgRx para casos simples.
+
+---
+
+## Sección E: viewChild y contentChild
+
+```mermaid
+graph TD
+    subgraph "viewChild — Template propio"
+        V1[Componente Padre]
+        V2[#chartCanvas]
+        V3[#searchInput]
+        V1 -->|viewChild| V2
+        V1 -->|viewChild| V3
+    end
+    
+    subgraph "contentChild — Contenido proyectado"
+        C1[Componente Padre]
+        C2[AccordionItem]
+        C3[AccordionItem]
+        C1 -->|contentChild| C2
+        C1 -->|contentChild| C3
     end
 ```
 
-### Bidireccional: <!-- .element: class="fragment" -->
-- Desde Figma: ver qué componente de diseño tiene implementación <!-- .element: class="fragment" -->
-- Desde Storybook: comparar componente desarrollado con diseño original <!-- .element: class="fragment" -->
-
 Note:
-La integración es bidireccional. Figma → Storybook: el addon-designs incrusta el diseño de Figma en una pestaña de Storybook. Storybook → Figma: el plugin Storybook Connect vincula componentes de Figma con sus stories. Un diseñador puede ver en Figma si un componente ya está implementado y navegar directamente a su story.
+`viewChild` accede a elementos que forman parte del template del propio componente. `contentChild` accede a elementos proyectados desde el padre mediante `<ng-content>`. Esta distinción es fundamental para construir componentes compuestos como acordeones, tabs, wizards.
 
 ---
 
-## Incrustar Figma en una story
+## viewChild: Acceder al DOM propio
 
 ```typescript
-const meta: Meta<ButtonComponent> = {
-  title: 'UI/Button',
-  component: ButtonComponent,
-  parameters: {
-    design: {
-      type: 'figma',
-      url: 'https://www.figma.com/file/xxxxx/Design-System?node-id=42-123',
-    },
-  },
-};
+chartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('chartCanvas');
+
+ngAfterViewInit(): void {
+  const canvas = this.chartCanvas();
+  if (canvas) {
+    new Chart(canvas.nativeElement.getContext('2d')!, {
+      type: 'bar', data: {...}, options: {...}
+    });
+  }
+}
 ```
 
-### O en MDX: <!-- .element: class="fragment" -->
-```mdx
-import { Figma } from '@storybook/addon-designs/blocks';
-
-<Figma url="https://www.figma.com/file/xxxxx/Design-System?node-id=42-123" />
-```
+### Casos de uso: <!-- .element: class="fragment" -->
+- Gráficos y visualizaciones <!-- .element: class="fragment" -->
+- Gestión del foco <!-- .element: class="fragment" -->
+- Scroll programático <!-- .element: class="fragment" -->
+- Animaciones imperativas <!-- .element: class="fragment" -->
 
 Note:
-El parámetro `design` añade una pestaña "Design" en el panel de addons con el diseño de Figma incrustado e interactivo. Se puede hacer zoom, paneo y selección de capas. Esto permite comparar directamente el componente desarrollado con el diseño original sin salir de Storybook.
+La sintaxis moderna de `viewChild` con señales devuelve una señal reactiva que se actualiza cuando el elemento está disponible. Los casos de uso más comunes: inicializar gráficos, enfocar campos automáticamente, hacer scroll al primer error de formulario, controlar animaciones complejas con la Web Animations API.
 
 ---
 
-## Sección H: Publicación y despliegue
-
-### Build estático
-```bash
-npm run build-storybook
-# Genera la carpeta storybook-static/
-```
-
-### Opciones de despliegue: <!-- .element: class="fragment" -->
-
-| Plataforma | Ventaja |
-|-----------|---------|
-| **Chromatic** | Hosting gratuito + visual testing |
-| **GitHub Pages** | Gratuito, integrado con GitHub |
-| **Netlify/Vercel** | URL pública, SSL, preview por PR |
-
-Note:
-`build-storybook` genera una carpeta estática que se puede servir desde cualquier hosting. Chromatic ofrece hosting gratuito para proyectos open-source. GitHub Pages es ideal para repos privados. Netlify y Vercel ofrecen preview deployments: cada PR tiene su propia URL para revisar antes de mergear.
-
----
-
-## Demo: Storybook completo del Button
-
-### Archivos creados:
-1. `button.stories.ts` — 12+ stories CSF3 <!-- .element: class="fragment" -->
-2. `button.stories.mdx` — Documentación narrativa <!-- .element: class="fragment" -->
-3. Play functions para click, teclado y disabled <!-- .element: class="fragment" -->
-4. Parámetro `design` con enlace a Figma <!-- .element: class="fragment" -->
-5. Todas las variantes (5), tamaños (3), estados (disabled, loading) <!-- .element: class="fragment" -->
-
-Note:
-Vamos a repasar el resultado. Un solo componente (Button) genera: 12+ stories cubriendo todas las combinaciones, documentación MDX con guías de uso, play functions que verifican interacciones, y enlace al diseño de Figma. Todo esto se ejecuta en CI/CD para garantizar que no hay regresiones. Así se documenta profesionalmente.
-
----
-
-## Demo: DataTable con play functions avanzadas
+## contentChild: Acceder a contenido proyectado
 
 ```typescript
-export const SortByColumn: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const nameHeader = canvas.getByText('Nombre');
-    await userEvent.click(nameHeader);
-    // Verificar que aparece el icono de ordenación ↑
-    await expect(nameHeader.closest('th')).toContain('↑');
-  },
-};
+@Component({
+  selector: 'app-accordion',
+  standalone: true,
+  template: `<div class="divide-y"><ng-content /></div>`,
+})
+export class AccordionComponent {
+  items = contentChildren(AccordionItemComponent);
 
-export const PaginateNext: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const nextButton = canvas.getByRole('button', { name: /siguiente/i });
-    await userEvent.click(nextButton);
-    // Verificar que cambia la página
-    await expect(canvas.getByText(/2/)).toBeInTheDocument();
-  },
-};
+  collapseAll(): void {
+    this.items().forEach(item => item.collapse());
+  }
 
-export const SelectAllRows: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const selectAll = canvas.getByRole('checkbox', { name: /seleccionar todo/i });
-    await userEvent.click(selectAll);
-    const checkboxes = canvas.getAllByRole('checkbox');
-    for (const cb of checkboxes) {
-      await expect(cb).toBeChecked();
+  expandAll(): void {
+    this.items().forEach(item => item.expand());
+  }
+}
+```
+
+Note:
+`contentChildren` (la versión plural) accede a todos los hijos proyectados. El componente Accordion recibe AccordionItems como contenido y puede invocar sus métodos públicos (collapse, expand). La comunicación se hace a través de las APIs públicas de los componentes hijos, respetando la encapsulación.
+
+---
+
+## Patrón: Foco automático en modal
+
+```typescript
+private searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
+
+showSearch(): void {
+  this.isSearchVisible.set(true);
+  afterNextRender(() => {
+    this.searchInput()?.nativeElement.focus();
+  });
+}
+```
+
+Note:
+Cuando se abre un modal o se muestra un formulario de búsqueda, es buena práctica enfocar automáticamente el primer campo. `afterNextRender` (Angular 17+) es preferible a `setTimeout` porque se integra con el ciclo de detección de cambios de Angular. La señal `searchInput` solo tendrá valor después de que Angular haya renderizado el elemento.
+
+---
+
+## Patrón: Scroll al primer error
+
+```typescript
+private formContainer = viewChild<ElementRef>('formContainer');
+
+onSubmit(): void {
+  if (this.form.invalid) {
+    this.markAllAsTouched();
+    afterNextRender(() => {
+      const firstError = this.formContainer()
+        ?.nativeElement.querySelector('.ng-invalid');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (firstError as HTMLElement)?.focus();
+    });
+  }
+}
+```
+
+Note:
+En formularios largos, tras un envío fallido, desplazamos la vista hasta el primer campo con error. Buscamos el elemento con clase `.ng-invalid` (que Angular añade automáticamente) dentro del contenedor del formulario, hacemos scroll suave y enfocamos el campo. Esto mejora drásticamente la UX en formularios extensos.
+
+---
+
+## Demo: Dashboard completo en 3 pasos
+
+### Paso 1: Smart Component DashboardPage
+```typescript
+stats = signal<StatData[]>([]);
+chartData = signal<ChartSeries[]>([]);
+recentTransactions = signal<Transaction[]>([]);
+loading = signal(true);
+
+ngOnInit(): void {
+  forkJoin({
+    stats: this.dashboardService.getStats(),
+    chart: this.dashboardService.getChartData(),
+    transactions: this.dashboardService.getRecentTransactions(),
+  }).pipe(takeUntilDestroyed()).subscribe({
+    next: ({ stats, chart, transactions }) => {
+      this.stats.set(stats);
+      this.chartData.set(chart);
+      this.recentTransactions.set(transactions);
+      this.loading.set(false);
     }
-  },
-};
+  });
+}
 ```
 
 Note:
-Para la DataTable, las play functions verifican ordenación (click en cabecera → aparece icono), paginación (click en "Siguiente" → cambia la página), selección (click en "Seleccionar todo" → todos los checkboxes checked). Son tests de integración reales en un navegador. No mockean nada.
+Vamos a construir paso a paso un dashboard profesional. Paso 1: el Smart Component obtiene datos de 3 endpoints en paralelo con `forkJoin`. Almacena los resultados en Signals. `takeUntilDestroyed()` limpia automáticamente.
 
 ---
 
-## Actividad en clase: Instalar y crear primeras stories
+## Demo: Dashboard (Paso 2)
 
-**Duración:** 60 minutos
+### Template del Smart Component
+```html
+<div class="flex h-screen bg-gray-50">
+  <app-sidebar [collapsed]="sidebarCollapsed()" />
 
-**Objetivo:** Instalar Storybook, configurar Tailwind y crear stories para el Button
+  <div class="flex flex-1 flex-col overflow-hidden">
+    <app-header-bar (menuToggle)="toggleSidebar()" />
 
-**Entregable:** Storybook funcionando con al menos 8 stories del Button
-
-### Pasos: <!-- .element: class="fragment" -->
-1. `npx storybook@latest init` en el proyecto Angular <!-- .element: class="fragment" -->
-2. Configurar `preview.ts` para importar Tailwind <!-- .element: class="fragment" -->
-3. Configurar viewports (mobile, tablet, desktop) <!-- .element: class="fragment" -->
-4. Crear `button.stories.ts` con 5 variantes + disabled + loading + small/large <!-- .element: class="fragment" -->
-5. Ejecutar `npm run storybook` y verificar <!-- .element: class="fragment" -->
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        @for (stat of stats(); track stat.id) {
+          <app-stat-card [data]="stat" />
+        }
+      </div>
+      <!-- Más secciones con ChartWidget y DataTable -->
+    </main>
+  </div>
+</div>
+```
 
 Note:
-Manos a la obra. Instalad Storybook en vuestro proyecto Angular. El paso más crítico es la importación de Tailwind en `preview.ts` — sin eso, los componentes aparecerán sin estilos. Cread al menos 8 stories: 5 variantes, disabled, loading, y 2 tamaños. Si os da tiempo, añadid una play function de click.
+El template es pura composición: sidebar, header, grid de stat-cards, gráficos y tablas. Cada sección es un componente presentacional que recibe datos. La nueva sintaxis `@for` de Angular 17 reemplaza a `*ngFor` con mejor rendimiento y soporte de `track`.
+
+---
+
+## Demo: Dashboard (Paso 3)
+
+### Presentational Component StatCard
+```typescript
+@Component({
+  selector: 'app-stat-card',
+  standalone: true,
+  imports: [NgClass, CurrencyPipe],
+  template: `
+    <div class="rounded-xl border border-gray-200 bg-white p-6
+                shadow-sm transition-shadow hover:shadow-md">
+      <p class="text-sm font-medium text-gray-500">{{ data.label }}</p>
+      <p class="mt-3 text-3xl font-bold text-gray-900">
+        {{ data.value | currency:'EUR' }}
+      </p>
+      <span [ngClass]="data.trend >= 0 ? 'text-green-600' : 'text-red-600'">
+        {{ data.trend >= 0 ? '↑' : '↓' }} {{ data.trend }}%
+      </span>
+    </div>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class StatCardComponent {
+  @Input({ required: true }) data!: StatData;
+}
+```
+
+Note:
+El StatCard es presentacional puro: un solo @Input requerido, sin dependencias de servicios, con OnPush para rendimiento. El template usa Tailwind con transiciones (hover:shadow-md) y pipes de Angular (currency). Así de limpio debe ser un componente presentacional.
+
+---
+
+## Actividad en clase: Construir un UserProfilePage
+
+**Duración:** 90 minutos
+
+**Objetivo:** Aplicar el patrón Smart/Presentational construyendo una página de perfil de usuario
+
+**Entregable:** `UserProfilePage` (Smart) + `ProfileCard`, `ActivityList`, `SettingsForm` (Presentational)
+
+### Requisitos: <!-- .element: class="fragment" -->
+1. Smart que obtenga datos de un servicio <!-- .element: class="fragment" -->
+2. Signals para estado de UI (loading, error, data) <!-- .element: class="fragment" -->
+3. Presentational components con @Input/@Output <!-- .element: class="fragment" -->
+4. Tailwind para estilos, OnPush en todos <!-- .element: class="fragment" -->
+
+Note:
+Vais a aplicar todo lo aprendido en un ejercicio práctico. Construiréis una página de perfil de usuario con el patrón Smart/Presentational. El Smart obtiene datos del servicio. Los Presentational reciben datos y emiten eventos. Usad Signals, Tailwind y OnPush. Al final compararemos soluciones.
 
 ---
 
 ## Buenas prácticas
 
-1. <mark>Una story por estado/variante</mark>, no una story monolítica <!-- .element: class="fragment" -->
-2. `tags: ['autodocs']` en todos los componentes <!-- .element: class="fragment" -->
-3. Nombres descriptivos en <mark>CamelCase</mark>: `Primary`, `WithIcon`, `DisabledState` <!-- .element: class="fragment" -->
-4. Jerarquía de títulos: `Atoms/Button`, `Molecules/SearchBar`, `Organisms/Header` <!-- .element: class="fragment" -->
-5. <mark>Play functions</mark> para interacciones críticas <!-- .element: class="fragment" -->
-6. MDX cubre el <mark>"por qué" y "cuándo"</mark>, autodocs cubre el "qué" <!-- .element: class="fragment" -->
+1. <mark>Un componente = una responsabilidad</mark> (SRP) <!-- .element: class="fragment" -->
+2. Standalone + imports explícitos siempre <!-- .element: class="fragment" -->
+3. Signals para estado de UI, RxJS para datos asíncronos <!-- .element: class="fragment" -->
+4. `takeUntilDestroyed()` — nunca gestionar suscripciones manualmente <!-- .element: class="fragment" -->
+5. `ChangeDetectionStrategy.OnPush` en todos los componentes <!-- .element: class="fragment" -->
+6. Si un componente se usa en 2+ features → mover a `shared/` <!-- .element: class="fragment" -->
 
 Note:
-Seis prácticas que marcan la diferencia. La más importante: una story por estado/variante. No creéis una sola story "Button" con 10 controles. "Primary", "Secondary", "Disabled", "Loading" como stories separadas son mucho más útiles. La jerarquía de títulos (`Atoms/`, `Molecules/`, `Organisms/`) organiza los componentes según Atomic Design.
-
----
-
-## Buenas prácticas (continuación)
-
-7. Mantener las `.stories.ts` <mark>junto al componente</mark>, no en carpeta centralizada <!-- .element: class="fragment" -->
-8. Usar <mark>datos mock realistas</mark>, no "Lorem ipsum" <!-- .element: class="fragment" -->
-9. <mark>Versionar stories</mark> junto con el componente en el mismo commit <!-- .element: class="fragment" -->
-10. Auditoría de accesibilidad <mark>limpia</mark> antes de dar por terminado <!-- .element: class="fragment" -->
-11. <mark>No mockear servicios</mark> en stories de componentes presentacionales <!-- .element: class="fragment" -->
-12. <mark>Publicar Storybook</mark> — uno local no sirve al equipo <!-- .element: class="fragment" -->
-
-Note:
-Más prácticas importantes. Las stories deben estar en la misma carpeta que el componente (`button.component.ts` y `button.stories.ts` juntos). Los datos mock deben parecer reales: "María García" en lugar de "John Doe". Si una story necesita mockear servicios, es señal de que el componente es Smart y debería dividirse. Y publicad Storybook: uno que solo existe en local no ayuda al equipo.
+Estas 6 prácticas marcan la diferencia entre un proyecto mantenible y uno caótico. OnPush en todos los componentes mejora el rendimiento. `takeUntilDestroyed()` evita memory leaks. La regla de "2+ features → shared/" mantiene el catálogo de componentes reutilizables actualizado.
 
 ---
 
 ## Errores frecuentes
 
-1. ❌ <mark>No importar Tailwind</mark> en `preview.ts` → componentes sin estilos <!-- .element: class="fragment" -->
-2. ❌ Stories que no reflejan el estado real tras cambios en la API <!-- .element: class="fragment" -->
-3. ❌ No configurar <mark>viewports</mark> → bugs solo visibles en responsive <!-- .element: class="fragment" -->
-4. ❌ Ignorar violaciones de <mark>a11y</mark> — acumular deuda de accesibilidad <!-- .element: class="fragment" -->
-5. ❌ Usar `<div onclick>` en lugar de `<button>` — la auditoría a11y lo detecta <!-- .element: class="fragment" -->
-6. ❌ No incluir build de Storybook en <mark>CI</mark> → errores pasan desapercibidos <!-- .element: class="fragment" -->
+1. ❌ Crear "componentes Dios" que hacen de todo <!-- .element: class="fragment" -->
+2. ❌ Usar `::ng-deep` sin considerar alternativas <!-- .element: class="fragment" -->
+3. ❌ Inyectar servicios en componentes presentacionales <!-- .element: class="fragment" -->
+4. ❌ No limpiar suscripciones en ngOnDestroy <!-- .element: class="fragment" -->
+5. ❌ `ViewEncapsulation.None` sin motivo justificado <!-- .element: class="fragment" -->
+6. ❌ Olvidar `track` en `@for` <!-- .element: class="fragment" -->
 
 Note:
-El error más común: olvidar importar Tailwind en preview.ts. El resultado es un Storybook lleno de componentes sin estilos. Segundo error: no actualizar las stories cuando el componente cambia. Tercero: no configurar viewports — muchos bugs de diseño solo son visibles en móvil. Y el más grave: ignorar las violaciones de accesibilidad. Un componente no está "done" hasta que pasa a11y.
+Estos son los errores que más veo en proyectos reales. El "componente Dios" es el más común y el más dañino. Inyectar servicios en presentacionales rompe la reutilización. No limpiar suscripciones causa memory leaks difíciles de detectar. `::ng-deep` está deprecado — usad variables CSS o inputs de estilo como alternativa.
 
 ---
 
 ## Resumen
 
 ```mermaid
-graph TD
-    A[Storybook] --> B[CSF3 Stories<br/>1 por variante]
-    A --> C[MDX Docs<br/>por qué + cuándo]
-    A --> D[Addons<br/>Controls, a11y, Viewport, Figma]
-    A --> E[Testing<br/>Play functions + a11y]
-    A --> F[Chromatic<br/>Visual testing + deploy]
-    A --> G[CI/CD<br/>GitHub Actions]
+graph LR
+    A[Standalone<br/>Components] --> B[Smart vs<br/>Presentational]
+    B --> C[@Input / @Output<br/>Model Inputs]
+    C --> D[Signals<br/>para UI State]
+    D --> E[viewChild<br/>contentChild]
+    E --> F[Arquitectura<br/>Feature-based]
 ```
 
 Note:
-Hemos cubierto: instalación y configuración en Angular, escritura de stories CSF3 con una story por variante/estado, documentación MDX que explica el "por qué" y el "cuándo", addons esenciales (Controls, a11y, Figma), testing de interacciones con play functions, testing visual con Chromatic, y publicación automatizada con CI/CD. Storybook es la herramienta que profesionaliza vuestro desarrollo de componentes.
+Hemos cubierto: Standalone Components como base, patrón Smart/Presentational para separar responsabilidades, comunicación con @Input/@Output/Model Inputs, Signals para estado de UI reactivo, viewChild/contentChild para manipulación del DOM, y estructura feature-based para proyectos escalables. Todo esto forma la base sobre la que construiréis interfaces profesionales.
 
 ---
 
-## Próximos pasos tras el módulo
+## Próximos pasos
 
-- Aplicar todo lo aprendido en el <mark>proyecto integrador</mark> <!-- .element: class="fragment" -->
-- Construir el Design System completo con Storybook <!-- .element: class="fragment" -->
-- Implementar CI/CD con Chromatic y GitHub Actions <!-- .element: class="fragment" -->
-- Compartir el Storybook desplegado con el equipo <!-- .element: class="fragment" -->
+### Unidad 07 — Componentes Reutilizables
 
-### Recursos: <!-- .element: class="fragment" -->
-- [storybook.js.org](https://storybook.js.org) — Documentación oficial <!-- .element: class="fragment" -->
-- [chromatic.com](https://chromatic.com) — Visual testing <!-- .element: class="fragment" -->
-- [Figma Tokens](https://tokens.studio) — Sincronización diseño-código <!-- .element: class="fragment" -->
+- Catálogo de 14 componentes UI <!-- .element: class="fragment" -->
+- Proyección de contenido con ng-content <!-- .element: class="fragment" -->
+- Accesibilidad (ARIA, teclado, foco) <!-- .element: class="fragment" -->
+- Estados de interfaz: loading, empty, error, data <!-- .element: class="fragment" -->
+- Patrón: interfaz TypeScript → template Tailwind → tests <!-- .element: class="fragment" -->
 
 Note:
-Esto no termina aquí. En el proyecto integrador aplicaréis todo: arquitectura Smart/Presentational, catálogo de componentes, formularios avanzados, Design System con tokens, y Storybook para documentación y testing. El objetivo es que entreguéis un proyecto profesional con documentación viva y testing automatizado.
-
----
-
-## ¡Gracias! ¿Preguntas?
-
-### Repaso rápido:
-- ¿Qué formato usamos para escribir stories? <!-- .element: class="fragment" -->
-- ¿Qué addon audita la accesibilidad? <!-- .element: class="fragment" -->
-- ¿Para qué sirven las play functions? <!-- .element: class="fragment" -->
-- ¿Qué es Chromatic? <!-- .element: class="fragment" -->
-
-Note:
-Cuatro preguntas de cierre. 1) CSF3 (Component Story Format 3) con Meta y StoryObj. 2) @storybook/addon-a11y, basado en axe-core. 3) Para simular interacciones del usuario y verificar el comportamiento resultante — tests de integración en navegador real. 4) Servicio de visual testing que captura screenshots de cada story y detecta regresiones visuales píxel a píxel. ¿Alguna duda final?
+En la próxima unidad construiremos un catálogo completo de componentes reutilizables siguiendo todo lo aprendido hoy. Veremos proyección de contenido, accesibilidad como parte integral del diseño, y gestión consistente de los 4 estados de interfaz. ¡Traed los ordenadores preparados para codificar!

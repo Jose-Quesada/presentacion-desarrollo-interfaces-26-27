@@ -1,624 +1,702 @@
-
-<!-- .slide: data-background="#0f172a" -->
-## Módulo 0488 · Desarrollo de Interfaces
-### Unidad 13: Tailwind CSS 4 en Desarrollo de Interfaces
-
-Filosofía Utility-First · @theme · Vite · Clases Clave · Técnicas Avanzadas
-
-<small>CFGS DAM · Curso 2025/26</small>
-
-Note:
-Tailwind CSS 4 es un salto cualitativo. Abandona el archivo JS de configuración y adopta CSS nativo con @theme. Vamos a ver por qué el debate "CSS vs Tailwind" está mal planteado: Tailwind ES CSS. Cada clase como `flex` o `p-4` compila directamente a propiedades CSS. No hay magia, no hay runtime. Pregunta: ¿quién ha usado Tailwind antes? ¿CSS tradicional?
+# Unidad 13 — Design Systems
 
 ---
 
-<!-- .slide: data-background="#f8fafc" -->
-## 🎯 Objetivos de Aprendizaje
+## Portada
 
-1. Comprender la filosofía <mark>utility-first</mark> y cuándo aporta ventajas reales
-2. Configurar Tailwind 4 en Angular con Vite y `@theme`
-3. Organizar CSS en proyectos Angular: globales, plantillas, `@apply` moderado
-4. Dominar clases clave: layout, espaciado, colores, tipografía, estados, responsive
-5. Aplicar técnicas avanzadas: valores arbitrarios, `peer`, `group`, `has-*`
-6. Utilizar <mark>Tailwind CSS IntelliSense</mark> para productividad
+### Módulo 0488 — Desarrollo de Interfaces
+## Design Systems
+#### Atomic Design + Design Tokens + Tailwind 4 @theme + ThemeProvider
 
 Note:
-6 objetivos progresivos: del "por qué" al "cómo hacerlo bien". El objetivo 3 es crítico: mucha gente abusa de @apply y recrea los problemas del CSS tradicional dentro de Tailwind. La regla: Tailwind en HTML para todo, @apply como excepción muy justificada.
+Bienvenidos a la Unidad 9. Hoy vamos a construir un Design System completo. Veremos qué es realmente un Design System, cómo aplicar Atomic Design en Angular, cómo definir Design Tokens y sincronizarlos entre Figma y código, y cómo implementar un ThemeProvider para cambiar temas en tiempo real. Esta unidad conecta diseño y desarrollo.
 
 ---
 
-<!-- .slide: data-background="#f8fafc" -->
-## 🤔 Motivación: CSS Tradicional vs Tailwind
+## Objetivos de aprendizaje
 
-<div class="mermaid">
+- Comprender qué es un <mark>Design System</mark> y su valor estratégico <!-- .element: class="fragment" -->
+- Aplicar <mark>Atomic Design</mark> (átomos → moléculas → organismos → templates → páginas) <!-- .element: class="fragment" -->
+- Definir <mark>Design Tokens</mark> como fuente única de verdad <!-- .element: class="fragment" -->
+- Implementar tokens con <mark>Tailwind 4 @theme</mark> <!-- .element: class="fragment" -->
+- Analizar Design Systems reales (Material 3, Ant, Carbon) <!-- .element: class="fragment" -->
+- Construir <mark>ThemeProvider</mark> con Signals (claro/oscuro/high-contrast) <!-- .element: class="fragment" -->
+
+Note:
+Seis objetivos ambiciosos. El más transformador: entender que un Design System es mucho más que una librería de componentes — es un lenguaje visual compartido entre diseño y desarrollo que acelera la construcción de interfaces consistentes.
+
+---
+
+## Motivación: 15 pantallas, 8 azules diferentes
+
+```mermaid
 graph TD
-    CSS[CSS Tradicional en equipos] --> P1[Guerras de naming<br/>.btn-primary vs .button-main]
-    CSS --> P2[Especificidad descontrolada<br/>.main .card .header .title]
-    CSS --> P3[CSS muerto<br/>clases que nadie se atreve a borrar]
-    CSS --> P4[Inconsistencia<br/>padding: 15px vs 16px]
-    TW[Tailwind] --> S1[Sin nombres: clases en HTML]
-    TW --> S2[Especificidad plana: 0-1-0]
-    TW --> S3[JIT genera solo CSS usado]
-    TW --> S4[Escala predefinida: p-4 = 16px siempre]
-</div>
+    A[App sin Design System] --> B[Pantalla 1: azul #3B82F6]
+    A --> C[Pantalla 2: azul #2563EB]
+    A --> D[Pantalla 3: azul #1D4ED8]
+    A --> E[Pantalla 4: azul #4F46E5]
+    
+    B --> F[Resultado: inconsistencia visual]
+    C --> F
+    D --> F
+    E --> F
+```
+
+### Sin Design System: caos. Con Design System: armonía.
 
 Note:
-Estos 4 problemas son reales en equipos de 5+ personas. Tailwind los resuelve de raíz eliminando la capa de nombres. El JIT (Just-In-Time) escanea tus plantillas y solo genera el CSS que usas. En un proyecto Angular típico, el CSS generado rara vez supera los 15-20 KB comprimidos. El sistema de diseño viene embebido: no necesitas acordar manualmente qué tono de azul usar.
+Sin un Design System, cada desarrollador elige colores, tamaños y espaciados ligeramente diferentes. El resultado es una aplicación que se siente "rara" aunque el usuario no sepa explicar por qué. Un Design System establece reglas: un solo azul primario, una escala tipográfica, un sistema de espaciado. Todo coherente.
 
 ---
 
-## 🔑 Premisa Fundamental
+## Sección A: Qué es un Design System
 
-<mark>Tailwind NO reemplaza saber CSS. Todo lo contrario.</mark>
-
-| Clase Tailwind | CSS generado |
-|----------------|-------------|
-| `flex` | `display: flex` |
-| `items-center` | `align-items: center` |
-| `justify-between` | `justify-content: space-between` |
-| `gap-4` | `gap: 1rem` |
-| `p-4` | `padding: 1rem` |
-| `text-lg` | `font-size: 1.125rem; line-height: 1.75rem` |
-
-<mark>Si no sabes qué hace `justify-between`, no sabrás usar Tailwind</mark>
+```mermaid
+graph TB
+    DS[Design System] --> P[Principios de diseño]
+    DS --> T[Design Tokens]
+    DS --> C[Componentes]
+    DS --> PT[Patrones]
+    DS --> D[Documentación]
+    
+    T --> T1[Colores]
+    T --> T2[Tipografía]
+    T --> T3[Espaciado]
+    T --> T4[Sombras]
+    T --> T5[Bordes]
+    
+    C --> C1[Átomos]
+    C --> C2[Moléculas]
+    C --> C3[Organismos]
+```
 
 Note:
-Esta transparencia es la clave. Cada clase de Tailwind es una traducción directa de CSS. No hay abstracción mágica. Si no entiendes flexbox, no entenderás por qué `items-center` no funciona en un contenedor sin `flex`. Estudia CSS primero, Tailwind después. Tailwind acelera a quien ya sabe CSS; confunde a quien no.
+Un Design System tiene 5 componentes fundamentales. Principios: valores que guían decisiones. Tokens: variables que definen colores, tipografía, espaciado. Componentes: implementaciones reutilizables. Patrones: combinaciones frecuentes. Documentación: Storybook, guías de uso. Es la materialización de la identidad visual en herramientas reutilizables.
 
 ---
 
-## 📦 Instalación de Tailwind 4 en Angular
+## Beneficios medibles de un Design System
 
-```bash
-# Paso 1: Instalar paquetes
-npm install tailwindcss @tailwindcss/vite
+| Beneficio | Impacto |
+|-----------|---------|
+| <mark>Consistencia visual</mark> | Misma paleta, tipografía y espaciado en toda la app |
+| <mark>Velocidad</mark> | 25-50% menos tiempo en nuevas funcionalidades |
+| <mark>Escalabilidad</mark> | Nuevos productos sobre la misma base |
+| <mark>Comunicación</mark> | Lenguaje compartido diseño-desarrollo |
+| <mark>Onboarding</mark> | Catálogo documentado para nuevos miembros |
 
-# Paso 2: Configurar vite.config.ts
+Note:
+Los beneficios son sustanciales y medibles. Empresas como Shopify, Airbnb y Uber reportan reducciones de 25-50% en tiempo de desarrollo tras implementar un Design System. El onboarding de nuevos desarrolladores pasa de semanas a días porque tienen un catálogo documentado de qué existe y cómo usarlo.
+
+---
+
+## Sección B: Atomic Design
+
+```mermaid
+graph TB
+    A[Átomos<br/>Tokens, HTML nativo<br/>Badge, Avatar, Icon] --> M[Moléculas<br/>FormField, SearchBar<br/>Card, NavItem]
+    M --> O[Organismos<br/>Header, DataTable<br/>Modal, ProductForm]
+    O --> T[Templates<br/>LayoutComponent<br/>Estructura de página]
+    T --> P[Páginas<br/>DashboardPage<br/>ProductsPage]
 ```
-```typescript
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
 
-export default defineConfig({
-  plugins: [tailwindcss()]
-});
-```
+Note:
+Atomic Design, creado por Brad Frost, organiza interfaces en 5 niveles jerárquicos. Cada nivel compone al anterior. Átomos: elementos más básicos (botones, inputs, tokens). Moléculas: combinaciones con propósito (FormField = label + input + error). Organismos: secciones complejas (Header con nav + search + user menu). Templates: estructuras de página. Páginas: instancias concretas con datos reales.
 
-**Paso 3**: Añadir al inicio de `src/styles.css`:
+---
+
+## Átomos: Los bloques fundamentales
+
 ```css
-@import "tailwindcss";
-```
-
-<mark>Tailwind 4: sin tailwind.config.js, sin content scanning manual</mark>
-
-Note:
-3 pasos y Tailwind está funcionando. En Tailwind 3 necesitabas un archivo JS de configuración con content paths. En v4, el plugin de Vite detecta automáticamente todos los archivos que procesa (plantillas Angular, TypeScript). El `@import "tailwindcss"` reemplaza las antiguas directivas `@tailwind base/components/utilities`. Más simple, más estándar.
-
----
-
-## 🎨 Configuración @theme con Colores oklch
-
-```css
+/* styles/tokens.css — @theme de Tailwind 4 */
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: oklch(0.97 0.01 255);
-  --color-primary-100: oklch(0.93 0.03 255);
-  --color-primary-300: oklch(0.75 0.11 255);
-  --color-primary-500: oklch(0.62 0.19 255);
-  --color-primary-700: oklch(0.47 0.17 255);
-  --color-primary-900: oklch(0.28 0.10 255);
+  /* Colores semánticos */
+  --color-primary: var(--color-blue-600);
+  --color-primary-hover: var(--color-blue-700);
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
 
-  --color-success-500: oklch(0.62 0.19 145);
-  --color-danger-500: oklch(0.55 0.22 25);
+  /* Tipografía */
+  --font-family-sans: 'Inter', ui-sans-serif, system-ui;
 
-  --font-family-sans: 'Inter', system-ui, sans-serif;
-  --radius-button: 0.5rem;
-  --radius-card: 0.75rem;
+  /* Escala tipográfica modular */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  /* Espaciado (baseline 4px) */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
 }
 ```
 
 Note:
-oklch es un espacio de color perceptualmente uniforme. Cambios iguales en sus coordenadas producen cambios visuales iguales. Esto facilita crear escalas de color: mismo tono (cuarto parámetro), varías la luminosidad (primer parámetro). Al definir `--color-primary-500`, automáticamente tienes `bg-primary-500`, `text-primary-500`, `border-primary-500`, etc. IntelliSense lo detecta y autocompleta.
+En Angular + Tailwind, los átomos no suelen ser componentes independientes, sino tokens definidos en `@theme` y estilos base para elementos HTML. Los tokens definen colores, tipografía y espaciado. Las clases utilitarias de Tailwind se generan automáticamente a partir de estos tokens. Podéis usar `bg-primary`, `text-success`, `p-4`, etc.
 
 ---
 
-## 🏗️ Organización del CSS en Angular + Tailwind
-
-<div class="mermaid">
-graph TD
-    A[3 niveles de CSS] --> B["1. styles.css<br/>@import tailwind + @theme<br/>< 50 líneas"]
-    A --> C["2. Clases en plantillas<br/>ESTÁNDAR<br/>class='flex gap-4 p-6...'"]
-    A --> D["3. @apply en .component.css<br/>EXCEPCIÓN<br/>solo si mucha repetición"]
-    D --> E{¿Repites las mismas<br/>8 clases en 20 td?}
-    E -->|Sí| F[.td-base { @apply px-4 py-3... }]
-    E -->|No| G[❌ No uses @apply<br/>extrae un componente]
-</div>
-
-Note:
-Regla de los 3 niveles. El nivel 1 es mínimo: solo @import y @theme. El nivel 2 es donde vive el 95% de tu CSS: directamente en el HTML. El nivel 3 es la excepción, no la regla. Si necesitas @apply constantemente, probablemente necesitas crear un componente Angular, no luchar contra Tailwind. El antipatrón: usar @apply para recrear .btn-primary en un archivo global.
-
----
-
-## 📐 Clases de Layout Esenciales
-
-| Categoría | Clases | Uso |
-|-----------|--------|-----|
-| **Flex** | `flex`, `flex-col`, `flex-row`, `flex-wrap`, `flex-1` | Contenedor flexible |
-| **Alineación** | `items-center`, `justify-between`, `justify-center` | Ejes de flex/grid |
-| **Grid** | `grid`, `grid-cols-3`, `col-span-2`, `gap-6` | Cuadrícula |
-| **Tamaño** | `w-full`, `h-screen`, `min-h-screen`, `max-w-lg` | Ancho y alto |
-| **Posición** | `relative`, `absolute`, `fixed`, `sticky`, `inset-0` | Posicionamiento |
-| **Centrado** | `mx-auto`, `container` | Centrar horizontalmente |
-
-```html
-<div class="flex items-center justify-between gap-4">
-  <span>Logo</span>
-  <nav class="hidden md:flex gap-2">...</nav>
-</div>
-```
-
-Note:
-Estas 6 categorías cubren el 90% del layout en aplicaciones de gestión. `flex items-center justify-between` es probablemente la combinación más usada: crea una barra horizontal con elementos espaciados. `min-h-screen` garantiza que el contenido ocupe al menos toda la ventana, esencial en layouts de dashboard.
-
----
-
-## 🎨 Clases de Color
-
-| Uso | Clase | Significado |
-|-----|-------|-------------|
-| Texto | `text-gray-900` | Texto principal oscuro |
-| Texto secundario | `text-gray-500` | Texto menos importante |
-| Fondo | `bg-white` | Fondo blanco |
-| Fondo página | `bg-gray-50` | Fondo ligeramente gris |
-| Borde | `border-gray-200` | Borde sutil |
-| Primario | `bg-primary-500`, `text-primary-600` | Acción principal |
-
-<mark>Paleta con 22 colores × 11 tonos (50-950) → 242 clases de color</mark>
-
-```
-bg-{color}-{tono}   text-{color}-{tono}   border-{color}-{tono}
-ring-{color}-{tono}  accent-{color}-{tono}
-```
-
-Note:
-Tailwind incluye una paleta científicamente diseñada: slate, gray, zinc, neutral, stone, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, purple, fuchsia, pink, rose. Cada uno con 11 tonos. Tus colores personalizados en @theme siguen el mismo patrón. La clase `bg-primary-500` existe automáticamente si definiste `--color-primary-500`.
-
----
-
-## 🔤 Clases de Tipografía
-
-| Clase | Tamaño | Uso típico |
-|-------|--------|------------|
-| `text-xs` | 12px / 0.75rem | Badges, labels pequeñas |
-| `text-sm` | 14px / 0.875rem | Texto de tabla, secundario |
-| `text-base` | 16px / 1rem | Texto cuerpo por defecto |
-| `text-lg` | 18px / 1.125rem | Subtítulos |
-| `text-xl` | 20px / 1.25rem | Títulos de sección |
-| `text-2xl` | 24px / 1.5rem | Títulos de página |
-| `text-3xl` | 30px / 1.875rem | Valores destacados (dashboard) |
-| `text-4xl` | 36px / 2.25rem | Valor principal KPI |
-
-Peso: `font-normal`, `font-medium`, `font-semibold`, `font-bold`
-
-Utilidades: `truncate`, `line-clamp-2`, `text-center`, `leading-relaxed`
-
-Note:
-La escala tipográfica de Tailwind es mobile-first y cubre todas las necesidades. `truncate` es esencial en celdas de tabla: aplica `overflow:hidden; text-overflow:ellipsis; white-space:nowrap` en una clase. `line-clamp-2` limita a 2 líneas con puntos suspensivos, ideal para previews de texto.
-
----
-
-## 🎯 Estados Interactivos
-
-```html
-<!-- Botón completo con todos los estados -->
-<button class="
-  bg-primary-500 text-white px-4 py-2 rounded-lg font-medium
-  hover:bg-primary-600
-  active:bg-primary-700
-  focus-visible:ring-2 focus-visible:ring-primary-500
-  focus-visible:ring-offset-2 focus-visible:outline-none
-  disabled:opacity-50 disabled:cursor-not-allowed
-  transition-colors duration-200
-">
-  Guardar cambios
-</button>
-```
-
-| Variante | Gatillo | Ejemplo |
-|----------|---------|---------|
-| `hover:` | Ratón encima | `hover:bg-primary-600` |
-| `focus:` | Elemento enfocado | `focus:ring-2` |
-| `active:` | Clic presionado | `active:scale-95` |
-| `disabled:` | `[disabled]` | `disabled:opacity-50` |
-| `focus-visible:` | Foco por teclado | `focus-visible:ring-2` |
-| `dark:` | Modo oscuro | `dark:bg-gray-800` |
-
-Note:
-Las variantes se anteponen a cualquier clase. `focus-visible` es preferible a `focus` porque solo muestra el anillo cuando navegas con teclado, no al hacer clic. `transition-colors duration-200` suaviza los cambios de color. La variante `dark:` permite modo oscuro: defines `bg-white dark:bg-gray-900` y Tailwind genera ambas versiones.
-
----
-
-## 📱 Clases Responsive
-
-```html
-<!-- Mobile-first: 1 col → 2 col (md) → 4 col (xl) -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 1</div>
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 2</div>
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 3</div>
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 4</div>
-</div>
-```
-
-| Breakpoint | Ancho mínimo | Dispositivo típico |
-|------------|-------------|-------------------|
-| (base) | 0px | Móvil |
-| `sm:` | 640px | Móvil grande / tablet pequeña |
-| `md:` | 768px | Tablet |
-| `lg:` | 1024px | Portátil / desktop |
-| `xl:` | 1280px | Desktop estándar |
-| `2xl:` | 1536px | Desktop grande |
-
-Note:
-Mobile-first significa que las clases sin prefijo son para móvil y los prefijos añaden estilos hacia arriba. `grid-cols-1 md:grid-cols-2` = 1 columna en móvil, 2 desde tablet. NUNCA escribas `lg:grid-prefix` seguido de clase sin prefijo que la anule. El orden correcto es: clase base primero, luego variantes responsive.
-
----
-
-## ⚔️ Caso Práctico: Navbar CSS Tradicional vs Tailwind
-
-<div style="display: flex; gap: 1rem; font-size: 0.5em;">
-
-<div style="flex: 1;">
-
-**CSS Tradicional** (~25 líneas)
-```css
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1rem;
-  height: 4rem;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-}
-.navbar-logo { font-weight: 700; font-size: 1.25rem; }
-.navbar-links { display: none; gap: 0.5rem; }
-.navbar-link {
-  padding: 0.5rem 0.75rem;
-  color: #4b5563;
-  border-radius: 0.5rem;
-}
-.navbar-link:hover { background: #f3f4f6; }
-@media (min-width: 768px) { .navbar-links { display: flex; } }
-```
-
-</div>
-<div style="flex: 1;">
-
-**Tailwind** (~10 líneas HTML)
-```html
-<nav class="flex items-center
-  justify-between px-4 h-16
-  bg-white border-b
-  border-gray-200">
-  <span class="text-xl font-bold
-    text-gray-900">Logo</span>
-  <div class="hidden md:flex
-    items-center gap-2">
-    <a class="px-3 py-2 text-sm
-      text-gray-600 rounded-lg
-      hover:bg-gray-100">Inicio</a>
-  </div>
-</nav>
-```
-
-</div>
-</div>
-
-Note:
-Comparativa lado a lado. CSS tradicional: 25 líneas en un archivo separado, necesitas cambiar de archivo para entender el estilo. Tailwind: las clases están en el HTML, ves todo de un vistazo. La media query está implícita en `md:flex`. Sin archivos CSS adicionales. Sin colisiones de nombres. Sin CSS muerto: si eliminas el nav del HTML, el CSS desaparece automáticamente.
-
----
-
-## 🧪 Técnicas Avanzadas
-
-### Valores Arbitrarios
-```html
-<div class="w-[300px] h-[calc(100vh-4rem)] bg-[#bada55] 
-            grid-cols-[200px_1fr_200px]">
-```
-
-### Peer: reaccionar al estado de un hermano
-```html
-<input class="peer" required />
-<p class="hidden peer-invalid:block text-red-500">
-  Este campo es obligatorio
-</p>
-```
-
-### Group: reaccionar al estado del padre
-```html
-<div class="group">
-  <h2 class="group-hover:text-blue-500">Título</h2>
-</div>
-```
-
-### Has: estilizar padre según descendiente
-```html
-<fieldset class="has-[:invalid]:border-red-500">
-  <input required />
-</fieldset>
-```
-
-Note:
-Valores arbitrarios con `[]` para cuando necesitas salirte de la escala. Úsalos con moderación: si un valor se repite, promociónalo a token en @theme. `peer` y `group` evitan lógica TypeScript innecesaria: en lugar de un flag `isInvalid` que maneje clases, delegas al CSS. `has-*` es potente para formularios: el fieldset entero se marca como error si algún hijo es inválido.
-
----
-
-## 🌓 Modo Oscuro con Tailwind
+## Moléculas: SearchBar
 
 ```typescript
-// theme.service.ts
+@Component({
+  selector: 'ui-search-bar',
+  standalone: true,
+  template: `
+    <div class="relative">
+      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <svg class="h-5 w-5 text-gray-400" aria-hidden="true">...</svg>
+      </div>
+      <input
+        type="search"
+        [placeholder]="placeholder()"
+        [value]="value()"
+        (input)="onInput($event)"
+        (keydown.escape)="clear()"
+        class="block w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-10 text-sm
+               placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500" />
+      @if (value()) {
+        <button type="button"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                (click)="clear()" aria-label="Limpiar búsqueda">✕</button>
+      }
+    </div>
+  `,
+})
+export class SearchBarComponent {
+  value = model('');
+  placeholder = input('Buscar...');
+  search = output<string>();
+}
+```
+
+Note:
+La SearchBar es un ejemplo perfecto de molécula: combina un input (átomo), un icono de lupa (átomo), un botón de limpiar (átomo) y lógica de interacción. Usa `model()` para two-way binding del valor. El botón X solo aparece si hay texto. Escape limpia el campo. Todo con clases Tailwind.
+
+---
+
+## Organismos: Header
+
+```typescript
+@Component({
+  selector: 'app-header',
+  standalone: true,
+  imports: [SearchBarComponent, ThemeToggleComponent, DropdownComponent],
+  template: `
+    <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
+      <div class="flex h-16 items-center gap-4 px-4 sm:px-6">
+        <a routerLink="/" class="flex items-center gap-2">
+          <img src="logo.svg" alt="Logo" class="h-8 w-auto" />
+          <span class="text-lg font-bold text-gray-900">Brand</span>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-1 ml-8">
+          @for (item of navItems(); track item.label) {
+            <a [routerLink]="item.route"
+               class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+               routerLinkActive="bg-gray-100 text-gray-900">
+              {{ item.label }}
+            </a>
+          }
+        </nav>
+
+        <div class="flex-1"></div>
+        <div class="hidden lg:block w-80"><ui-search-bar /></div>
+        <ui-theme-toggle />
+        <ui-dropdown [items]="userMenuItems()">
+          <button dropdown-trigger>
+            <ui-avatar [name]="userName()" size="sm" />
+          </button>
+        </ui-dropdown>
+      </div>
+    </header>
+  `,
+})
+export class HeaderComponent {}
+```
+
+Note:
+El Header es un organismo: compone logo (átomo), navegación (múltiples NavItem = moléculas), SearchBar (molécula), ThemeToggle (molécula) y Dropdown de usuario (molécula) con Avatar (átomo). Todos estos componentes son reutilizables e independientes. El Header simplemente los orquesta en un layout.
+
+---
+
+## Aplicación práctica en estructura de carpetas
+
+```
+src/app/
+├── design-system/          # Átomos (tokens, configuración)
+│   ├── tokens.css          # @theme de Tailwind 4
+│   └── theme.service.ts    # Servicio de tema
+├── shared/components/       # Átomos y moléculas
+│   ├── button/             # Átomo
+│   ├── badge/              # Átomo
+│   ├── avatar/             # Átomo
+│   ├── form-field/         # Molécula
+│   ├── search-bar/         # Molécula
+│   ├── card/               # Molécula
+│   ├── data-table/         # Organismo
+│   └── modal/              # Organismo
+├── layout/                  # Templates
+│   ├── layout.component.ts
+│   ├── header/             # Organismo
+│   ├── sidebar/            # Organismo
+│   └── footer/             # Organismo
+└── features/                # Páginas
+    ├── dashboard/
+    └── products/
+```
+
+Note:
+La estructura de carpetas refleja naturalmente Atomic Design. `design-system/` contiene los átomos de configuración. `shared/components/` contiene átomos, moléculas y organismos reutilizables. `layout/` contiene templates. `features/` son las páginas. Esta estructura es predecible y escala bien con equipos grandes.
+
+---
+
+## Sección C: Design Tokens en profundidad
+
+### Tres niveles jerárquicos
+
+```mermaid
+graph TD
+    G[Tokens Globales<br/>Opciones primitivas] -->|mapean a| S[Tokens Semánticos<br/>Alias con significado]
+    S -->|heredan a| C[Tokens de Componente<br/>Específicos]
+    
+    G1["--color-blue-500: #3b82f6"] --> S1["--color-primary: var(--color-blue-500)"]
+    S1 --> C1["--button-primary-bg: var(--color-primary)"]
+```
+
+Note:
+Tres niveles de tokens. Globales: valores crudos sin significado semántico (blue-500, red-500). Semánticos: mapean globales a significados funcionales (primary, success, error). De componente: específicos para cada componente, heredan de semánticos. Si cambiamos el color primario de azul a verde, solo tocamos el token semántico. Todos los componentes se actualizan automáticamente.
+
+---
+
+## Tokens en CSS y TypeScript
+
+### CSS con @theme:
+```css
+@theme {
+  --color-primary: var(--color-blue-600);
+  --color-surface: var(--color-white);
+  --color-text-primary: var(--color-gray-900);
+  --color-border: var(--color-gray-200);
+}
+```
+
+### TypeScript (para lógica):
+```typescript
+export const tokens = {
+  colors: {
+    primary: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb' },
+    success: '#059669',
+    error: '#dc2626',
+  },
+  spacing: { 1: '0.25rem', 2: '0.5rem', 4: '1rem', 6: '1.5rem' },
+  fontSize: { xs: '0.75rem', sm: '0.875rem', base: '1rem' },
+  borderRadius: { sm: '0.375rem', md: '0.5rem', lg: '0.75rem' },
+  shadow: {
+    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+    md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+  },
+} as const;
+```
+
+Note:
+Los tokens deben existir en dos formatos: CSS (para Tailwind y estilos) y TypeScript (para lógica que necesite valores de diseño, como colores de gráficos o animaciones procedurales). Ambas fuentes deben estar sincronizadas. Herramientas como Style Dictionary generan ambos formatos desde una única fuente JSON o YAML.
+
+---
+
+## Sincronización Figma ↔ Código
+
+```mermaid
+graph LR
+    A[Figma<br/>Diseñador define tokens] -->|Figma Tokens plugin| B[JSON]
+    B -->|Style Dictionary| C[CSS @theme<br/>Tailwind 4]
+    B -->|Style Dictionary| D[TypeScript<br/>tokens.ts]
+    C --> E[Componentes<br/>Angular]
+    D --> E
+    
+    F[CI/CD Pipeline] -.->|Automático| B
+```
+
+Note:
+El flujo ideal: diseñadores definen tokens en Figma → se exportan a JSON → Style Dictionary los transforma a CSS y TypeScript → los componentes los consumen. Este pipeline se automatiza con CI/CD para que cada cambio en Figma genere un PR con los tokens actualizados. Así diseño y código nunca se desincronizan.
+
+---
+
+## Sección D: Construcción paso a paso
+
+### Los 8 pasos del Design System
+
+1. Auditoría visual → inventariar todo <!-- .element: class="fragment" -->
+2. Principios de diseño → 3-5 valores rectores <!-- .element: class="fragment" -->
+3. Design Tokens → colores, tipografía, espaciado <!-- .element: class="fragment" -->
+4. Implementar tokens en Tailwind → `@theme` <!-- .element: class="fragment" -->
+5. Componentes atómicos → Button, Input, Badge, Avatar <!-- .element: class="fragment" -->
+6. Moléculas y organismos → componiendo átomos <!-- .element: class="fragment" -->
+7. Documentar en Storybook → cada variante y estado <!-- .element: class="fragment" -->
+8. Versionar y mantener → SEMVER + CHANGELOG <!-- .element: class="fragment" -->
+
+Note:
+Ocho pasos secuenciales. La auditoría es el más infravalorado: sin ella, no sabes qué tienes. Los principios de diseño son 3-5 frases que guían decisiones (ej: "Accesibilidad por defecto", "Menos es más"). El versionado semántico es crítico: MAJOR rompe compatibilidad, MINOR añade componentes, PATCH corrige bugs visuales.
+
+---
+
+## Sección E: Escalas y sistemas visuales
+
+### Escala tipográfica modular (razón 1.25)
+
+| Token | REM | PX | Uso |
+|-------|-----|-----|-----|
+| `xs` | 0.75 | 12 | Texto auxiliar, notas legales |
+| `sm` | 0.875 | 14 | Cuerpo pequeño, labels |
+| `base` | 1 | 16 | Cuerpo principal |
+| `lg` | 1.125 | 18 | Cuerpo destacado |
+| `xl` | 1.25 | 20 | Subtítulos |
+| `2xl` | 1.5 | 24 | Títulos de sección |
+| `3xl` | 1.875 | 30 | Títulos de página (H1) |
+
+Note:
+La escala modular (razón 1.25) produce tamaños que guardan relación proporcional entre sí, creando ritmo visual. 7 tamaños cubren desde notas legales (12px) hasta títulos de página (30px). Definir una escala limita las opciones y fuerza consistencia: no puedes usar 17px si no está en la escala.
+
+---
+
+## Escala de espaciado (baseline grid 4px)
+
+| Token | REM | PX | Uso |
+|-------|-----|-----|-----|
+| `1` | 0.25 | 4 | Mínimo (icono-texto) |
+| `2` | 0.5 | 8 | Padding interior pequeño |
+| `3` | 0.75 | 12 | Padding de inputs |
+| `4` | 1 | 16 | Padding de tarjetas |
+| `6` | 1.5 | 24 | Padding de tarjetas grandes |
+| `8` | 2 | 32 | Margen entre secciones |
+| `12` | 3 | 48 | Separación entre bloques |
+| `16` | 4 | 64 | Márgenes de layout desktop |
+
+Note:
+El baseline grid establece que todos los espacios sean múltiplos de 4px. Esto garantiza alineación perfecta entre columnas y elementos. Si todos los paddings y márgenes son múltiplos de 4, todo encaja. Es una restricción que libera: no tienes que decidir si usar 13px o 14px, usas 12px o 16px.
+
+---
+
+## Paleta de colores semánticos
+
+| Token | Color | Uso |
+|-------|-------|-----|
+| `primary` | `#2563eb` | Acciones principales, enlaces |
+| `success` | `#059669` | Confirmaciones, estados positivos |
+| `warning` | `#d97706` | Advertencias, atención |
+| `error` | `#dc2626` | Errores, acciones destructivas |
+| `surface` | `#ffffff` | Fondo principal |
+| `surface-secondary` | `#f9fafb` | Fondo secundario |
+| `text-primary` | `#111827` | Texto principal |
+| `text-secondary` | `#6b7280` | Texto secundario |
+| `border` | `#e5e7eb` | Bordes |
+
+Note:
+Cada color semántico tiene un propósito claro. Primary para acciones principales. Success para confirmaciones. Warning para advertencias. Error para destrucción. Los colores de superficie y texto definen la jerarquía visual. Esto cubre el 95% de las necesidades de color de una aplicación.
+
+---
+
+## Escala de sombras (elevación)
+
+| Nivel | Valor | Uso |
+|-------|-------|-----|
+| `sm` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` | Tarjetas, inputs |
+| `md` | `0 4px 6px -1px rgb(0 0 0 / 0.1)` | Hover, dropdowns |
+| `lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1)` | Modales |
+| `xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1)` | Drawers |
+| `2xl` | `0 25px 50px -12px rgb(0 0 0 / 0.25)` | Alta prioridad |
+
+Note:
+Las sombras comunican elevación. Una tarjeta con `shadow-sm` está ligeramente elevada. Un modal con `shadow-lg` flota claramente sobre el contenido. La escala de 1-5 niveles cubre desde elementos sutiles hasta elementos que demandan atención urgente. No uses sombras arbitrarias: elige de la escala.
+
+---
+
+## Sección F: Casos reales de Design Systems
+
+### Comparativa
+
+| Sistema | Origen | Fortalezas |
+|---------|--------|------------|
+| **Material 3** | Google | Dynamic Color, 3 niveles de tokens |
+| **Ant Design** | Alibaba | Enterprise, 60+ componentes, i18n |
+| **Carbon** | IBM | Accesibilidad WCAG AA, grid 2x (8px) |
+| **Spectrum** | Adobe | Multiplataforma, slots visuales |
+| **Lightning** | Salesforce | Gobernanza, 500+ iconos, ecosistema |
+
+Note:
+Cinco Design Systems reales, cada uno con lecciones valiosas. Material 3: separación en 3 niveles de tokens es muy poderosa. Ant: demuestra que aplicaciones de datos pueden ser visualmente agradables. Carbon: accesibilidad como pilar fundacional. Spectrum: un mismo lenguaje visual en web, desktop y mobile. Lightning: gobernanza para ecosistemas grandes.
+
+---
+
+## Lecciones de Material Design 3
+
+### Dynamic Color
+Motor que extrae colores del wallpaper y genera automáticamente una paleta completa
+
+### 3 niveles de tokens
+1. **Reference tokens** — valores crudos
+2. **System tokens** — mapeo semántico
+3. **Component tokens** — específicos de cada componente
+
+<br/>
+
+> "La generación dinámica de temas demuestra el poder de los tokens semánticos"
+
+Note:
+Material You (M3) introduce Dynamic Color: a partir de un color semilla, genera automáticamente toda la paleta (primario, secundario, terciario, neutral). Esto solo es posible porque separan tokens crudos de semánticos. Cambias la semilla y TODO el tema se regenera. Esa es la flexibilidad que buscamos con nuestros tokens.
+
+---
+
+## Sección G: ThemeProvider con Signals
+
+```typescript
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private dark = signal(false);
-  readonly isDark = this.dark.asReadonly();
+  private readonly THEME_KEY = 'app-theme';
+
+  private themeSignal = signal<'light' | 'dark' | 'high-contrast'>(
+    this.loadInitialTheme()
+  );
+  currentTheme = this.themeSignal.asReadonly();
 
   constructor() {
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark' || (!stored &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      this.setDark(true);
-    }
+    this.applyTheme(this.themeSignal());
   }
 
-  toggle() { this.setDark(!this.dark()); }
-  private setDark(value: boolean) {
-    this.dark.set(value);
-    document.documentElement.classList.toggle('dark', value);
-    localStorage.setItem('theme', value ? 'dark' : 'light');
+  setTheme(theme: 'light' | 'dark' | 'high-contrast'): void {
+    this.themeSignal.set(theme);
+    this.applyTheme(theme);
+    localStorage.setItem(this.THEME_KEY, theme);
+  }
+
+  toggleTheme(): void {
+    const next = this.themeSignal() === 'dark' ? 'light' : 'dark';
+    this.setTheme(next);
+  }
+
+  private loadInitialTheme(): 'light' | 'dark' | 'high-contrast' {
+    const stored = localStorage.getItem(this.THEME_KEY);
+    if (stored) return stored as any;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark' : 'light';
+  }
+
+  private applyTheme(theme: string): void {
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark', 'high-contrast');
+    root.classList.add(theme);
+    root.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
   }
 }
 ```
 
-```html
-<!-- Uso en plantillas -->
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-  <app-card class="bg-white dark:bg-gray-800" />
-</body>
-```
-
 Note:
-Estrategia `class`: añade/quita la clase `dark` al `<html>`. Alternativa `media`: respeta `prefers-color-scheme` del SO. La estrategia class es preferible en apps de gestión: permite al usuario elegir independientemente del SO. El servicio persiste en localStorage y respeta la preferencia inicial del sistema.
+El ThemeService es el corazón del cambio de tema. Almacena el tema actual en una Signal. Al cambiar, añade la clase CSS correspondiente al `documentElement` (`.light`, `.dark`, `.high-contrast`). Respeta la preferencia del sistema (`prefers-color-scheme`). Persiste la elección del usuario en localStorage. `colorScheme` afecta a las barras nativas del navegador.
 
 ---
 
-## 🚦 Estrategia de Migración a Tailwind
-
-<div class="mermaid">
-graph LR
-    F0[Fase 0: Instalar<br/>sin romper CSS] --> F1[Fase 1: Tailwind<br/>solo en componentes nuevos]
-    F1 --> F2[Fase 2: Migrar<br/>al modificar existentes]
-    F2 --> F3[Fase 3: Eliminar<br/>CSS heredado vacío]
-    F3 --> F4[Fase 4: Consolidar<br/>Tailwind como estándar]
-</div>
-
-| Fase | Acción | Riesgo |
-|------|--------|--------|
-| 0 | Instalar Tailwind, añadir `@import` al final | Ninguno |
-| 1 | Nuevos componentes = Tailwind | Bajo |
-| 2 | Migrar componentes al tocarlos por otras razones | Medio |
-| 3 | Eliminar CSS heredado no usado | Medio. Usar Coverage en DevTools |
-| 4 | Limpiar dependencias CSS antiguas, documentar | Alto si quedaba CSS necesario |
-
-Note:
-No hagáis "big bang". La migración incremental permite que el proyecto siga funcionando mientras se adopta Tailwind. En la fase 3, usad la pestaña Coverage de Chrome DevTools para identificar CSS no utilizado. Reglas de coexistencia: no mezclar Tailwind y CSS tradicional en el mismo componente, documentar componentes migrados, mantener tests visuales.
-
----
-
-## ❌ Antipatrones: @apply Mal Usado
+## Variables CSS para temas
 
 ```css
-/* ❌ MAL: Recrear clases semánticas en CSS global */
-@layer components {
-  .btn-primary {
-    @apply px-4 py-2 bg-primary-500 text-white rounded-lg
-           hover:bg-primary-600 font-medium;
-  }
-  .card {
-    @apply bg-white rounded-xl shadow-sm border p-6;
-  }
+/* Tema claro (por defecto) */
+:root, .light {
+  --surface-color: #ffffff;
+  --text-primary-color: #111827;
+  --border-color: #e5e7eb;
+}
+
+/* Tema oscuro */
+.dark {
+  --surface-color: #1f2937;
+  --text-primary-color: #f9fafb;
+  --border-color: #374151;
+}
+
+/* Tema high-contrast */
+.high-contrast {
+  --surface-color: #000000;
+  --text-primary-color: #ffffff;
+  --border-color: #ffffff;
 }
 ```
 
-```html
-<!-- ✅ BIEN: Componente Angular reutilizable -->
-<app-button variant="primary">Guardar</app-button>
-<app-card>Título</app-card>
-```
-
-<mark>@apply destruye la ventaja principal de Tailwind: transparencia en el HTML</mark>
-
-Note:
-Este es el error más común al migrar. El desarrollador echa de menos sus clases semánticas y las recrea con @apply. El resultado: tienes que ir a otro archivo a buscar qué hace `.btn-primary`, perdiendo la inmediatez de Tailwind. Si necesitas reutilizar estilos, extrae un componente Angular. @apply solo para casos extremos (20 `<td>` con las mismas 8 clases).
-
----
-
-## ⚡ Motor JIT (Just-In-Time)
-
-<div class="mermaid">
-graph LR
-    A[Escribes clases<br/>en plantillas] --> B[JIT escanea<br/>todos los archivos]
-    B --> C[Genera solo<br/>el CSS usado]
-    C --> D[Bundle final<br/>~15-20 KB comprimido]
-    E[Clases NO usadas] --> F[❌ No se incluyen]
-</div>
-
-```
-Clases totales de Tailwind:   ~100,000   (varios MB)
-Clases usadas en proyecto:    ~500-1500
-CSS generado en producción:   ~15-20 KB comprimido
+```css
+/* Tokens que consumen las variables */
+@theme {
+  --color-surface: var(--surface-color);
+  --color-text-primary: var(--text-primary-color);
+  --color-border: var(--border-color);
+}
 ```
 
 Note:
-El JIT es la magia que hace viable Tailwind. Sin JIT, tendrías que cargar un CSS de varios MB. Con JIT, solo se genera el CSS que realmente usas. Escanea tus plantillas Angular, archivos TS (busca strings que parezcan clases de Tailwind) y genera exactamente las reglas CSS necesarias. El resultado es un CSS mínimo en producción.
+Las variables CSS son el mecanismo para cambiar temas. Definimos variables genéricas (`--surface-color`) y las asignamos a valores diferentes según la clase del tema. Los tokens de Tailwind consumen estas variables. Cuando cambia la clase en `documentElement`, todas las variables CSS cambian y los componentes se actualizan automáticamente.
 
 ---
 
-## 🛠️ Tailwind CSS IntelliSense para VS Code
+## Componente ThemeToggle
 
-| Funcionalidad | Descripción |
-|---------------|-------------|
-| **Autocompletado** | Escribe `bg-` y sugiere todos los colores con previsualización |
-| **Previsualización de color** | Cuadrado de color junto a cada clase de color |
-| **Linting** | Subraya clases inválidas (`bg-primari-500` → sugiere `bg-primary-500`) |
-| **Documentación inline** | Hover sobre clase → tooltip con CSS equivalente |
-| **@theme support** | Lee tu `@theme` y autocompleta tus colores personalizados |
-
-<mark>Instalad la extensión oficial: Tailwind CSS IntelliSense (bradlc)</mark>
-
-Note:
-Esta extensión transforma la experiencia. Sin ella, tienes que consultar la documentación para cada clase. Con ella, escribes `bg-` y ves todos los colores disponibles con su previsualización. Si defines `--color-brand-500` en @theme, la extensión lo detecta y te sugiere `bg-brand-500`. El linting te avisa de erratas y conflictos (dos clases que se anulan).
-
----
-
-## 🎬 Demo: Dashboard Widget en 15 Minutos
-
-**Construimos un KPI Widget sin escribir CSS**
-
-```html
-<article class="bg-white rounded-xl shadow-sm border
-                border-gray-200 p-6 flex flex-col gap-4">
-  <h3 class="text-sm font-medium text-gray-500 uppercase
-             tracking-wide">Ingresos Mensuales</h3>
-  <p class="text-4xl font-bold text-gray-900">47.250 €</p>
-  <span class="inline-flex items-center gap-1 px-2 py-1
-               text-sm font-medium rounded-full
-               bg-emerald-50 text-emerald-600">
-    ↑ 12.5%
-  </span>
-  <!-- Gráfico placeholder con divs -->
-  <div class="flex items-end gap-1 h-24">
-    <div class="w-4 bg-primary-200 rounded-t h-[40px]"></div>
-    <div class="w-4 bg-primary-200 rounded-t h-[65px]"></div>
-    <div class="w-4 bg-primary-500 rounded-t h-[80px]"></div>
-  </div>
-</article>
+```typescript
+@Component({
+  selector: 'ui-theme-toggle',
+  standalone: true,
+  template: `
+    <button
+      type="button"
+      class="rounded-lg p-2 text-gray-500 hover:bg-gray-100
+             dark:text-gray-400 dark:hover:bg-gray-700"
+      (click)="themeService.toggleTheme()"
+      [attr.aria-label]="'Cambiar a modo ' + nextThemeLabel()">
+      @if (themeService.currentTheme() === 'dark') {
+        <!-- Icono sol -->
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      } @else {
+        <!-- Icono luna -->
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      }
+    </button>
+  `,
+})
+export class ThemeToggleComponent {
+  themeService = inject(ThemeService);
+  nextThemeLabel = computed(() =>
+    this.themeService.currentTheme() === 'dark' ? 'claro' : 'oscuro'
+  );
+}
 ```
 
 Note:
-Este widget de KPI muestra: título, valor grande, tendencia con color condicional, y gráfico placeholder con barras de divs. Cero CSS personalizado. Todo con clases de Tailwind. La barra "actual" se destaca con color primario. Las alturas usan valores arbitrarios. Tiempo de implementación: ~15 minutos. Con CSS tradicional, fácilmente el doble entre escribir CSS, nombrar clases y ajustar media queries.
+El ThemeToggle es simple: un botón con icono de sol (tema oscuro activo → cambiar a claro) o luna (tema claro activo → cambiar a oscuro). Usa `aria-label` dinámico para accesibilidad. Las clases `dark:` de Tailwind funcionan porque la clase `.dark` está en el `documentElement`. El componente es completamente reactivo gracias a las Signals.
 
 ---
 
-## 🏋️ Actividad en Clase
+## Demo: Design System completo para SaaS
 
-**Construir un Dashboard Completo con Tailwind**
+### Paso 1 — Auditoría visual
+Identificar colores, tipografías, botones, tarjetas, espaciados e inconsistencias
 
-| ⏱️ Tiempo | 🎯 Objetivo | 📦 Entregable |
-|-----------|-------------|---------------|
-| 60 min | Crear dashboard con 4 widgets, tabla y gráficos | Componente Angular funcional |
+### Paso 2 — Definir tokens
+Crear `tokens.css` con `@theme` de Tailwind 4 con todos los valores consolidados
 
-**Requisitos**:
-1. Fila 1: 4 widgets KPI en grid responsive (`grid-cols-1 sm:2 lg:4`)
-2. Fila 2: Tabla zebra con scroll horizontal y columnas responsive
-3. Fila 3: Dos gráficos placeholder (barras + líneas)
-4. Todo con Tailwind, <mark>cero CSS personalizado</mark>
+### Paso 3 — Construir componentes atómicos
+Button (5 variantes), Input (5 estados), Badge (5 tipos), Avatar, Skeleton
+
+### Paso 4 — Construir moléculas y organismos
+SearchBar, DataTable, Modal, EmptyState
+
+### Paso 5 — Documentar
+Cada componente con stories en Storybook (ver Unidad 10)
 
 Note:
-Aplicaréis todo lo aprendido en un dashboard real. Los widgets usan grid responsive: 1 columna en móvil, 2 en tablet, 4 en desktop. La tabla usa `overflow-x-auto` para móvil y `even:bg-gray-50` para zebra. Los gráficos se construyen con divs (barras) y SVG inline (líneas), todo estilado con Tailwind. 60 minutos, objetivo ambicioso pero alcanzable.
+Vamos a repasar el proceso completo. Auditoría: capturar pantallas, listar colores, detectar inconsistencias. Tokens: consolidar en una escala coherente. Componentes: construir desde átomos hacia organismos. Documentación: Storybook con todas las variantes y estados. Este proceso se itera: el Design System es un producto vivo.
 
 ---
 
-## ✅ Buenas Prácticas
+## Actividad en clase: Auditoría visual + Tokens
 
-1. **Domina CSS antes de Tailwind**. Tailwind es CSS con otro nombre
-2. **Usa los tokens de @theme**: no valores arbitrarios como `p-[13px]`
-3. **No abuses de @apply**: si lo usas constantemente, extrae un componente
-4. **Agrupa clases lógicamente**: layout → espaciado → tamaño → tipografía → color
-5. **Usa `focus-visible` en lugar de `focus`**: accesibilidad sin sacrificar estética
-6. **Aprovecha `peer` y `group`** para reducir lógica TypeScript innecesaria
+**Duración:** 60 minutos
+
+**Objetivo:** Realizar una auditoría visual de una aplicación web y definir sus Design Tokens
+
+**Entregable:** Documento de auditoría + archivo `tokens.css` con `@theme`
+
+### Desarrollo: <!-- .element: class="fragment" -->
+1. Navegar por 5 pantallas de la app proporcionada <!-- .element: class="fragment" -->
+2. Listar colores, tipografías, espaciados, sombras encontrados <!-- .element: class="fragment" -->
+3. Detectar y documentar inconsistencias <!-- .element: class="fragment" -->
+4. Proponer paleta consolidada de tokens <!-- .element: class="fragment" -->
+5. Implementar en `tokens.css` con Tailwind 4 `@theme` <!-- .element: class="fragment" -->
 
 Note:
-La práctica 1 es la más importante. La práctica 4 mejora la legibilidad: adoptad un orden consistente de clases en el equipo. La extensión Headwind para VS Code ordena automáticamente. La práctica 5: `focus-visible:ring-2` muestra el anillo solo al navegar con teclado, no al hacer clic con ratón. Win-win para estética y accesibilidad.
+Vais a hacer una auditoría real. El docente os dará la URL de una aplicación. Navegad por al menos 5 pantallas y documentad todo: colores, tamaños de fuente, tipos de botones, espaciados. Luego consolidaréis en una paleta coherente y la implementaréis como tokens. Esto es exactamente lo que se hace en un proyecto real al iniciar un Design System.
 
 ---
 
-## ❌ Errores Frecuentes
+## Buenas prácticas
 
-| Error | Consecuencia | Solución |
-|-------|-------------|----------|
-| **Usar Tailwind sin saber CSS** | Código frágil, probar clases al azar | Aprender CSS primero |
-| **Abusar de valores arbitrarios** | `w-[314px] h-[127px]` en todo → CSS inline | Usar escala de Tailwind |
-| **@apply masivo** | `.btn { @apply... }` → recrear CSS tradicional | Componentes Angular |
-| **Olvidar el mobile-first** | `lg:grid-cols-3 grid-cols-1` → la base pisa lg | Base primero: `grid-cols-1 lg:grid-cols-3` |
-| **No verificar contraste** | Colores personalizados sin verificar WCAG AA | WebAIM Contrast Checker |
+1. <mark>Tokens semánticos</mark>, no usar colores crudos en componentes <!-- .element: class="fragment" -->
+2. Una <mark>escala tipográfica</mark> limitada (7-9 tamaños máximo) <!-- .element: class="fragment" -->
+3. Baseline grid de <mark>4px u 8px</mark> y respetarlo siempre <!-- .element: class="fragment" -->
+4. <mark>3 niveles de tokens</mark>: globales → semánticos → componente <!-- .element: class="fragment" -->
+5. <mark>No hardcodear valores</mark> — usar siempre tokens o clases Tailwind <!-- .element: class="fragment" -->
+6. Versionar el Design System con <mark>SEMVER</mark> y mantener CHANGELOG <!-- .element: class="fragment" -->
 
 Note:
-El error 4 es sutil pero común. Recuerda: en CSS, la última regla gana. Si escribes `class="lg:grid-cols-3 grid-cols-1"`, la clase `grid-cols-1` (sin prefijo = se aplica SIEMPRE) pisa a `lg:grid-cols-3` porque aparece después. El orden correcto es `grid-cols-1 lg:grid-cols-3`. La clase base define el default móvil; las variantes lo sobrescriben hacia arriba.
+La práctica más importante: usar tokens semánticos, nunca valores hardcodeados. Si un componente usa `#3b82f6` en lugar de `var(--color-primary)`, cambiar el color primario requiere buscar y reemplazar en todo el código. Con tokens semánticos, cambiáis una línea y todo se actualiza.
 
 ---
 
-## 🧩 Formularios y Accesibilidad con Tailwind
+## Errores frecuentes
 
-```html
-<input type="text"
-       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg
-              focus:border-primary-500 focus:ring-2
-              focus:ring-primary-200 focus:outline-none
-              disabled:opacity-50 disabled:bg-gray-100
-              disabled:cursor-not-allowed
-              read-only:bg-gray-50
-              placeholder:text-gray-400" />
+1. ❌ Usar valores hardcodeados (`#3b82f6`, `16px`) en lugar de tokens <!-- .element: class="fragment" -->
+2. ❌ Demasiados tamaños de fuente (14px, 15px, 16px, 17px, 18px...) <!-- .element: class="fragment" -->
+3. ❌ Saltarse el baseline grid con espaciados arbitrarios <!-- .element: class="fragment" -->
+4. ❌ No versionar el Design System <!-- .element: class="fragment" -->
+5. ❌ Olvidar el tema oscuro al definir colores <!-- .element: class="fragment" -->
+6. ❌ Documentación desactualizada <!-- .element: class="fragment" -->
 
-<select class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg
-               focus:border-primary-500 focus:ring-2
-               focus:ring-primary-200 focus:outline-none
-               accent-primary-500">
-  <option>Opción 1</option>
-</select>
+Note:
+El error más común es hardcodear valores. El segundo: una escala tipográfica inflada. Si tenéis 15 tamaños de fuente diferentes, no tenéis una escala, tenéis caos. Limitar a 7-9 tamaños. Y siempre pensad en el tema oscuro al definir colores: un texto gris claro sobre fondo blanco puede ser ilegible sobre fondo oscuro.
+
+---
+
+## Resumen
+
+```mermaid
+graph TD
+    A[Design System] --> B[Atomic Design<br/>5 niveles]
+    A --> C[Design Tokens<br/>3 niveles]
+    A --> D[Escalas<br/>tipografía, espaciado, color]
+    A --> E[ThemeProvider<br/>claro/oscuro/high-contrast]
+    A --> F[Documentación<br/>Storybook]
+    B --> G[Estructura de carpetas]
+    C --> H[Tailwind 4 @theme]
+    E --> I[Variables CSS + Signals]
 ```
 
-- `accent-primary-500`: color de acento en checkbox/radio nativos
-- `sr-only`: oculta visualmente, accesible para lectores
-- `peer-invalid:block`: muestra error cuando input hermano es inválido
-
 Note:
-Tailwind estila formularios nativos sin perder accesibilidad. `disabled:opacity-50 disabled:cursor-not-allowed` comunica visualmente que el campo no es editable. `read-only:bg-gray-50` diferencia read-only de disabled. `placeholder:text-gray-400` estila solo el placeholder. Los inputs nativos mantienen su comportamiento accesible.
+Hemos cubierto la construcción completa de un Design System: Atomic Design como metodología de organización, Design Tokens en 3 niveles como fuente única de verdad, escalas visuales coherentes, ThemeProvider con Signals para cambio de tema en tiempo real, y documentación como parte integral. Un Design System no es un proyecto, es un producto.
 
 ---
 
-## 📊 Resumen
+## Próximos pasos
 
-| Concepto | Clave |
-|----------|-------|
-| **Filosofía** | Tailwind es CSS con otro nombre. Utility-first elimina guerras de naming |
-| **Configuración** | `npm install` + plugin Vite + `@import "tailwindcss"` + `@theme` |
-| **@theme** | Colores oklch, fuentes, espaciados. Sin archivos JS de configuración |
-| **Organización** | 95% en plantillas, `@apply` solo como excepción |
-| **Clases clave** | Layout, colores, tipografía, estados, responsive, dark mode |
-| **Técnicas** | Valores arbitrarios `[]`, `peer`, `group`, `has-*`, JIT |
+### Unidad 10 — Storybook
+
+- Instalación y configuración en proyecto Angular <!-- .element: class="fragment" -->
+- Stories CSF3 para todos los componentes <!-- .element: class="fragment" -->
+- Documentación MDX + addons (Controls, a11y, Figma) <!-- .element: class="fragment" -->
+- Testing de interacciones con play functions <!-- .element: class="fragment" -->
+- Visual testing con Chromatic <!-- .element: class="fragment" -->
+- Publicación y despliegue <!-- .element: class="fragment" -->
 
 Note:
-Tailwind 4 simplifica todo: sin config JS, sin content paths manuales, configuración CSS nativa con @theme. El JIT garantiza bundles mínimos. La clave del éxito: saber CSS, usar los tokens del tema, aplicar clases en plantillas, y solo recurrir a @apply cuando realmente haya repetición excesiva.
+En la última unidad del módulo aprenderemos a documentar profesionalmente nuestro Design System con Storybook. Veremos cómo escribir stories CSF3, documentación MDX, testing de interacciones con play functions, y cómo integrar Chromatic para detectar regresiones visuales automáticamente.
 
 ---
 
-## 🚀 Próximos Pasos
+## ¡Gracias! ¿Preguntas?
 
-**Unidad 14: Implementación de Componentes con Tailwind**
-
-- Sistema completo de botones con variantes y tamaños
-- Cards, formularios, tablas de datos avanzadas
-- Modales accesibles con Angular CDK + Tailwind
-- Barras de navegación: navbar horizontal + sidebar colapsable
-- Dashboard completo y comparativa CSS tradicional vs Tailwind
-
-**Para profundizar**:
-- Instalar Tailwind CSS IntelliSense en VS Code
-- Leer la documentación de `@theme` y oklch
-- Practicar: migrar un componente de CSS tradicional a Tailwind
+### Repaso rápido:
+- ¿Cuáles son los 5 niveles de Atomic Design? <!-- .element: class="fragment" -->
+- ¿Por qué usar tokens semánticos en lugar de colores crudos? <!-- .element: class="fragment" -->
+- ¿Cómo se implementa el cambio de tema con Signals? <!-- .element: class="fragment" -->
 
 Note:
-En la unidad 14 pondremos en práctica todo esto construyendo componentes reales. Veremos cómo implementar botones con 5 variantes y 3 tamaños usando exclusivamente Tailwind, sin CSS personalizado. También haremos una comparativa seria: mismo componente en CSS tradicional y en Tailwind, midiendo líneas de código, mantenibilidad y tiempo de desarrollo.
+Tres preguntas de cierre. 1) Átomos, moléculas, organismos, templates, páginas. 2) Porque permiten cambiar el color primario en un solo lugar y que todos los componentes se actualicen. 3) Con un ThemeService que expone una Signal de solo lectura y manipula clases CSS en el documentElement. ¿Alguna duda?

@@ -1,6 +1,6 @@
 # Desarrollo de Interfaces
 
-## Unidad 5 · Del Diseño a la Implementación
+## Unidad 5 · Layouts Modernos para Interfaces Web
 
 **Módulo 0488 · Desarrollo de Interfaces**
 CFGS Desarrollo de Aplicaciones Multiplataforma (DAM)
@@ -8,26 +8,26 @@ CFGS Desarrollo de Aplicaciones Multiplataforma (DAM)
 Curso 2025/2026
 
 Note:
-Bienvenidos a la unidad final. Aquí converge todo lo aprendido: Figma (U3), Layouts (U4), Angular + Tailwind + Storybook (U2). Vamos a recorrer el flujo profesional completo: inspeccionar un diseño en Figma, extraer design tokens, configurar Tailwind @theme, organizar componentes con Atomic Design, implementarlos, documentarlos y construir pantallas completas. Esta unidad es el 40% de la evaluación del módulo. Pregunta: ¿quién tiene ya su entorno de la Unidad 2 funcionando?
+Bienvenidos a la unidad de layouts. Aquí es donde el diseño se convierte en código. Vamos a dominar Flexbox, CSS Grid y posicionamiento, todo a través de Tailwind CSS. Construiréis dashboards, layouts SaaS, ecommerce y aplicaciones de chat. Esta unidad es 100% práctica. Pregunta: ¿quién ha usado Flexbox antes? ¿Y CSS Grid?
 
 ---
 
 ## Objetivos de aprendizaje
 
-<span class="fragment">1. Analizar diseños Figma con <mark>Dev Mode</mark> y extraer especificaciones sistemáticamente</span>
+<span class="fragment">1. Construir layouts complejos con <mark>Flexbox y CSS Grid</mark> usando Tailwind</span>
 
-<span class="fragment">2. Extraer y documentar un sistema de <mark>Design Tokens</mark> completo</span>
+<span class="fragment">2. Traducir layouts de escritorio clásicos (<mark>VBox, HBox, GridPane</mark>) a Tailwind</span>
 
-<span class="fragment">3. Configurar <mark>Tailwind @theme</mark> con tokens semánticos y modo oscuro</span>
+<span class="fragment">3. Diseñar <mark>dashboards, paneles SaaS, ecommerce y chat</mark> combinando Grid + Flexbox</span>
 
-<span class="fragment">4. Organizar componentes con <mark>Atomic Design</mark> (átomos, moléculas, organismos)</span>
+<span class="fragment">4. Aplicar <mark>posicionamiento</mark> (relative, absolute, fixed, sticky)</span>
 
-<span class="fragment">5. Implementar <mark>8+ componentes</mark> Angular + Tailwind con todos sus estados</span>
+<span class="fragment">5. Implementar layouts <mark>responsivos mobile-first</mark> con breakpoints de Tailwind</span>
 
-<span class="fragment">6. Documentar en Storybook y construir <mark>pantallas completas</mark></span>
+<span class="fragment">6. Utilizar técnicas avanzadas: <mark>container queries, auto-fit, clamp</mark></span>
 
 Note:
-Seis objetivos, 8 fases. Esta unidad es la más larga y la que más peso tiene. Cada fase se construye sobre la anterior. Si os saltáis la FASE 2 (extraer bien los tokens), arrastraréis errores durante toda la implementación. Dediquemos tiempo a hacerlo bien desde el principio.
+Seis objetivos. Los 4 primeros son fundamentales (los necesitaréis siempre). Los 2 últimos son avanzados (marcan la diferencia entre un desarrollador junior y uno senior). Al final de esta unidad seréis capaces de implementar cualquier diseño de Figma como layout funcional.
 
 ---
 
@@ -35,605 +35,636 @@ Seis objetivos, 8 fases. Esta unidad es la más larga y la que más peso tiene. 
 
 <div style="font-size: 1.4rem; text-align: left;">
 
-¿Cuánto tiempo se pierde cuando el diseño y el código <mark>no coinciden</mark>?
+¿Sabías que el 80% de los bugs visuales en frontend son <mark>problemas de layout</mark>?
 
 </div>
 
-<span class="fragment" style="font-size: 1.1rem;">El desarrollador implementa "de memoria" → 15 discrepancias visuales</span>
-<span class="fragment" style="font-size: 1.1rem;">El diseñador enumera diferencias → el desarrollador corrige → iterar</span>
-<span class="fragment" style="font-size: 1.1rem;"><mark>Solución:</mark> flujo sistemático Figma → Tokens → Tailwind → Componentes → Storybook</span>
+<span class="fragment" style="font-size: 1.1rem;">Desbordamientos, elementos desalineados, scrolls inesperados...</span>
+
+<span class="fragment" style="font-size: 1.1rem;"><mark>Flexbox + Grid</mark> resuelven el 95% de estos problemas de forma elegante</span>
+
+<span class="fragment" style="font-size: 1.1rem;">Dominar el layout es lo que separa a un maquetador de un <mark>desarrollador de interfaces profesional</mark></span>
 
 Note:
-Este es el problema que resuelve esta unidad. Sin un proceso sistemático, el handoff diseño-desarrollo es caótico. Con nuestro flujo de 8 fases, cada paso es trazable, verificable y automatizable. El resultado: el código refleja fielmente el diseño. Pregunta: ¿habéis sufrido alguna vez el "esto no se parece al diseño"?
+Los problemas de layout son los más frustrantes porque son visualmente obvios pero a menudo difíciles de depurar. Un padding incorrecto, un flex item que no se encoge, un grid que no suma 12 columnas... Esta unidad os da las herramientas para resolverlos sistemáticamente. Pregunta: ¿alguna vez habéis pasado horas intentando centrar un div?
 
 ---
 
-## El flujo completo en 8 fases
-
-<div class="mermaid">
-graph LR
-  A["F1: Inspección<br>Figma Dev Mode"] --> B["F2: Extracción<br>Design Tokens"]
-  B --> C["F3: Configuración<br>Tailwind @theme"]
-  C --> D["F4: Organización<br>Atomic Design"]
-  D --> E["F5: Implementación<br>Componentes"]
-  E --> F["F6: Assets<br>Iconos, imágenes"]
-  F --> G["F7: Pantallas<br>Composición"]
-  G --> H["F8: Testing<br>Calidad"]
-</div>
-
-Note:
-Estas 8 fases son el esqueleto de la unidad. Las recorreremos en orden. Cada fase produce artefactos que alimentan la siguiente. Si una fase está mal, el error se propaga. Por eso insistimos en hacer cada fase con rigor. Pregunta: ¿qué fase creéis que es la más crítica? (La F2: si los tokens son incorrectos, todo lo demás será incorrecto)
-
----
-
-## FASE 1: Inspección sistemática de diseños
-
-<span class="fragment">1. <mark>Visión general</mark>: recorrer el diseño completo, entender el propósito</span>
-
-<span class="fragment">2. <mark>Identificar patrones</mark>: elementos recurrentes → futuros componentes</span>
-
-<span class="fragment">3. <mark>Descomposición por capas</mark>: de fuera hacia dentro, identificar sistemas de layout</span>
-
-<span class="fragment">4. <mark>Inspección detallada</mark> con Dev Mode: dimensiones, colores, tipografías, bordes, sombras</span>
-
-<span class="fragment">5. <mark>Identificar estados</mark>: ideal, loading, empty, error, edge cases</span>
-
-<span class="fragment">6. <mark>Documentar</mark>: checklist, dudas, observaciones técnicas</span>
-
-Note:
-La inspección no es mirar el diseño 5 minutos y empezar a programar. Es un proceso estructurado de 6 pasos. El paso 5 es el más olvidado: el diseño muestra el "happy path", pero la app real necesita loading spinners, empty states, mensajes de error... Si no están en Figma, preguntad al diseñador antes de implementar. Pregunta: ¿qué pasa si implementáis estados sin consultar al diseñador? (Inconsistencia visual entre pantallas)
-
----
-
-## Checklist de inspección
-
-<span class="fragment">☐ Dimensiones del viewport (width × height)</span>
-<span class="fragment">☐ Layout principal: ¿flex?, ¿grid?, ¿combinación?</span>
-<span class="fragment">☐ Breakpoints responsive: ¿móvil/tablet/desktop?</span>
-<span class="fragment">☐ <mark>Colores</mark>: primario, secundario, neutros, semánticos</span>
-<span class="fragment">☐ <mark>Tipografías</mark>: familias, tamaños, pesos, interlineados</span>
-<span class="fragment">☐ <mark>Espaciados</mark>: padding y gap en cada contenedor</span>
-
-Note:
-Este checklist deberíais completarlo ANTES de escribir una sola línea de código. Es vuestra garantía de que no se os escapa nada. Imprimidlo o tenedlo en un segundo monitor mientras trabajáis. Pregunta: ¿qué apartado del checklist suele ser el más ignorado? (Los breakpoints responsive: mucha gente solo mira la versión desktop)
-
----
-
-## FASE 2: Extracción de Design Tokens
-
-**Paleta de colores:**
-
-<span class="fragment">• <mark>Brand</mark>: primary-50 al 950, secondary-50 al 950</span>
-<span class="fragment">• <mark>Neutral</mark>: neutral-0 (blanco), neutral-50 al 950 (escala de grises)</span>
-<span class="fragment">• <mark>Semánticos</mark>: success, warning, error, info (con variantes claras)</span>
-
-**Escala tipográfica:**
-
-<span class="fragment">• Familias (sans, heading, mono), tamaños (xs a 4xl), pesos (400 a 700)</span>
-<span class="fragment">• Interlineados (tight: 1.25, normal: 1.5, relaxed: 1.625)</span>
-
-Note:
-Si el diseño usa variables de Figma, la extracción es directa: abrid el panel de variables y documentad. Si no, tenéis que inferir los tokens inspeccionando múltiples componentes y buscando patrones. La paleta de colores debe cubrir TODOS los tonos, no solo los que aparecen en el diseño actual (siempre se necesitan variantes más claras/oscuras para hover, focus, etc.). Pregunta: ¿cuántos tonos debe tener una paleta de color profesional? (10 tonos: 50, 100, 200... 900, 950)
-
----
-
-## FASE 2: Tabla de Design Tokens
-
-| Token | Valor | Uso |
-|---|---|---|
-| `--color-primary` | `#2563EB` | Acciones principales |
-| `--color-primary-hover` | `#1D4ED8` | Hover de botones primary |
-| `--color-bg-primary` | `#FFFFFF` | Fondo principal |
-| `--color-bg-secondary` | `#F8FAFC` | Fondo secundario |
-| `--color-text-primary` | `#0F172A` | Texto principal |
-| `--color-text-secondary` | `#64748B` | Texto secundario |
-| `--color-border-default` | `#E2E8F0` | Bordes por defecto |
-| `--radius-lg` | `0.5rem` | Botones, inputs |
-| `--radius-xl` | `0.75rem` | Tarjetas, modales |
-| `--shadow-md` | `0 4px 6px -1px rgb(0 0 0/0.1)` | Elevación media |
-
-<span class="fragment">Esta tabla es el <mark>contrato</mark> entre diseño y desarrollo</span>
-
-Note:
-Documentad los tokens en una tabla como esta. Cada token tiene: nombre (que usaremos en @theme), valor (extraído de Figma), y uso (dónde se aplica). Esto evita ambigüedades. Si un token no está en esta tabla, no debería usarse en el código. Pregunta: ¿por qué usar nombres semánticos (text-primary) en lugar de nombres de color (slate-900)? (Porque si mañana el texto principal cambia de slate-900 a otra cosa, solo hay que cambiar el valor del token semántico)
-
----
-
-## FASE 3: Configuración de Tailwind @theme
-
-```css
-@import "tailwindcss";
-
-@theme {
-  /* Colores de marca */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: #dbeafe;
-
-  /* Colores semánticos de superficie */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-border-default: #e2e8f0;
-
-  /* Estados */
-  --color-success: #22c55e;
-  --color-error: #ef4444;
-  --color-warning: #f59e0b;
-
-  /* Tipografía */
-  --font-sans: 'Inter', ui-sans-serif, system-ui;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-}
-```
-
-<span class="fragment">Cada token de la tabla → una línea en `@theme`. Sin `tailwind.config.js`.</span>
-
-Note:
-Este es el corazón de la configuración. Cada token de la FASE 2 se traduce a una custom property en @theme. Una vez definido, se usa como clase Tailwind: `bg-primary`, `text-text-secondary`, `rounded-xl`. Pregunta: ¿cómo se usa un color definido como `--color-primary` en Tailwind? (`bg-primary`, `text-primary`, `border-primary`, `ring-primary`...)
-
----
-
-## FASE 3: Modo oscuro
-
-```css
-.dark {
-  --color-bg-primary: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-border-default: #334155;
-
-  /* Sombras más sutiles en dark mode */
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-}
-
-@layer base {
-  body {
-    font-family: var(--font-sans);
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-  }
-}
-```
-
-<span class="fragment">Alternancia con `<mark>.dark</mark>` en `<html>` (estrategia `class` de Tailwind)</span>
-
-Note:
-El modo oscuro se configura sobrescribiendo las variables semánticas dentro de `.dark`. Los neutros se invierten (fondo oscuro, texto claro). Las sombras se vuelven más sutiles (en dark mode, una sombra negra sobre fondo oscuro no se ve). Pregunta: ¿cómo activáis el modo oscuro en la app? (`document.documentElement.classList.toggle('dark')`)
-
----
-
-## FASE 4: Atomic Design en Angular
+## Sistemas de layout: panorama general
 
 <div class="mermaid">
 graph TB
-  A["Átomos<br>Button, Input, Icon, Badge<br>shared/ui/"] --> B["Moléculas<br>InputField, SearchBar<br>shared/components/"]
-  B --> C["Organismos<br>Navbar, Card, Modal, Table<br>shared/ui/ o features/"]
-  C --> D["Templates<br>DashboardLayout, AuthLayout<br>shared/layouts/"]
-  D --> E["Pages<br>DashboardPage, LoginPage<br>features/"]
+  A[Necesito un layout] --> B{¿Bidimensional?}
+  B -->|Sí: filas Y columnas| C[CSS Grid]
+  B -->|No: una dirección| D[Flexbox]
+  D --> E{¿Superposición?}
+  E -->|Sí| F[Position: absolute/fixed]
+  E -->|No| G[Flexbox puro]
+  C --> H{¿Necesito salir del flujo?}
+  H -->|Sí| F
+  H -->|No| I[Grid puro]
 </div>
 
 Note:
-Atomic Design (Brad Frost) aplicado a Angular. Átomos: elementos indivisibles. Moléculas: combinaciones de átomos. Organismos: secciones complejas. Templates: layouts de página. Pages: instancias con contenido real. Pregunta: ¿dónde pondríais un componente DataTable? (Organismo: combina Table + Input + Badge + Button + Pagination)
+Este diagrama es vuestra guía de decisión. Regla de oro: Grid para la estructura macro (página), Flexbox para los componentes micro (internos). Si hay superposición, posicionamiento. Pregunta: ¿en qué categoría cae un menú desplegable? (Posicionamiento: relative en el padre, absolute en el menú)
 
 ---
 
-## FASE 4: Estructura de carpetas
+## Flexbox: conceptos fundamentales
 
-```
-src/app/
-├── shared/
-│   ├── ui/                  # Átomos
-│   │   ├── button/          # ButtonComponent
-│   │   ├── input/           # InputComponent
-│   │   ├── badge/           # BadgeComponent
-│   │   ├── avatar/          # AvatarComponent
-│   │   ├── icon/            # IconComponent
-│   │   └── spinner/         # SpinnerComponent
-│   ├── components/          # Moléculas
-│   │   ├── input-field/     # InputFieldComponent
-│   │   └── search-bar/      # SearchBarComponent
-│   ├── layouts/             # Templates
-│   │   ├── dashboard-layout/
-│   │   └── auth-layout/
-│   └── services/
-├── features/                # Pages
-│   ├── dashboard/
-│   └── auth/
-└── app.component.ts
-```
+<div class="mermaid">
+graph LR
+  subgraph "flex flex-row (default)"
+    A1["← main axis →"] --> A2["justify-content"]
+    A3["↕ cross axis ↕"] --> A4["align-items"]
+  end
+</div>
+
+<span class="fragment">`justify-*` siempre actúa sobre el <mark>eje principal</mark></span>
+<span class="fragment">`items-*` siempre actúa sobre el <mark>eje perpendicular</mark></span>
+<span class="fragment">Invertir `flex-col` → <mark>invierte qué hace cada propiedad</mark></span>
 
 Note:
-Estructura escalable. En `shared/ui` van los átomos (puramente presentacionales, altamente reutilizables). En `shared/components` las moléculas (combinan átomos). En `shared/layouts` los templates (estructuras de página). En `features` las páginas completas y componentes específicos de una funcionalidad. Pregunta: ¿por qué separar shared de features? (shared es reutilizable entre features; features contiene código específico de una funcionalidad)
+Este es el concepto MÁS importante de Flexbox y el que más errores causa. En flex-row: justify controla horizontal, items controla vertical. En flex-col: SE INVIERTE. justify controla vertical, items controla horizontal. Memorizad esto. Pregunta: en `flex flex-col justify-center items-center`, ¿dónde se centra el contenido? (Verticalmente con justify, horizontalmente con items)
 
 ---
 
-## FASE 5: Implementación iterativa (10 pasos)
-
-<span class="fragment">1. <mark>Analizar</mark> el componente en Figma (Dev Mode)</span>
-<span class="fragment">2. <mark>Crear</mark> con Angular CLI: `ng g c shared/ui/button --standalone`</span>
-<span class="fragment">3. <mark>Definir inputs</mark> usando `input<T>()` y `output<T>()`</span>
-<span class="fragment">4. <mark>Implementar template</mark> HTML con clases Tailwind</span>
-<span class="fragment">5. <mark>Clases condicionales</mark> basadas en inputs</span>
-<span class="fragment">6. <mark>Comparar visualmente</mark> con Figma (lado a lado)</span>
-
-Note:
-Estos son los primeros 6 pasos del ciclo de 10. El paso 6 es crucial: tened Figma abierto en una ventana y la app Angular en otra. Comparad constantemente. Diferencias de 1-2px son aceptables (los navegadores renderizan tipografías diferente a Figma). Pregunta: ¿qué comando de Angular CLI crea un componente standalone? (`ng g c nombre --standalone`)
-
----
-
-## FASE 5: Iteración (continuación)
-
-<span class="fragment">7. <mark>Ajustar</mark> hasta que coincida con el diseño</span>
-<span class="fragment">8. Escribir <mark>stories</mark> de Storybook (todas las variantes y estados)</span>
-<span class="fragment">9. Escribir <mark>tests unitarios</mark> (renderización, cambios de estado)</span>
-<span class="fragment">10. <mark>Documentar</mark> en Storybook Docs (descripción, props, ejemplos)</span>
-
-<span class="fragment">Repetir para cada componente. Átomos: 15-20 min. Moléculas: 30-45 min. Organismos: 1-2 h.</span>
-
-Note:
-Los pasos 8, 9 y 10 son los que más se procrastinan. Hacedlos como parte del flujo, no como tarea separada. Un componente no está "terminado" hasta que tiene sus stories, sus tests y su documentación. Pregunta: ¿cuántas stories debería tener como mínimo un Button component? (Al menos 4 variantes × 3 tamaños + estados disabled/loading = 15+ stories)
-
----
-
-## Ejemplo: InputFieldComponent (template)
+## Flexbox: propiedades del contenedor
 
 ```html
-<div class="flex flex-col gap-1.5">
-  <label [for]="id" class="text-sm font-medium"
-    [class.text-error]="!!error()">
-    {{ label() }}
-  </label>
+<!-- Dirección y wrap -->
+<div class="flex flex-row flex-wrap gap-4">
 
-  <div class="relative">
-    @if (leadingIcon()) {
-      <div class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-        <app-icon [name]="leadingIcon()!" size="sm" />
-      </div>
-    }
+<!-- Alineación en eje principal (justify) -->
+<div class="flex justify-between">  <!-- Espacio entre items -->
+<div class="flex justify-center">   <!-- Centrados -->
 
-    <input [type]="type()" [placeholder]="placeholder()"
-      [disabled]="disabled()" [(ngModel)]="value"
-      class="w-full px-3 py-2 text-sm rounded-lg border
-        focus:outline-none focus:ring-2
-        disabled:opacity-50 disabled:cursor-not-allowed"
-      [class.border-error]="!!error()"
-      [class.pl-10]="!!leadingIcon()" />
+<!-- Alineación en eje perpendicular (items) -->
+<div class="flex items-center">     <!-- ¡Centrado vertical! -->
+<div class="flex items-baseline">   <!-- Alinear texto -->
 
-    @if (error()) {
-      <p class="text-xs text-error mt-0.5 flex items-center gap-1">
-        <app-icon name="alert-circle" size="xs" /> {{ error() }}
-      </p>
-    }
+<!-- Gap: espacio entre hijos (no márgenes) -->
+<div class="flex gap-4 gap-x-6 gap-y-2">
+```
+
+<span class="fragment"><mark>`gap`</mark> es una de las mejores adiciones a CSS. Antes: márgenes y hacks.</span>
+
+Note:
+`gap` resolvió el problema histórico de espaciar elementos flex: antes tenías que poner márgenes y quitar el margen del primer/último elemento. Ahora es una propiedad del contenedor. `items-center` es el "santo grial": centrar verticalmente, imposible sin hacks hasta Flexbox. Pregunta: ¿diferencia entre justify-between y justify-around? (Between: sin espacio en extremos. Around: mitad de espacio en extremos)
+
+---
+
+## Flexbox: propiedades de los items
+
+| Clase | CSS | Comportamiento |
+|---|---|---|
+| `flex-1` | `flex: 1 1 0%` | Crece, encoge, base 0 |
+| `flex-auto` | `flex: 1 1 auto` | Crece, encoge, base auto |
+| `flex-initial` | `flex: 0 1 auto` | No crece, puede encogerse |
+| `flex-none` | `flex: none` | No crece ni encoge |
+| `flex-shrink-0` | `flex-shrink: 0` | No se encoge nunca |
+| `grow` / `grow-0` | `flex-grow: 1/0` | Solo controla grow |
+
+<span class="fragment">`flex-1` = "ocupa el resto del espacio disponible"</span>
+
+Note:
+`flex-1` es la clase más usada en layouts. `flex-shrink-0` es crítica para sidebars y elementos que no deben encogerse. `flex-none` para elementos de tamaño fijo que no deben deformarse. Pregunta: ¿qué diferencia práctica hay entre flex-1 y flex-auto? (flex-1 reparte el espacio ignorando el tamaño del contenido; flex-auto considera el contenido para el reparto)
+
+---
+
+## Layout: Sidebar + Contenido
+
+```html
+<div class="flex h-screen bg-gray-50">
+  <!-- Sidebar fijo -->
+  <aside class="w-64 flex-shrink-0 bg-gray-900 text-white flex flex-col">
+    <div class="p-4 text-xl font-bold border-b">Mi App</div>
+    <nav class="flex-1 overflow-y-auto p-4">
+      <!-- Enlaces de navegación -->
+    </nav>
+  </aside>
+  <!-- Contenido flexible -->
+  <main class="flex-1 flex flex-col min-w-0">
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b">
+      <h1 class="text-xl font-semibold">Dashboard</h1>
+    </header>
+    <div class="flex-1 overflow-y-auto p-6">
+      <!-- Contenido scrolleable -->
+    </div>
+  </main>
+</div>
+```
+
+Note:
+Este es el layout más común en aplicaciones web. Elementos clave: `h-screen` (altura = viewport), `flex-shrink-0` (sidebar nunca se encoge), `flex-1` (contenido ocupa el resto), `min-w-0` (CRÍTICO: permite que el contenido se encoja y el overflow funcione), `overflow-y-auto` (scroll independiente). Pregunta: ¿qué pasa si olvidáis `min-w-0`? (El contenido no se encoge, causa desbordamiento horizontal)
+
+---
+
+## Técnica de auto-márgenes
+
+```html
+<div class="flex gap-4">
+  <span>Logo</span>
+  <span>Home</span>
+  <span>Products</span>
+  <!-- ml-auto empuja este elemento a la derecha -->
+  <span class="ml-auto">Login</span>
+</div>
+```
+
+<span class="fragment">Los márgenes `auto` en el eje principal <mark>consumen todo el espacio disponible</mark></span>
+
+<span class="fragment">Alternativa a `justify-between` cuando solo quieres empujar <mark>un elemento</mark></span>
+
+Note:
+Esta técnica es menos conocida pero muy elegante. `ml-auto` en un flex item lo empuja a la derecha sin afectar al resto de elementos. Es preferible a `justify-between` cuando no quieres separar TODOS los elementos, solo el último. Pregunta: ¿cómo empujarías un elemento al fondo en una columna flex? (`mt-auto`)
+
+---
+
+## CSS Grid: conceptos fundamentales
+
+<span class="fragment">Sistema de layout <mark>bidimensional</mark>: controlas filas Y columnas simultáneamente</span>
+
+<span class="fragment">`display: grid` en el contenedor → hijos directos son <mark>grid items</mark></span>
+
+<span class="fragment">Columnas con `grid-template-columns` (tamaños fijos, `fr`, `repeat()`, `minmax()`)</span>
+
+<span class="fragment">La unidad <mark>`fr`</mark> (fracción): distribuye el espacio disponible proporcionalmente</span>
+
+<span class="fragment">Items pueden posicionarse en celdas específicas con `grid-column` y `grid-row`</span>
+
+Note:
+CSS Grid (2017) fue un salto generacional. Antes, hacer un layout de 3 columnas con sidebar requería floats, clearfixes o frameworks CSS completos como Bootstrap. Ahora es una línea de CSS. La unidad `fr` es mágica: `1fr 2fr` significa "una parte para el primer track, dos para el segundo". Pregunta: ¿qué hace `grid-cols-12` en Tailwind? (Define 12 columnas de igual tamaño)
+
+---
+
+## Grid en Tailwind: definición de columnas
+
+```html
+<!-- 3 columnas iguales -->
+<div class="grid grid-cols-3 gap-4">
+
+<!-- 12 columnas (sistema clásico) -->
+<div class="grid grid-cols-12 gap-4">
+  <div class="col-span-8">Main (8/12)</div>
+  <div class="col-span-4">Sidebar (4/12)</div>
+</div>
+
+<!-- Columnas de diferente tamaño (valores arbitrarios) -->
+<div class="grid grid-cols-[250px_1fr_200px] gap-4">
+  <div>Sidebar (250px fijo)</div>
+  <div>Contenido (1fr = resto)</div>
+  <div>Panel lateral (200px fijo)</div>
+</div>
+```
+
+<span class="fragment">`grid-cols-[250px_1fr_200px]` es una de las features <mark>más potentes</mark> de Tailwind</span>
+
+Note:
+La sintaxis de valores arbitrarios permite definir tracks con unidades mixtas. 250px fijos para sidebar, 1fr para contenido (resto del espacio), 200px fijos para panel. Esto es puro CSS Grid expresado como clase Tailwind. Pregunta: ¿cuántas columnas por defecto tiene `grid-cols-3`? (3 columnas de igual tamaño = 1fr cada una)
+
+---
+
+## Grid: posicionamiento de items
+
+```html
+<div class="grid grid-cols-4 gap-4">
+  <div class="col-span-2">Ocupa 2 columnas</div>
+  <div>Col 3</div>
+  <div>Col 4</div>
+
+  <div class="col-start-2 col-span-3">
+    Empieza en col 2, ocupa 3
+  </div>
+
+  <div class="col-span-full">Full width</div>
+  <div class="row-span-2">2 filas de alto</div>
+</div>
+```
+
+<span class="fragment">`col-span-{1-12}`, `row-span-{1-6}`, `col-span-full`, `row-span-full`</span>
+
+Note:
+Los items pueden colocarse en posiciones específicas del grid. `col-span-full` es muy útil para elementos que deben ocupar todo el ancho. `col-start-{n}` y `col-end-{n}` permiten control preciso. Pregunta: si tengo `grid-cols-4` y pongo `col-span-2` + `col-span-3`, ¿qué pasa? (La suma es 5 > 4, el segundo elemento salta a la siguiente fila)
+
+---
+
+## Dashboard con Grid: estructura
+
+<div class="mermaid">
+graph TB
+  subgraph "grid grid-cols-12 gap-6"
+    A["col-span-3<br>KPI 1"] 
+    B["col-span-3<br>KPI 2"]
+    C["col-span-3<br>KPI 3"]
+    D["col-span-3<br>KPI 4"]
+    E["col-span-8<br>Main Chart"]
+    F["col-span-4<br>Activity"]
+    G["col-span-full<br>Data Table"]
+  end
+</div>
+
+<span class="fragment">Grid maneja la estructura bidimensional; Flexbox maneja los layouts internos</span>
+
+Note:
+Este es el patrón de dashboard más común. 12 columnas de grid. KPI cards: 3 columnas cada una (suman 12). Chart principal: 8 columnas (2/3 del ancho). Panel de actividad: 4 columnas (1/3). Tabla: full width. En móvil, todo col-span-full. Pregunta: ¿por qué no usar Flexbox para esto? (Con Flexbox, las tarjetas de diferentes alturas no se alinearían en filas perfectas)
+
+---
+
+## Dashboard responsive: mobile-first
+
+```html
+<div class="grid grid-cols-12 gap-6 p-6">
+  <!-- KPI Cards: 1 col móvil, 2 col tablet, 4 col desktop -->
+  <div class="col-span-full sm:col-span-6 lg:col-span-3">
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+      <p class="text-sm text-gray-500">Total Users</p>
+      <p class="text-3xl font-bold mt-1">24,521</p>
+      <p class="text-sm text-green-600 mt-2">↑ 12.5%</p>
+    </div>
+  </div>
+  <!-- ... más KPI cards ... -->
+
+  <!-- Chart: full móvil, 8/12 desktop -->
+  <div class="col-span-full lg:col-span-8 bg-white rounded-xl p-6">
+    <h2 class="text-lg font-semibold mb-4">Revenue</h2>
+  </div>
+
+  <!-- Activity: full móvil, 4/12 desktop -->
+  <div class="col-span-full lg:col-span-4 bg-white rounded-xl p-6">
+    <h2 class="text-lg font-semibold mb-4">Activity</h2>
   </div>
 </div>
 ```
 
 Note:
-Este es un ejemplo real de implementación. Observad: `[class.border-error]="!!error()"` activa/desactiva clases condicionalmente (más limpio que concatenar strings). `@if` para renderizado condicional. `leadingIcon()` e `error()` son signals. Pregunta: ¿por qué usar `[class.xxx]` en lugar de `[ngClass]`? (Más simple y tipado para clases individuales)
+Mobile-first: las clases base (`col-span-full`) definen el layout móvil. Los prefijos `sm:` (≥640px), `lg:` (≥1024px) añaden modificaciones para pantallas más grandes. Esto es más mantenible que desktop-first. Pregunta: ¿qué prefijo usaríais para tablet en Tailwind? (md: ≥768px)
 
 ---
 
-## Ejemplo: InputFieldComponent (TypeScript)
-
-```typescript
-@Component({
-  selector: 'app-input-field',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent],
-  templateUrl: './input-field.component.html',
-})
-export class InputFieldComponent {
-  readonly label = input.required<string>();
-  readonly type = input<'text' | 'email' | 'password' | 'number'>('text');
-  readonly placeholder = input('');
-  readonly error = input<string | null>(null);
-  readonly disabled = input(false);
-  readonly leadingIcon = input<string | undefined>(undefined);
-  readonly value = model('');
-
-  protected id = computed(() =>
-    this.label().toLowerCase().replace(/\s+/g, '-')
-  );
-}
-```
-
-<span class="fragment">Todos los inputs con <mark>tipos literales</mark> (no `string` genérico)</span>
-
-Note:
-Usamos `input.required()` para props obligatorias. `model()` para two-way binding con el padre (`[(value)]="email"`). `computed()` para derivar el id del label (accesibilidad: el label debe estar asociado al input vía `for`/`id`). Tipos literales ('text' | 'email' | 'password' | 'number') en lugar de `string` para autocompletado y validación en compilación. Pregunta: ¿qué diferencia hay entre `input()` y `model()`? (input es de solo lectura padre→hijo; model soporta two-way binding)
-
----
-
-## FASE 5: Stories de Storybook
-
-```typescript
-const meta: Meta<InputFieldComponent> = {
-  title: 'Components/InputField',
-  component: InputFieldComponent,
-  tags: ['autodocs'],
-  argTypes: {
-    type: { control: 'select',
-      options: ['text', 'email', 'password', 'number'] },
-    error: { control: 'text' },
-    disabled: { control: 'boolean' },
-  },
-};
-
-export const Default: Story = {
-  args: { label: 'Email', type: 'email', placeholder: 'tu@email.com' },
-};
-
-export const WithError: Story = {
-  args: { label: 'Email', error: 'Email no válido' },
-};
-
-export const Disabled: Story = {
-  args: { label: 'Email', disabled: true },
-};
-
-export const WithLeadingIcon: Story = {
-  args: { label: 'Email', leadingIcon: 'mail' },
-};
-```
-
-<span class="fragment">Cada estado significativo → su propia story</span>
-
-Note:
-Las stories cubren todos los estados: default, con error, disabled, con iconos. `argTypes` define controles interactivos en el panel de Storybook. `tags: ['autodocs']` genera documentación automática. Pregunta: ¿qué addon de Storybook permite verificar accesibilidad automáticamente? (`@storybook/addon-a11y`)
-
----
-
-## FASE 6: Estrategia de iconos
-
-**Opción recomendada: librería (Lucide)**
-
-```bash
-npm install lucide-angular
-```
-
-```typescript
-import { Component, input } from '@angular/core';
-import { LucideAngularModule } from 'lucide-angular';
-
-@Component({
-  selector: 'app-icon',
-  standalone: true,
-  imports: [LucideAngularModule],
-  template: `<lucide-icon [name]="name()"
-              [size]="size()" [class]="className()" />`,
-})
-export class IconComponent {
-  readonly name = input.required<string>();
-  readonly size = input<number>(20);
-  readonly className = input('');
-}
-```
-
-<span class="fragment">No exportes iconos uno a uno de Figma. Usa una librería optimizada.</span>
-
-Note:
-Lucide es la opción recomendada: +1000 iconos, optimizados, con componente Angular nativo. Alternativa: Heroicons (del equipo de Tailwind). Evitad exportar SVG manualmente de Figma para cada icono: es lento, propenso a errores y los SVG de Figma contienen metadatos innecesarios. Pregunta: ¿qué formato de exportación usaríais para un icono? (SVG — es vectorial, escalable y mínimo en tamaño)
-
----
-
-## FASE 6: Imágenes y fuentes
-
-**Imágenes:**
+## Layout Ecommerce: Grid de productos
 
 ```html
-<img src="product-800w.webp"
-  srcset="product-400w.webp 400w, product-800w.webp 800w"
-  sizes="(max-width: 640px) 100vw, 50vw"
-  alt="Product description"
-  loading="lazy"
-  decoding="async" />
+<!-- Catálogo responsivo sin media queries explícitas -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <!-- Product Card -->
+  <div class="group bg-white rounded-xl border hover:shadow-lg transition-shadow">
+    <div class="aspect-square bg-gray-100 relative overflow-hidden">
+      <img src="product.jpg" class="w-full h-full object-cover
+                  group-hover:scale-105 transition-transform" />
+    </div>
+    <div class="p-4">
+      <p class="text-sm text-gray-500">Brand</p>
+      <h3 class="font-medium truncate">Product Name</h3>
+      <div class="flex items-center gap-2">
+        <span class="font-bold">€29.99</span>
+        <span class="text-sm text-gray-400 line-through">€49.99</span>
+      </div>
+    </div>
+  </div>
+</div>
 ```
-
-<span class="fragment">WebP como formato principal. <mark>`loading="lazy"`</mark> difiere carga. `srcset` para responsive.</span>
-
-**Fuentes:**
-
-```css
-@font-face {
-  font-family: 'Inter';
-  src: url('/assets/fonts/inter-var.woff2') format('woff2');
-  font-weight: 300 700;
-  font-display: swap; /* Evita FOIT */
-}
-```
-
-<span class="fragment"><mark>`font-display: swap`</mark>: muestra texto inmediatamente, la fuente se intercambia al cargar</span>
 
 Note:
-WebP ofrece 25-35% mejor compresión que PNG/JPEG con soporte universal en 2025. `loading="lazy"` mejora el LCP (Largest Contentful Paint) difiriendo imágenes fuera del viewport. `font-display: swap` es CRÍTICO: sin él, el navegador oculta el texto hasta que la fuente se descarga (FOIT: Flash of Invisible Text). Pregunta: ¿qué formato es aún mejor que WebP? (AVIF: hasta 50% mejor compresión que JPEG, soporte creciente)
+El catálogo usa Grid para las tarjetas (columnas perfectamente alineadas). `aspect-square` mantiene la imagen cuadrada. `group-hover:scale-105` escala la imagen al hacer hover en la tarjeta (gracias a `group` en el padre). `truncate` evita que nombres largos desborden. Pregunta: ¿por qué Grid y no Flexbox wrap para las tarjetas? (Grid garantiza que todas las tarjetas tengan exactamente el mismo ancho alineado en columnas)
 
 ---
 
-## FASE 7: Pantallas completas — DashboardPage
+## Posicionamiento: valores de `position`
 
-```typescript
-@Component({
-  selector: 'app-dashboard-page',
-  standalone: true,
-  template: `
-    <app-dashboard-layout pageTitle="Dashboard">
-      @if (loading()) {
-        <div class="flex justify-center py-20"><app-spinner size="lg" /></div>
-      }
-      @else if (error()) {
-        <div class="text-center py-20">
-          <h2 class="text-lg font-semibold mb-2">Error al cargar</h2>
-          <app-button variant="primary" (clicked)="loadData()">Reintentar</app-button>
-        </div>
-      }
-      @else if (stats().length === 0) {
-        <div class="text-center py-20">
-          <h2 class="text-lg font-semibold mb-2">No hay datos</h2>
-          <app-button variant="primary">Crear proyecto</app-button>
-        </div>
-      }
-      @else {
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          @for (stat of stats(); track stat.id) {
-            <app-card>...</app-card>
-          }
-        </div>
-      }
-    </app-dashboard-layout>
-  `,
-})
-export class DashboardPageComponent {
-  protected loading = signal(true);
-  protected error = signal<string | null>(null);
-  protected stats = signal<Stat[]>([]);
-}
-```
+| Valor | Comportamiento | Tailwind |
+|---|---|---|
+| `static` | Flujo normal (por defecto) | `static` |
+| `relative` | Relativo a su posición original. Crea contexto para hijos absolute | `relative` |
+| `absolute` | Respecto al ancestro posicionado más cercano. Sale del flujo | `absolute` |
+| `fixed` | Respecto al viewport. No se mueve al hacer scroll | `fixed` |
+| `sticky` | Híbrido: relative hasta cruzar umbral, luego fixed | `sticky` |
 
-<span class="fragment">Todos los estados cubiertos: <mark>loading, error, empty, ideal</mark></span>
+<span class="fragment">`relative` en el padre + `absolute` en el hijo = <mark>patrón más común</mark></span>
 
 Note:
-Esta es la implementación de una pantalla real. Observad los 4 estados: loading (spinner), error (mensaje + reintentar), empty (mensaje + acción), ideal (datos). El usuario NUNCA ve una pantalla en blanco o rota. Todos los componentes (Card, Button, Spinner) son reutilizados, no implementados aquí. Pregunta: ¿por qué usar signals en lugar de variables normales? (Los cambios en signals son reactivos: la UI se actualiza automáticamente)
+Cada valor tiene su caso de uso. `static` es el default (casi nunca se usa explícitamente). `relative` + `absolute` es el dúo dinámico de los overlays. `fixed` para modales y headers persistentes. `sticky` para headers de sección que se pegan al hacer scroll. Pregunta: ¿qué pasa si un elemento absolute no tiene ancestro posicionado? (Se posiciona respecto al body/html)
 
 ---
 
-## Gestión de todos los estados
+## Patrones de posicionamiento
 
-<div class="mermaid">
-stateDiagram-v2
-  [*] --> Loading
-  Loading --> Error: API falla
-  Loading --> Empty: Sin datos
-  Loading --> Ideal: Datos OK
-  Error --> Loading: Reintentar
-  Ideal --> Loading: Recargar
-  Ideal --> Empty: Datos eliminados
-  Empty --> Ideal: Datos añadidos
+```html
+<!-- Tooltip -->
+<div class="relative inline-block">
+  <button>Hover me</button>
+  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+              bg-gray-900 text-white text-sm rounded-lg px-3 py-2
+              opacity-0 group-hover:opacity-100 transition-opacity">
+    Tooltip text
+  </div>
 </div>
 
-<span class="fragment">Cada estado tiene su propia UI. El usuario siempre sabe qué está pasando.</span>
+<!-- Modal centrado -->
+<div class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+              w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6">
+    <h2 class="text-xl font-bold">Modal Title</h2>
+  </div>
+</div>
+```
 
 Note:
-Este diagrama muestra todas las transiciones de estado posibles en una pantalla. Cada estado tiene un tratamiento visual específico. Si el diseño de Figma no incluye todos estos estados, consultad con el diseñador. Implementar estados sin diseño es una de las principales causas de inconsistencia visual. Pregunta: ¿qué diferencia hay entre el estado Empty y el estado Error? (Empty: no hay datos que mostrar, es una situación normal. Error: algo fue mal al cargar, es una situación excepcional)
+Dos patrones esenciales. Tooltip: `relative` en padre, `absolute` en hijo, `group-hover:` para mostrar/ocultar. Modal: `fixed inset-0` (cubre toda la pantalla), overlay con `bg-black/50 backdrop-blur-sm`, contenido centrado con `top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2`. Esta fórmula de centrado es la más fiable. Pregunta: ¿por qué `-translate-x-1/2`? (Porque top/left 50% posiciona la esquina superior izquierda en el centro; translate compensa la mitad del ancho/alto del propio elemento)
 
 ---
 
-## Actividad en clase: Inspección colaborativa
+## Sticky: lo mejor de relative y fixed
 
-<span class="fragment">Se proyecta un diseño de Figma. Trabajo en parejas.</span>
+```html
+<!-- Header que se pega al hacer scroll -->
+<header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b">
+  <!-- Contenido -->
+</header>
 
-<span class="fragment">1. Completar el <mark>checklist de inspección</mark> para una pantalla asignada</span>
+<!-- Sticky headers de sección en lista -->
+<div class="sticky top-16 bg-gray-50 px-4 py-2 text-sm font-semibold z-10">
+  Hoy
+</div>
+```
 
-<span class="fragment">2. Identificar: layout, colores, tipografías, espaciados</span>
+<span class="fragment">Requisitos para que sticky funcione:</span>
+<span class="fragment">1. Necesita `top` (o bottom/left/right) definido</span>
+<span class="fragment">2. El contenedor padre debe tener altura suficiente</span>
+<span class="fragment">3. Ningún ancestro con `overflow: hidden`</span>
 
-<span class="fragment">3. Identificar <mark>componentes reutilizables</mark> y sus variantes</span>
+Note:
+Sticky es genial cuando funciona, pero tiene reglas estrictas. Si "no funciona", comprobad estas 3 condiciones. El `top-16` en el segundo ejemplo es para que el header de sección se pegue justo debajo del header principal (que mide 64px = 4rem). Pregunta: ¿por qué sticky necesita que el padre tenga altura? (Porque sticky es "pegajoso" dentro de su contenedor; si el contenedor no tiene scroll, no hay nada contra lo que pegarse)
 
-<span class="fragment">4. Identificar <mark>estados necesarios</mark> (loading, empty, error)</span>
+---
 
-<span class="fragment">5. Puesta en común: cada pareja expone sus hallazgos</span>
+## Grid + Flexbox: la regla de oro
+
+> **Grid para la estructura de página (macro-layout).**  
+> **Flexbox para los componentes (micro-layout).**
+
+<span class="fragment">
+
+```html
+<!-- Grid: estructura macro -->
+<div class="grid grid-cols-[250px_1fr] h-screen">
+  <!-- Flexbox: contenido del sidebar -->
+  <aside class="flex flex-col bg-gray-900">...</aside>
+
+  <!-- Flexbox: estructura del main -->
+  <main class="flex flex-col min-w-0">
+    <!-- Flexbox: header -->
+    <header class="flex items-center justify-between px-6 py-4">...</header>
+    <!-- Grid: widgets del dashboard -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="grid grid-cols-12 gap-6">...</div>
+    </div>
+  </main>
+</div>
+```
+
+</span>
+
+Note:
+Esta regla resuelve el 95% de las decisiones de layout. Grid es bidimensional, Flexbox es unidimensional. El layout anida: Grid → Flexbox → Grid → Flexbox, según el nivel. En el ejemplo: Grid para la página, Flexbox para sidebar y main, Grid para los widgets del dashboard. Pregunta: ¿en qué casos usaríais Flexbox para la estructura macro? (Layouts muy simples de una sola dimensión, como un chat con 3 paneles horizontales)
+
+---
+
+## Container Queries: el futuro
+
+```html
+<!-- Contenedor con container query habilitado -->
+<div class="@container">
+  <!-- Se adapta al ancho del CONTENEDOR, no del viewport -->
+  <div class="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl p-4 shadow">Card 1</div>
+    <div class="bg-white rounded-xl p-4 shadow">Card 2</div>
+    <div class="bg-white rounded-xl p-4 shadow">Card 3</div>
+    <div class="bg-white rounded-xl p-4 shadow">Card 4</div>
+  </div>
+</div>
+```
+
+<span class="fragment">Los prefijos <mark>@sm:, @md:, @lg:</mark> consultan el tamaño del contenedor, no del viewport</span>
+
+Note:
+Esto es revolucionario para componentes reutilizables. Con media queries, un componente no sabe si está en un sidebar estrecho o en un área ancha (ambos dependen del viewport). Con container queries, el componente pregunta a su contenedor inmediato. Tailwind 4 soporta esto nativamente. Pregunta: ¿cuándo usaríais container queries en lugar de media queries? (Cuando un mismo componente debe comportarse diferente según el contexto donde se use)
+
+---
+
+## Layout fluido sin media queries
+
+```html
+<!-- Grid que se adapta automáticamente SIN breakpoints -->
+<div class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
+  <!-- Crea tantas columnas como quepan de mínimo 280px -->
+  <!-- Cada columna se estira para ocupar 1fr si sobra espacio -->
+  <!-- Si no caben, saltan a la siguiente fila automáticamente -->
+</div>
+
+<!-- Ancho de lectura fluido con clamp() -->
+<article class="w-[clamp(320px,80vw,1200px)] mx-auto">
+  <!-- Mínimo 320px, ideal 80vw, máximo 1200px -->
+</article>
+```
+
+<span class="fragment">CSS moderno permite layouts responsivos <mark>sin una sola media query</mark></span>
+
+Note:
+`auto-fit` + `minmax` es pura magia CSS. "Crea tantas columnas como quepan, cada una de mínimo 280px, y si sobra espacio, estíralas proporcionalmente". Sin breakpoints, sin media queries. `clamp()` es ideal para anchos de lectura: se adapta fluidamente entre un mínimo y un máximo. Pregunta: ¿qué diferencia hay entre auto-fit y auto-fill? (auto-fit colapsa columnas vacías; auto-fill las mantiene, creando espacio vacío)
+
+---
+
+## Overflows y scroll
+
+```html
+<!-- Layout de página con scroll en área de contenido -->
+<div class="flex flex-col h-screen">
+  <header class="flex-shrink-0 h-16">Header fijo</header>
+  <main class="flex-1 overflow-y-auto">Contenido scrolleable</main>
+  <footer class="flex-shrink-0 h-12">Footer fijo</footer>
+</div>
+
+<!-- Tabla ancha con scroll horizontal -->
+<div class="overflow-x-auto">
+  <table class="min-w-[800px]">...</table>
+</div>
+
+<!-- Prevenir desbordamiento de texto -->
+<p class="truncate">Texto muy largo que se truncará...</p>
+<p class="break-words">URL_muy_larga_sin_espacios_que_se_parte...</p>
+```
+
+Note:
+El control del overflow es de lo más olvidado y lo más importante. Sin `h-screen` y `overflow-y-auto`, el contenido empuja el footer fuera de la pantalla. `truncate` es esencial para contenido generado por usuarios. `break-words` para URLs largas que no tienen espacios. Pregunta: ¿qué hace exactamente `truncate`? (overflow: hidden + text-overflow: ellipsis + white-space: nowrap)
+
+---
+
+## Layout SaaS: 3 columnas (tipo Notion/Linear)
+
+<div class="mermaid">
+graph LR
+  subgraph "flex h-screen"
+    A["w-12<br>Workspace nav<br>flex-shrink-0"]
+    B["w-60<br>Sidebar<br>flex-shrink-0"]
+    C["flex-1<br>Contenido<br>min-w-0"]
+  end
+  C --> C1["Header"]
+  C --> C2["Área principal<br>overflow-y-auto"]
+</div>
+
+<span class="fragment">Tres paneles flex, cada uno con `flex-col` para su estructura interna</span>
+
+Note:
+Este layout de 3 columnas es el estándar de las aplicaciones SaaS modernas. La primera columna (48px) son iconos de workspace. La segunda (240px) es la navegación. La tercera es el contenido. Todas con `flex-shrink-0` excepto el contenido (`flex-1 min-w-0`). Pregunta: ¿cómo haríais esto responsive en móvil? (Ocultando columnas y mostrando solo una, con navegación hacia atrás)
+
+---
+
+## Layout Chat: 3 paneles (tipo Slack/Discord)
+
+```html
+<div class="flex h-screen bg-gray-200">
+  <!-- Servidores: 60px -->
+  <nav class="w-[60px] flex-shrink-0 bg-gray-900 flex flex-col items-center py-3 gap-2">
+    <div class="w-10 h-10 bg-blue-500 rounded-2xl flex items-center justify-center text-white">D</div>
+  </nav>
+
+  <!-- Canales: 240px -->
+  <aside class="w-60 flex-shrink-0 bg-gray-800 flex flex-col">
+    <div class="px-4 py-3 border-b border-gray-700 font-semibold text-white text-sm">Servidor</div>
+    <div class="flex-1 overflow-y-auto py-2">
+      <a href="#" class="flex items-center gap-1.5 px-2 py-1 rounded text-gray-300 hover:bg-gray-700">
+        <span>#</span> <span class="text-sm">general</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Chat: flex-1 -->
+  <main class="flex-1 flex flex-col min-w-0 bg-gray-100">
+    <header class="flex-shrink-0 px-4 py-3 bg-white border-b"># canal</header>
+    <div class="flex-1 overflow-y-auto px-4 py-4"><!-- Mensajes --></div>
+    <div class="flex-shrink-0 px-4 py-3 bg-white border-t"><!-- Input --></div>
+  </main>
+</div>
+```
+
+Note:
+Este es el layout de chat más completo. 3 paneles con Flexbox horizontal. Cada panel con Flexbox vertical. Áreas de scroll independientes (`overflow-y-auto`). Input de mensaje con `flex-shrink-0` para que nunca se encoja. Pregunta: ¿por qué el panel de chat usa flex-col en lugar de grid? (Es un layout unidimensional: header + mensajes + input en columna)
+
+---
+
+## Actividad en clase: Depuración de layouts
+
+<span class="fragment">Se proporcionan 3 layouts con <mark>errores intencionados</mark></span>
+
+<span class="fragment">1. Abrir DevTools → panel Elements + Styles</span>
+
+<span class="fragment">2. Activar overlays de <mark>Flexbox y Grid</mark> en el panel Layout</span>
+
+<span class="fragment">3. Identificar el error</span>
+
+<span class="fragment">4. Corregir con las clases Tailwind adecuadas</span>
+
+**Errores:** falta `min-w-0`, `flex-shrink-0` mal usado, `sticky` sin `top`, `absolute` sin `relative`, `col-span` que no suma 12
 
 **Duración:** 25 minutos
 
 Note:
-Actividad para practicar la FASE 1. El docente asigna una pantalla diferente a cada pareja. La puesta en común es importante: diferentes personas identifican diferentes patrones. Pregunta: ¿qué es más importante identificar primero: los colores o los componentes? (Los componentes: definen la estructura. Los colores se extraen después)
+Actividad práctica de debugging. Los overlays de Flexbox y Grid en Chrome DevTools muestran líneas de colores para ejes, gaps y áreas. Son la herramienta más infrautilizada y más valiosa para depurar layouts. Pregunta: ¿dónde se activan los overlays de Grid en Chrome? (DevTools → Panel Layout →チェック "Show grid overlay")
 
 ---
 
-## Actividad en clase: Code review de un componente
+## Actividad en clase: Conversión Figma → Layout
 
-<span class="fragment">Se proporciona un <mark>componente con errores intencionados</mark></span>
+<span class="fragment">Se proporcionan 3 <mark>diseños de Figma</mark> (con Dev Mode accesible)</span>
 
-<span class="fragment">Errores típicos:</span>
-<span class="fragment">• Falta `min-w-0` → desbordamiento</span>
-<span class="fragment">• Clases condicionales incorrectas</span>
-<span class="fragment">• Falta estado disabled visual</span>
-<span class="fragment">• Tipado `any` en lugar de tipos literales</span>
+<span class="fragment">1. Analizar estructura: ¿dónde usa Grid? ¿dónde Flexbox? ¿hay posicionamiento?</span>
 
-<span class="fragment">Identificar errores → proponer correcciones → comparar con Figma</span>
+<span class="fragment">2. <mark>Traducir Auto Layout → Flexbox/Grid</mark> con la tabla de equivalencias</span>
 
-**Duración:** 20 minutos
+<span class="fragment">3. Escribir HTML + Tailwind correspondiente</span>
+
+<span class="fragment">4. Comparar implementación con el diseño</span>
+
+**Duración:** 30 minutos
 
 Note:
-Actividad para desarrollar ojo crítico. El componente tiene 3-4 errores que simulan problemas reales. La comparación con Figma es el paso final: solo cuando el componente se ve IDÉNTICO al diseño, está correcto. Pregunta: ¿cuál es el error más difícil de detectar? (Falta de min-w-0: el desbordamiento solo se ve con contenido muy largo)
+Esta actividad conecta directamente con las Unidades 3 y 5. Usáis la tabla de equivalencias Figma ↔ Tailwind para traducir diseños a código. Recordad: Auto Layout horizontal = flex-row, Auto Layout vertical = flex-col, gap = gap-{n}, padding = p-{n}. Pregunta: ¿cómo traduciríais un Auto Layout con space-between? (justify-between)
 
 ---
 
 ## Buenas prácticas
 
-<span class="fragment">1. <mark>Implementa los átomos primero</mark>. Una hora en átomos ahorra 10 horas después</span>
+<span class="fragment">1. <mark>Mobile-first</mark>: clases base para móvil, prefijos `sm:`, `md:` para ampliar</span>
 
-<span class="fragment">2. <mark>Mantén Figma abierto</mark> durante TODA la implementación. No trabajes "de memoria"</span>
+<span class="fragment">2. <mark>Grid para macro, Flexbox para micro</mark>: cubre el 95% de decisiones</span>
 
-<span class="fragment">3. <mark>Un componente, una responsabilidad</mark>. Lógica de negocio → servicios, no componentes</span>
+<span class="fragment">3. <mark>Nunca olvides `min-w-0`</mark> en flex items con overflow potencial</span>
 
-<span class="fragment">4. <mark>Documenta mientras implementas</mark>. Stories y tests como parte del flujo, no como tarea aparte</span>
+<span class="fragment">4. <mark>Usa `gap` en lugar de márgenes</mark> para espaciar en flex y grid</span>
 
-<span class="fragment">5. <mark>Usa tokens semánticos</mark>, no valores hardcodeados. `bg-primary`, no `bg-blue-600`</span>
+<span class="fragment">5. <mark>Escala de espaciado consistente</mark>: solo valores de la escala Tailwind (múltiplos de 4px)</span>
 
-<span class="fragment">6. <mark>Prioriza la accesibilidad</mark> como requisito funcional, no como "nice to have"</span>
+<span class="fragment">6. <mark>Semántica HTML</mark>: `<header>`, `<nav>`, `<main>`, `<aside>`, `<footer>`</span>
 
 Note:
-La #1 es la más importante: unos átomos bien diseñados son la base de todo el sistema. La #5 evita el problema de "15 tonos de azul diferentes porque en algunos sitios puse #3b82f6 y en otros #4a90d9". Pregunta: ¿qué práctica de estas 6 os parece más difícil de mantener? (La #4: documentar mientras implementas requiere disciplina)
+Seis prácticas que os ahorrarán horas de debugging. La #3 (`min-w-0`) es la más olvidada y la que más dolores de cabeza causa. La #6 no es solo "buena práctica": los elementos semánticos proporcionan landmarks ARIA implícitos para lectores de pantalla. Pregunta: ¿por qué no usar valores arbitrarios para espaciado? (Rompen la consistencia visual; si necesitas un valor 3 veces, defínelo como token en @theme)
 
 ---
 
 ## Errores frecuentes
 
-<span class="fragment">1. <mark>Empezar por las pantallas</mark> en lugar de por los componentes → duplicar código</span>
+<span class="fragment">1. Olvidar <mark>`flex-col`</mark> — por defecto `flex` es `flex-row`</span>
 
-<span class="fragment">2. <mark>No definir tokens</mark> y usar colores hardcodeados → inconsistencia visual</span>
+<span class="fragment">2. `absolute` sin <mark>`relative`</mark> en el ancestro — se posiciona respecto al body</span>
 
-<span class="fragment">3. <mark>Ignorar estados</mark> (loading, empty, error) → pantalla rota con datos reales</span>
+<span class="fragment">3. `col-span-{n}` que no suma el número de columnas → <mark>desbordamiento</mark></span>
 
-<span class="fragment">4. <mark>Copiar y pegar</mark> componentes en lugar de añadir variantes mediante inputs</span>
+<span class="fragment">4. No manejar el <mark>overflow</mark>: contenido que se sale del viewport</span>
 
-<span class="fragment">5. <mark>No tipar correctamente</mark>: `@Input() variant: string` en lugar de tipos literales</span>
+<span class="fragment">5. Usar <mark>`sticky`</mark> sin `top` o con ancestro `overflow: hidden`</span>
 
-<span class="fragment">6. <mark>No verificar contra Figma</mark> durante el desarrollo → 15 discrepancias al final</span>
+<span class="fragment">6. Abusar de <mark>valores arbitrarios</mark>: `w-[327px]`, `p-[7px]`</span>
 
 Note:
-El error #4 es una trampa de productividad: copiar y pegar un componente para hacer una variante es más rápido a corto plazo (30 segundos) pero genera deuda técnica masiva. Añadir una variante al componente existente (5 minutos) es la inversión correcta. Pregunta: ¿cómo detectáis el error #3 en una aplicación ajena? (Navegad a una página, simulad que la API falla en DevTools → Network → Offline)
+El error #1 es el más común entre principiantes: `flex` solo (sin `flex-col`) pone los elementos en fila cuando querías columna. El #3 es tramposo: si tienes grid-cols-4 y pones col-span-3 + col-span-2, la suma es 5 y el segundo salta a la siguiente fila. Pregunta: ¿cómo depuráis un sticky que "no funciona"? (Comprobad: ¿tiene top definido? ¿algún ancestro tiene overflow:hidden? ¿el padre tiene altura suficiente?)
 
 ---
 
 ## Resumen de la unidad
 
-<span class="fragment">✅ <mark>F1 Inspección</mark>: Dev Mode, checklist, identificación de patrones</span>
+<span class="fragment">✅ <mark>Flexbox</mark>: layout unidimensional, ejes main/cross, gap, auto-márgenes</span>
 
-<span class="fragment">✅ <mark>F2 Design Tokens</mark>: paleta de colores, tipografía, espaciado, sombras</span>
+<span class="fragment">✅ <mark>CSS Grid</mark>: layout bidimensional, fr, repeat, minmax, span, start/end</span>
 
-<span class="fragment">✅ <mark>F3 Tailwind @theme</mark>: traducción de tokens a CSS, modo oscuro</span>
+<span class="fragment">✅ <mark>Posicionamiento</mark>: relative/absolute (overlays), fixed (modales), sticky (headers)</span>
 
-<span class="fragment">✅ <mark>F4 Atomic Design</mark>: átomos, moléculas, organismos, templates, pages</span>
+<span class="fragment">✅ <mark>Regla de oro</mark>: Grid para estructura, Flexbox para componentes</span>
 
-<span class="fragment">✅ <mark>F5 Implementación</mark>: ciclo de 10 pasos, tipos literales, clases condicionales</span>
+<span class="fragment">✅ <mark>Técnicas avanzadas</mark>: container queries, auto-fit, clamp, overflow control</span>
 
-<span class="fragment">✅ <mark>F6 Assets</mark>: iconos (Lucide), imágenes (WebP/lazy), fuentes (swap)</span>
+<span class="fragment">✅ <mark>4 layouts completos</mark>: Dashboard, SaaS, Ecommerce, Chat</span>
 
 Note:
-Esta unidad resume todo el módulo. Si domináis estas 8 fases, podéis enfrentar cualquier proyecto profesional de desarrollo de interfaces. El flujo Figma → Design Tokens → Tailwind @theme → Componentes Angular → Storybook → App es el estándar de la industria en 2025. Pregunta: ¿cuál de las 8 fases creéis que necesita más práctica?
+Resumen de las 6 competencias. Ahora tenéis las herramientas para implementar cualquier diseño de Figma como layout funcional. En la Unidad 5 usaremos estos layouts como base para construir aplicaciones completas con componentes Angular. Pregunta: ¿cuál de los 4 layouts os ha parecido más útil?
 
 ---
 
 ## Próximos pasos
 
-<span class="fragment">📌 <mark>Actividad 1</mark>: Implementar 3 átomos (Badge, Avatar, Divider) desde Figma</span>
+<span class="fragment">📌 <mark>Actividad 1</mark>: Practicar Flexbox con layouts unidimensionales (navbar, lista, footer)</span>
 
-<span class="fragment">📌 <mark>Actividad 2</mark>: Implementar DataTable con búsqueda, filtros y paginación</span>
+<span class="fragment">📌 <mark>Actividad 2</mark>: Construir Dashboard con Grid de 12 columnas y componentes Angular</span>
 
-<span class="fragment">📌 <mark>Actividad 3</mark>: Proyecto completo: Biblioteca personal (Figma → Tokens → App)</span>
+<span class="fragment">📌 <mark>Actividad 3</mark>: Posicionamiento avanzado (tooltip, dropdown, modal, sticky, toast)</span>
 
-<span class="fragment">📌 <mark>Actividad 4</mark>: Sistema de temas dinámicos con persistencia</span>
+<span class="fragment">📌 <mark>Actividad 4</mark>: App de chat completa con 3 paneles y Signals</span>
 
-<span class="fragment">📌 <mark>Actividad 5</mark>: Proyecto final: App de gestión de proyectos (Jira-like)</span>
-
-<span class="fragment">📌 <mark>Evaluación</mark>: La Actividad 5 puede usarse como proyecto de evaluación final</span>
+<span class="fragment">📌 <mark>Unidad 5</mark>: Del diseño Figma a la implementación Angular completa</span>
 
 Note:
-Cinco actividades de dificultad creciente. La Actividad 3 es el flujo completo aplicado a una app pequeña (biblioteca personal). La Actividad 5 es el proyecto final del módulo: una app de gestión de proyectos tipo Jira con 15+ componentes, diseño responsive, drag & drop y despliegue. Planificad bien el tiempo.
+Cuatro actividades obligatorias. La Actividad 4 (chat completo) es la más completa: integra layouts, componentes y Signals. La Unidad 5 es la culminación del módulo: tomaremos diseños de Figma y los implementaremos completamente con todo lo aprendido.
 
 ---
 
@@ -641,27 +672,25 @@ Cinco actividades de dificultad creciente. La Actividad 3 es el flujo completo a
 
 <div style="font-size: 1.5rem; margin-top: 2rem;">
 
-`@theme` · `input.required<T>()` · `signal()` · `@container`
+`flex flex-col` · `grid grid-cols-12` · `relative` + `absolute` · `min-w-0`
 
 <br>
 
-**¡Enhorabuena!** Habéis completado el módulo de Desarrollo de Interfaces 🎯
+**Próxima sesión:** Unidad 5 · Del Diseño a la Implementación
 
 </div>
 
 Note:
-Última sesión del módulo. Resolved todas las dudas pendientes. La Actividad 5 (proyecto final) es vuestra oportunidad de demostrar todo lo aprendido. Poned especial atención a: fidelidad al diseño Figma, tipado TypeScript sin any, cobertura de estados (loading/empty/error), y documentación en Storybook. ¡Buen trabajo!
+Espacio para dudas. Recordad: min-w-0, gap en lugar de márgenes, mobile-first, Grid para macro y Flexbox para micro. Con estas 4 reglas resolveréis el 95% de los problemas de layout.
 
 ---
 
 ## Referencias
 
-- **Angular Docs:** https://angular.dev
-- **Tailwind CSS v4:** https://tailwindcss.com/docs/v4
-- **Storybook Angular:** https://storybook.js.org/docs/angular
-- **Figma Dev Mode:** https://help.figma.com/hc/en-us/articles/15033890310167
-- **Lucide Icons:** https://lucide.dev
-- **Style Dictionary:** https://amzn.github.io/style-dictionary
-- **Atomic Design (Brad Frost):** https://atomicdesign.bradfrost.com
-- **axe DevTools:** https://www.deque.com/axe
-- **Squoosh (image optimizer):** https://squoosh.app
+- **Tailwind Flexbox:** https://tailwindcss.com/docs/flex
+- **Tailwind Grid:** https://tailwindcss.com/docs/grid-template-columns
+- **Tailwind Position:** https://tailwindcss.com/docs/position
+- **CSS-Tricks Flexbox Guide:** https://css-tricks.com/snippets/css/a-guide-to-flexbox
+- **CSS-Tricks Grid Guide:** https://css-tricks.com/snippets/css/complete-guide-grid
+- **Flexbox Froggy:** https://flexboxfroggy.com
+- **Grid Garden:** https://cssgridgarden.com

@@ -1,867 +1,674 @@
-# Unidad 08 — Formularios e Interacción
 
----
+<!-- .slide: data-background="#0c4a6e" -->
+## Módulo 0488 · Desarrollo de Interfaces
+### Unidad 8: Responsive Design en Aplicaciones Angular
 
-## Portada
+Mobile First · Breakpoints Tailwind · BreakpointObserver · Dashboard Responsive
 
-### Módulo 0488 — Desarrollo de Interfaces
-## Formularios e Interacción
-#### Reactive Forms + Validación + UX + Micro-interacciones
-
-Note:
-Bienvenidos a la Unidad 8. Los formularios son el punto de fricción más crítico entre el usuario y la aplicación. Un formulario mal diseñado pierde usuarios; uno bien diseñado los convierte. Hoy veremos Reactive Forms en profundidad, validadores personalizados, UX avanzada y micro-interacciones que marcan la diferencia.
-
----
-
-## Objetivos de aprendizaje
-
-- Dominar Reactive Forms: <mark>FormControl, FormGroup, FormArray</mark> <!-- .element: class="fragment" -->
-- Crear validadores síncronos y asíncronos personalizados <!-- .element: class="fragment" -->
-- Construir mensajes de error contextualizados y accesibles <!-- .element: class="fragment" -->
-- Implementar formularios multi-paso con Signals <!-- .element: class="fragment" -->
-- Auto-guardado de borradores y confirmación de salida <!-- .element: class="fragment" -->
-- Micro-interacciones: shake, slideIn, checkmark, pulse <!-- .element: class="fragment" -->
+<small>CFGS DAM · Curso 2025/26</small>
 
 Note:
-Seis objetivos que cubren todo el ciclo de vida de un formulario profesional. Desde la estructura con FormControl/FormGroup/FormArray, pasando por validaciones síncronas y asíncronas, hasta la UX avanzada con wizards, auto-guardado y micro-interacciones.
+Última unidad del bloque de interfaces. Vamos a unir todo lo aprendido (UX, accesibilidad, Tailwind, componentes) y hacer que funcione en cualquier dispositivo. Del móvil al monitor 4K, pasando por tablet y ventanas de Electron. Pregunta: ¿quién ha probado su app en un móvil real?
 
 ---
 
-## Motivación: El caso del registro abandonado
+<!-- .slide: data-background="#f0fdf4" -->
+## 🎯 Objetivos de Aprendizaje
 
-```mermaid
+1. Aplicar <mark>Mobile First</mark> en aplicaciones de gestión empresarial
+2. Dominar breakpoints de Tailwind: `sm`, `md`, `lg`, `xl`, `2xl`
+3. Implementar estrategias responsive para <mark>cada tipo de componente</mark>
+4. Utilizar `BreakpointObserver` de Angular CDK con Signals
+5. Construir un dashboard completamente responsive (3 rangos)
+6. Comprender responsive design en aplicaciones <mark>Electron</mark>
+
+Note:
+6 objetivos. Los 3 primeros son de estilos (Tailwind). El 4 es de lógica TypeScript. El 5 es el proyecto integrador. El 6 cubre el caso especial de aplicaciones de escritorio con Electron, donde la ventana puede redimensionarse a cualquier tamaño.
+
+---
+
+<!-- .slide: data-background="#f0fdf4" -->
+## 🤔 Mobile First: Diseñar desde la Restricción
+
+<div class="mermaid">
 graph LR
-    A[Usuario llega<br/>al registro] --> B[Ve 15 campos<br/>obligatorios]
-    B --> C[Escribe email<br/>con error]
-    C --> D[Mensaje de error<br/>genérico y tardío]
-    D --> E[Abandona]
-    E --> F[€ perdidos]
-```
+    A[Desktop-First<br/>1920px → 375px] --> B[❌ Recortar<br/>Quitar elementos<br/>Información perdida]
+    C[Mobile-First<br/>375px → 1920px] --> D[✅ Añadir<br/>Enriquecer layout<br/>Información complementaria]
+</div>
 
-### El 67% de los usuarios abandona formularios mal diseñados
+<mark>Empezar por el móvil obliga a priorizar: ¿qué es esencial?</mark>
 
 Note:
-Estadística real: 2 de cada 3 usuarios abandonan formularios con mala UX. Los motivos principales: demasiados campos de golpe, validación agresiva (errores antes de escribir), mensajes de error poco útiles, y falta de feedback visual. Cada abandono es dinero perdido. Vamos a aprender a diseñar formularios que los usuarios completen.
+Mobile First NO es "diseñar solo para móviles". Es empezar por lo más restrictivo. Cuando diseñas en 1920px todo cabe, y luego al reducirlo tienes que amputar. Si empiezas en 375px, solo pones lo esencial y luego añades. El resultado es una interfaz más clara en todos los tamaños. Ejemplo real: el comercial que visita clientes con tablet, el encargado de almacén con móvil, el administrativo con monitor de 24". Todos usan la misma app.
 
 ---
 
-## Sección A: Reactive Forms — La base
+## 📏 Breakpoints de Tailwind
 
-```typescript
-this.invoiceForm = this.fb.group({
-  header: this.fb.group({
-    number: ['', [Validators.required, Validators.pattern(/^FAC-\d{4}-\d{4}$/)]],
-    date: [new Date().toISOString().split('T')[0], Validators.required],
-  }),
-  client: this.fb.group({
-    name: ['', Validators.required],
-    cif: ['', [Validators.required, cifValidator()]],
-    email: ['', [Validators.required, Validators.email]],
-  }),
-  lines: this.fb.array([this.createLine()]),
-});
-```
-
-Note:
-Reactive Forms sitúa la lógica en TypeScript, no en el HTML. Tres bloques: `FormControl` (un campo), `FormGroup` (agrupación de controles), `FormArray` (colección dinámica). En el ejemplo: header y client son FormGroups, lines es un FormArray. Cada control tiene su valor inicial y validadores.
-
----
-
-## Estados de un FormControl
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pristine: valor inicial
-    Pristine --> Dirty: usuario modifica
-    Dirty --> Touched: usuario sale (blur)
-    Touched --> Valid: validación OK
-    Touched --> Invalid: validación falla
-    Pristine --> Pending: validación asíncrona
-    Pending --> Valid: API responde OK
-    Pending --> Invalid: API responde error
-```
-
-Note:
-Un FormControl tiene 6 propiedades de estado. `touched`/`untouched`: ¿ha interactuado y salido? `dirty`/`pristine`: ¿ha modificado el valor? `valid`/`invalid`: ¿pasa los validadores? `pending`: ¿hay validación asíncrona en curso? La regla de oro: NUNCA mostrar errores en campos untouched. Dejad que el usuario interactúe primero.
-
----
-
-## La regla de oro de los errores
-
-```typescript
-// ❌ MAL: mostrar error siempre
-if (control.invalid) { ... }
-
-// ✅ BIEN: mostrar error solo después de tocar
-if (control.invalid && control.touched) { ... }
-
-// ✅ BIEN: mostrar error si se intentó enviar
-if (control.invalid && (control.touched || formSubmitted)) { ... }
-```
-
-### Principio: <!-- .element: class="fragment" -->
-Un formulario recién cargado debe verse <mark>limpio</mark>, sin campos en rojo ni mensajes de error <!-- .element: class="fragment" -->
-
-Note:
-Esta regla es la diferencia entre un formulario profesional y uno amateur. Mostrar errores antes de que el usuario haya escrito nada es hostil. El usuario no ha tenido oportunidad de hacerlo bien. Los errores deben aparecer solo después de que el usuario haya interactuado con el campo (touched) o tras un intento de envío fallido.
-
----
-
-## Clases CSS condicionales por estado
-
-```typescript
-emailClasses = computed(() => {
-  const c = this.emailControl;
-  return {
-    'border-gray-300': c.pristine,
-    'border-green-400 focus:ring-green-500': c.valid && c.touched,
-    'border-red-400 focus:ring-red-500': c.invalid && c.touched,
-    'border-yellow-400 bg-yellow-50': c.pending,
-  };
-});
-
-showEmailError = computed(() =>
-  this.emailControl.invalid && this.emailControl.touched
-);
-```
-
-Note:
-Este patrón mapea cada estado del control a clases Tailwind. Pristine: borde gris neutro. Valid + touched: borde verde (confirmación sutil). Invalid + touched: borde rojo. Pending: borde amarillo + spinner. Todo reactivo con `computed()`. Las clases se actualizan automáticamente cuando el estado del control cambia.
-
----
-
-## Sección B: Validadores personalizados
-
-### DNI español
-
-```typescript
-export function dniValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value;
-    if (!value) return null;
-
-    const dniRegex = /^(\d{8})([A-Z])$/;
-    const match = value.toUpperCase().match(dniRegex);
-    if (!match) {
-      return { dni: { message: 'Formato: 8 dígitos + letra' } };
-    }
-
-    const number = parseInt(match[1], 10);
-    const letter = match[2];
-    const validLetters = 'TRWAGMYFPDXBNJZSQVHLCKE';
-    const calculatedLetter = validLetters[number % 23];
-
-    if (letter !== calculatedLetter) {
-      return { dni: { message: 'La letra no coincide con el número' } };
-    }
-    return null;
-  };
-}
-```
-
-Note:
-Un `ValidatorFn` recibe un `AbstractControl` y devuelve `null` (válido) o un objeto de error (inválido). El validador de DNI comprueba: 8 dígitos + 1 letra, y que la letra corresponda al número según el algoritmo módulo 23. El objeto de error incluye un mensaje descriptivo que usaremos para mostrar feedback.
-
----
-
-## Validación cross-field: Password match
-
-```typescript
-export function passwordMatchValidator(
-  passwordKey: string, confirmKey: string
-): ValidatorFn {
-  return (group: AbstractControl): ValidationErrors | null => {
-    const password = group.get(passwordKey);
-    const confirm = group.get(confirmKey);
-    if (!password || !confirm) return null;
-
-    if (password.value !== confirm.value) {
-      const error = { passwordMismatch: true };
-      confirm.setErrors({ ...confirm.errors, ...error });
-      return error;
-    }
-
-    // Limpiar error si coincide
-    if (confirm.hasError('passwordMismatch')) {
-      const { passwordMismatch, ...otherErrors } = confirm.errors || {};
-      confirm.setErrors(
-        Object.keys(otherErrors).length ? otherErrors : null
-      );
-    }
-    return null;
-  };
-}
-```
-
-Note:
-La validación cross-field se aplica al FormGroup, no a controles individuales. Compara dos campos — típicamente contraseña y confirmación. Cuando no coinciden, añade el error al campo de confirmación. Cuando coinciden, lo limpia sin afectar otros errores que pueda tener. Este patrón es reutilizable para cualquier par de campos (fechas inicio/fin, email principal/secundario).
-
----
-
-## Validación asíncrona: Email exists
-
-```typescript
-private emailExistsValidator(): AsyncValidatorFn {
-  return (control: AbstractControl): Observable<ValidationErrors | null> => {
-    if (!control.value) return of(null);
-
-    return this.userService.checkEmailExists(control.value).pipe(
-      debounceTime(500),       // No saturar la API
-      distinctUntilChanged(),  // Evitar peticiones duplicadas
-      map(exists => exists ? { emailExists: true } : null),
-      catchError(() => of(null)), // Error de red → no bloquear
-      first(),                  // Completar tras primera emisión
-    );
-  };
-}
-
-// Uso
-this.emailControl = new FormControl('', {
-  validators: [Validators.required, Validators.email],
-  asyncValidators: [this.emailExistsValidator()],
-  updateOn: 'blur',  // Validar al perder el foco
-});
-```
-
-Note:
-La validación asíncrona consulta una API externa. Es crucial: `debounceTime(500)` para no enviar una petición por pulsación, `distinctUntilChanged()` para no repetir la misma consulta, `catchError` para no bloquear el formulario si la API falla. `updateOn: 'blur'` es la mejor opción: valida cuando el usuario termina con el campo, no a cada tecla.
-
----
-
-## updateOn: Cuándo validar
-
-| Opción | Cuándo valida | Recomendado para |
-|--------|--------------|------------------|
-| `'change'` | Cada pulsación | Formularios cortos, sin async |
-| <mark>`'blur'`</mark> | Al perder el foco | **Mayoría de formularios** |
-| `'submit'` | Solo al enviar | Formularios muy cortos |
-
-Note:
-`'change'` da feedback inmediato pero puede ser molesto (error mientras escribes). `'blur'` es respetuoso: espera a que termines con el campo. `'submit'` concentra todo al final — frustrante para formularios largos. La recomendación general: `'blur'` para campos con validación asíncrona, `'change'` para campos simples.
-
----
-
-## Sección C: Mensajes de error
-
-### Sistema profesional de mensajes
-
-```typescript
-getErrorMessage(control: AbstractControl, fieldName: string): string | null {
-  if (!control.errors || (!control.touched && !this.formSubmitted)) return null;
-
-  const errors = control.errors;
-  if (errors['required']) return `"${fieldName}" es obligatorio`;
-  if (errors['email']) return 'Introduce un email válido';
-  if (errors['minlength'])
-    return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
-  if (errors['dni']) return errors['dni'].message;
-  if (errors['emailExists']) return 'Este email ya está registrado';
-  if (errors['passwordMismatch']) return 'Las contraseñas no coinciden';
-  if (errors['dateRange']) return errors['dateRange'].message;
-
-  return 'Campo inválido';
-}
-```
-
-Note:
-Un sistema profesional de mensajes mapea cada tipo de error de validación a un texto descriptivo en el idioma del usuario. Los errores de validadores personalizados (dni, iban, dateRange) incluyen el mensaje en el propio objeto de error. El sistema solo muestra el mensaje si el control está `touched` o si se intentó enviar el formulario.
-
----
-
-## FormErrorComponent reutilizable
-
-```typescript
-@Component({
-  selector: 'ui-form-error',
-  standalone: true,
-  template: `
-    @if (errorMessage()) {
-      <p class="mt-1.5 text-xs text-red-600 animate-slideIn flex items-start gap-1"
-         role="alert">
-        <svg class="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true">...</svg>
-        <span>{{ errorMessage() }}</span>
-      </p>
-    }
-  `,
-})
-export class FormErrorComponent {
-  control = input.required<AbstractControl>();
-  fieldName = input('Este campo');
-  errorMessage = signal<string | null>(null);
-
-  // Se suscribe a statusChanges para actualizar el mensaje
-}
-```
-
-### Uso: <!-- .element: class="fragment" -->
-```html
-<ui-form-error [control]="form.get('email')!" fieldName="Email" />
-```
-
-Note:
-Este componente encapsula toda la lógica de presentación de errores. Se suscribe a `statusChanges` del control y actualiza el mensaje reactivamente. Usa `role="alert"` para que los lectores de pantalla anuncien el error automáticamente. La animación `animate-slideIn` suaviza la aparición.
-
----
-
-## UX de validación: Las 4 reglas de oro
-
-1. <mark>No mostrar errores antes de la interacción</mark> <!-- .element: class="fragment" -->
-2. <mark>Validar en el momento adecuado</mark> (blur para formato, change para simple) <!-- .element: class="fragment" -->
-3. <mark>Limpiar errores al corregir</mark> — borde verde inmediato <!-- .element: class="fragment" -->
-4. <mark>Resumen al enviar</mark> — marcar todos touched + scroll al primer error <!-- .element: class="fragment" -->
-
-Note:
-Cuatro reglas que definen la UX de validación. La 4ª es crítica: cuando el usuario pulsa "Enviar" y hay errores, marcamos todos los campos como touched, mostramos todos los errores, y hacemos scroll automático al primer campo con error. Esto evita que el usuario tenga que buscar dónde está el problema.
-
----
-
-## Scroll al primer error al enviar
-
-```typescript
-submitForm(): void {
-  this.formSubmitted = true;
-
-  if (this.form.invalid) {
-    this.markFormGroupTouched(this.form);
-    afterNextRender(() => {
-      const firstError = document.querySelector('.ng-invalid');
-      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      (firstError as HTMLElement)?.focus();
-    });
-    return;
-  }
-  this.processForm();
-}
-
-private markFormGroupTouched(formGroup: FormGroup): void {
-  Object.values(formGroup.controls).forEach(control => {
-    control.markAsTouched();
-    if (control instanceof FormGroup) this.markFormGroupTouched(control);
-  });
-}
-```
-
-Note:
-Al enviar un formulario inválido: marcamos recursivamente todos los controles como touched (incluyendo FormGroups anidados), buscamos el primer elemento con clase `.ng-invalid`, hacemos scroll suave hasta él y lo enfocamos. Esto da al usuario un camino claro: "el problema está aquí, corrígelo".
-
----
-
-## Sección D: Formularios multi-paso (Wizard)
-
-```mermaid
+<div class="mermaid">
 graph LR
-    P1[Paso 1<br/>Datos personales] -->|Validar| P2[Paso 2<br/>Cuenta]
-    P2 -->|Validar| P3[Paso 3<br/>Revisión]
-    P3 -->|Enviar| F[Completado]
-    
-    P1 -.->|Guardar<br/>borrador| DB[(localStorage)]
-    P2 -.->|Guardar<br/>borrador| DB
-```
+    subgraph Móvil
+        A[0 - 639px<br/>sin prefijo]
+    end
+    subgraph "sm (640px)"
+        B[640 - 767px<br/>sm:]
+    end
+    subgraph "md (768px)"
+        C[768 - 1023px<br/>md:]
+    end
+    subgraph "lg (1024px)"
+        D[1024 - 1279px<br/>lg:]
+    end
+    subgraph "xl (1280px)"
+        E[1280 - 1535px<br/>xl:]
+    end
+    subgraph "2xl (1536px)"
+        F[1536px+<br/>2xl:]
+    end
+</div>
+
+<mark>Mobile-first: clases base = móvil, prefijos añaden hacia arriba</mark>
 
 Note:
-Los wizards dividen formularios largos en pasos secuenciales, reduciendo la carga cognitiva y la tasa de abandono. Cada paso es un FormGroup independiente que se valida antes de avanzar. La barra de progreso muestra pasos completados (check), paso actual (azul) y pendientes (gris). El botón "Guardar borrador" persiste en localStorage.
+Estos breakpoints no representan dispositivos concretos (iPhone, iPad), sino rangos de espacio disponible. Diseñamos para "pantallas < 640px", no para "iPhone 15". Así el diseño funciona en cualquier dispositivo presente y futuro. En apps de gestión, el rango más usado es lg-xl (1024-1536px). Los breakpoints se pueden personalizar en @theme.
 
 ---
 
-## Wizard — Implementación con Signals
+## 📐 Grid Responsive: De 1 a 4 Columnas
 
-```typescript
-@Component({...})
-export class WizardFormComponent {
-  currentStep = signal(0);
-  completedSteps = signal<Set<number>>(new Set());
-
-  steps = [
-    { id: 'personal', label: 'Datos personales', group: 'personalInfo' },
-    { id: 'account', label: 'Cuenta', group: 'accountInfo' },
-    { id: 'review', label: 'Revisión', group: 'review' },
-  ];
-
-  form = this.fb.group({
-    personalInfo: this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      dni: ['', [Validators.required, dniValidator()]],
-    }),
-    accountInfo: this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      passwords: this.fb.group({...}, {
-        validators: passwordMatchValidator('password', 'confirm')
-      }),
-    }),
-    review: this.fb.group({
-      acceptTerms: [false, Validators.requiredTrue],
-    }),
-  });
-
-  nextStep(): void {
-    if (this.currentGroup().invalid) {
-      this.markGroupTouched(this.currentGroup());
-      return;
-    }
-    this.completedSteps.update(s => new Set(s).add(this.currentStep()));
-    this.currentStep.update(s => Math.min(s + 1, this.steps.length - 1));
-  }
-}
-```
-
-Note:
-La clave del wizard con Signals: `currentStep` controla qué paso se renderiza, `completedSteps` guarda qué pasos se han completado (para la barra de progreso). `nextStep()` valida el paso actual antes de avanzar — si es inválido, marca los campos del paso como touched y no avanza. El último paso muestra "Completar" en lugar de "Siguiente".
-
----
-
-## Formularios dinámicos con FormArray
-
-```typescript
-// Factura con líneas dinámicas
-invoiceForm = this.fb.group({
-  lines: this.fb.array([this.createLine()])
-});
-
-get lines(): FormArray {
-  return this.invoiceForm.get('lines') as FormArray;
-}
-
-createLine(): FormGroup {
-  return this.fb.group({
-    description: ['', Validators.required],
-    quantity: [1, [Validators.required, Validators.min(1)]],
-    unitPrice: [0, [Validators.required, Validators.min(0)]],
-  });
-}
-
-addLine(): void {
-  this.lines.push(this.createLine());
-}
-
-removeLine(index: number): void {
-  this.lines.removeAt(index);
-}
-```
-
-Note:
-Los FormArray permiten añadir y eliminar dinámicamente grupos de campos. Esencial para facturas (líneas), direcciones (múltiples direcciones), miembros de equipo. `push()` añade, `removeAt()` elimina. Se puede deshabilitar el botón de eliminar si solo queda una línea. Tras añadir, hacemos scroll hasta la nueva línea para feedback visual.
-
----
-
-## FormArray — Cálculos reactivos con Signals
-
-```typescript
-lineTotals = computed(() =>
-  this.lines.controls.map((_, i) => {
-    const line = this.lines.at(i);
-    return (line.get('quantity')?.value || 0) *
-           (line.get('unitPrice')?.value || 0);
-  })
-);
-
-subtotal = computed(() => this.lineTotals().reduce((s, t) => s + t, 0));
-tax = computed(() => this.subtotal() * 0.21);
-total = computed(() => this.subtotal() + this.tax());
-```
-
-### Template: <!-- .element: class="fragment" -->
 ```html
-<p class="text-sm font-semibold">{{ lineTotals()[i] | currency:'EUR' }}</p>
-<!-- ... -->
-<dd class="font-bold">{{ total() | currency:'EUR' }}</dd>
+<!-- La línea más importante del responsive design -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 1</div>
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 2</div>
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 3</div>
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 4</div>
+</div>
 ```
 
+| Breakpoint | Columnas | Ancho aprox | Caso de uso |
+|------------|----------|-------------|-------------|
+| (base) | 1 col | < 640px | Móvil vertical |
+| `sm:` | 2 cols | 640px+ | Móvil horizontal / tablet pequeña |
+| `lg:` | 3 cols | 1024px+ | Tablet horizontal / portátil |
+| `xl:` | 4 cols | 1280px+ | Desktop / monitor |
+
 Note:
-Los `computed` derivan subtotal, IVA y total en tiempo real a partir de los valores del FormArray. Cuando el usuario cambia cantidad o precio, los totales se recalculan instantáneamente. Esto es mucho más eficiente que recalcular en cada evento de cambio. La reactividad de Signals brilla aquí.
+Esta línea de Tailwind es la navaja suiza del responsive. El gap también puede variar: `gap-4 md:gap-6`. Los widgets individuales no cambian de diseño, solo su disposición en el grid. Esto mantiene la consistencia visual. La clase base (sin prefijo) define el diseño móvil; los prefijos añaden columnas hacia arriba.
 
 ---
 
-## Auto-guardado de borradores (FormDraftService)
+## 🧭 Estrategia Responsive: Sidebar
 
-```typescript
-@Injectable({ providedIn: 'root' })
-export class FormDraftService {
-  private readonly PREFIX = 'form_draft_';
-
-  save(formId: string, data: any): void {
-    localStorage.setItem(
-      this.PREFIX + formId,
-      JSON.stringify({ data, timestamp: Date.now() })
-    );
-  }
-
-  load(formId: string): any | null {
-    const stored = localStorage.getItem(this.PREFIX + formId);
-    if (!stored) return null;
-    const draft = JSON.parse(stored);
-    // Expirar borradores de más de 24h
-    if (Date.now() - draft.timestamp > 24 * 60 * 60 * 1000) {
-      this.clear(formId);
-      return null;
-    }
-    return draft.data;
-  }
-
-  clear(formId: string): void {
-    localStorage.removeItem(this.PREFIX + formId);
-  }
-}
-```
-
-Note:
-El auto-guardado mejora drásticamente la UX en formularios largos. Cada 2 segundos, si el formulario está `dirty`, guardamos en localStorage. Al volver a la página, detectamos si hay un borrador y preguntamos si recuperarlo. Los borradores expiran a las 24 horas. Al enviar exitosamente, limpiamos el borrador.
-
----
-
-## Auto-guardado — Integración en el componente
-
-```typescript
-ngOnInit(): void {
-  // Recuperar borrador
-  const draft = this.draftService.load(this.FORM_ID);
-  if (draft && confirm('Tienes un borrador de hace ' +
-      this.draftService.getDraftAge(this.FORM_ID) + '. ¿Recuperarlo?')) {
-    this.productForm.patchValue(draft);
-  }
-
-  // Auto-guardar cada 2 segundos
-  this.draftSub = this.productForm.valueChanges.pipe(
-    debounceTime(2000),
-    filter(() => this.productForm.dirty),
-  ).subscribe(value => this.draftService.save(this.FORM_ID, value));
-}
-
-submitForm(): void {
-  if (this.productForm.valid) {
-    this.productService.create(this.productForm.value).subscribe(() => {
-      this.draftService.clear(this.FORM_ID); // Limpiar al guardar
-      this.router.navigate(['/products']);
-    });
-  }
-}
-```
-
-Note:
-Dos detalles importantes: al preguntar por la recuperación, mostramos la antigüedad del borrador ("hace 5 minutos", "hace 2 horas"). Al enviar exitosamente, limpiamos el borrador. Si el usuario descarta el formulario sin guardar, el borrador persiste para la próxima visita.
-
----
-
-## Confirmación al salir (CanDeactivate)
-
-```typescript
-export interface CanComponentDeactivate {
-  canDeactivate: () => boolean | Observable<boolean>;
-}
-
-@Injectable({ providedIn: 'root' })
-export class PendingChangesGuard
-    implements CanDeactivate<CanComponentDeactivate> {
-  canDeactivate(component: CanComponentDeactivate): boolean {
-    return component.canDeactivate ? component.canDeactivate() : true;
-  }
-}
-
-// En el componente
-canDeactivate(): boolean {
-  if (this.submitted || this.productForm.pristine) return true;
-  return confirm('Tienes cambios sin guardar. ¿Salir?');
-}
-```
-
-Note:
-El guard `CanDeactivate` protege al usuario de perder cambios al navegar a otra página o cerrar. Si el formulario está pristine (sin modificar) o ya se envió, permite salir. Si no, muestra un confirm. Esto evita la frustración de "he escrito 20 campos y he perdido todo al hacer click sin querer".
-
----
-
-## Máscaras de input: Teléfono
-
-```typescript
-@Directive({
-  selector: '[uiPhoneMask]',
-  standalone: true,
-  host: { '(input)': 'onInput($event)', '(keydown)': 'onKeydown($event)' },
-})
-export class PhoneMaskDirective implements ControlValueAccessor {
-  onInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, ''); // Solo dígitos
-    if (value.startsWith('34')) value = value.substring(2);
-
-    // Formatear: 612 345 678
-    if (value.length > 3) value = value.substring(0, 3) + ' ' + value.substring(3);
-    if (value.length > 7) value = value.substring(0, 7) + ' ' + value.substring(7);
-    value = value.substring(0, 11);
-
-    input.value = value;
-    this.onChange(value.replace(/\s/g, '')); // Valor sin espacios
-  }
-
-  onKeydown(event: KeyboardEvent): void {
-    const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
-    if (allowed.includes(event.key)) return;
-    if (!/^\d$/.test(event.key)) event.preventDefault(); // Solo dígitos
-  }
-}
-```
-
-Note:
-Las máscaras de entrada guían al usuario reduciendo errores. Este ejemplo formatea un teléfono español como `612 345 678` en tiempo real. Solo permite dígitos, bloquea letras y caracteres especiales. Implementa `ControlValueAccessor` para integrarse con Reactive Forms: el valor en el FormControl es el número sin espacios (solo dígitos).
-
----
-
-## Sección E: Micro-interacciones
-
-```mermaid
+<div class="mermaid">
 graph TD
-    A[Micro-interacciones] --> B[Shake en error]
-    A --> C[SlideIn para mensajes]
-    A --> D[Checkmark de confirmación]
-    A --> E[Pulse en campos requeridos]
-    A --> F[Skeleton loading]
-```
-
-### Principio: Cada micro-interacción debe tener un <mark>propósito funcional</mark>, no solo decorativo
+    A[Sidebar] --> B[Móvil<br/>< 768px]
+    A --> C[Tablet<br/>768px - 1023px]
+    A --> D[Desktop<br/>≥ 1024px]
+    B --> B1[Oculta. Drawer con overlay<br/>Botón hamburguesa<br/>fixed, translate-x]
+    C --> C1[Colapsada: w-16<br/>Solo iconos<br/>Tooltip al hover]
+    D --> D1[Expandida: w-64<br/>Icono + texto<br/>Submenús expandibles]
+</div>
 
 Note:
-Las micro-interacciones son animaciones pequeñas que mejoran la percepción de respuesta. No son decoración: cada una comunica algo. Shake = "algo va mal". SlideIn = "aquí hay información nueva". Pulse = "mira aquí". Skeleton = "esto está cargando". La duración ideal: 150-400ms.
+Tres comportamientos, un solo componente. En móvil: `fixed inset-y-0 left-0 z-40 w-64 -translate-x-full transition-transform`. Se abre añadiendo `translate-x-0` vía binding condicional. Overlay: `fixed inset-0 bg-black/50 md:hidden`. En tablet: `md:relative md:translate-x-0 md:w-16`. En desktop: `lg:w-64`. Contenido principal: `ml-0 md:ml-16 lg:ml-64`.
 
 ---
 
-## Shake en error
-
-```css
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-}
-.animate-shake { animation: shake 0.4s ease-in-out; }
-```
+## 🧭 Sidebar: Código de la Transición
 
 ```html
-<input [class.animate-shake]="formSubmitted && emailControl.invalid" />
+<!-- Sidebar: un componente, tres comportamientos -->
+<aside class="fixed inset-y-0 left-0 z-40
+              w-64 bg-gray-900 text-white
+              transition-transform duration-300
+              -translate-x-full
+              md:relative md:translate-x-0
+              md:w-16 lg:w-64"
+       [class.translate-x-0]="isMobileOpen()">
+  <!-- Items de navegación -->
+  <nav class="flex flex-col gap-1 p-2">
+    <a class="flex items-center gap-3 px-3 py-2 rounded-lg
+              md:justify-center lg:justify-start
+              hover:bg-gray-800 transition-colors">
+      <svg class="w-5 h-5 shrink-0">...</svg>
+      <span class="hidden lg:block">Dashboard</span>
+    </a>
+  </nav>
+</aside>
+
+<!-- Overlay solo en móvil -->
+@if (isMobileOpen()) {
+  <div class="fixed inset-0 bg-black/50 z-30 md:hidden"
+       (click)="closeSidebar()"></div>
+}
 ```
 
 Note:
-La animación shake es una sacudida horizontal que comunica error de forma instintiva. Dura 400ms. Se aplica condicionalmente solo cuando el formulario se ha intentado enviar y el campo es inválido. Es importante no abusar: solo en el intento de envío, no en cada pulsación.
+El truco está en la combinación de clases base + responsive + binding condicional. La sidebar siempre tiene `-translate-x-full` (oculta fuera de pantalla) pero `md:translate-x-0` la muestra en tablet+. En móvil, `translate-x-0` se añade condicionalmente cuando `isMobileOpen()` es true. Los textos se ocultan con `hidden lg:block`. Los iconos se centran con `md:justify-center lg:justify-start`.
 
 ---
 
-## SlideIn y Checkmark
+## 📊 Estrategia Responsive: Tablas de Datos
 
-```css
-/* SlideIn: mensajes de error que aparecen suavemente */
-@keyframes slideIn {
-  from { transform: translateY(-4px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.animate-slideIn { animation: slideIn 0.2s ease-out; }
-
-/* Checkmark: confirmación al corregir un campo */
-@keyframes checkmark {
-  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-  50% { transform: scale(1.3) rotate(0deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-.animate-checkmark { animation: checkmark 0.3s ease-out; }
-```
-
-Note:
-SlideIn (200ms) para mensajes de error: aparecen deslizándose desde arriba, no bruscamente. Checkmark (300ms) para confirmación: cuando un campo pasa de inválido a válido, una animación sutil de "check" confirma al usuario que la corrección fue aceptada. Son detalles pequeños que marcan la diferencia en la percepción de calidad.
-
----
-
-## Skeleton loading para formularios
+<mark>Dos técnicas complementarias: scroll horizontal + ocultación progresiva</mark>
 
 ```html
-@if (loading()) {
-  <div class="space-y-4 animate-pulse">
-    <div class="h-4 bg-gray-200 rounded w-1/4"></div>
-    <div class="h-10 bg-gray-200 rounded w-full"></div>
-    <div class="h-4 bg-gray-200 rounded w-1/4 mt-6"></div>
-    <div class="h-10 bg-gray-200 rounded w-full"></div>
-    <div class="h-4 bg-gray-200 rounded w-1/4 mt-6"></div>
-    <div class="h-20 bg-gray-200 rounded w-full"></div>
+<div class="overflow-x-auto rounded-lg border border-gray-200">
+  <table class="min-w-[800px] w-full text-sm">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th class="hidden md:table-cell">Email</th>
+        <th class="hidden lg:table-cell">Fecha</th>
+        <th class="hidden xl:table-cell">Departamento</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>...</tbody>
+  </table>
+</div>
+```
+
+| Columna | Móvil | Tablet (md) | Desktop (lg) | XL |
+|---------|-------|-------------|--------------|-----|
+| Nombre | ✅ | ✅ | ✅ | ✅ |
+| Email | ❌ | ✅ | ✅ | ✅ |
+| Fecha | ❌ | ❌ | ✅ | ✅ |
+| Depto | ❌ | ❌ | ❌ | ✅ |
+
+Note:
+El `min-w-[800px]` fuerza el scroll en pantallas más estrechas. Las columnas menos esenciales se ocultan con `hidden md:table-cell` (visible desde tablet), `hidden lg:table-cell` (visible desde desktop). La combinación de ambas técnicas garantiza que la tabla sea usable en todos los tamaños. Importante: los datos ocultos visualmente siguen en el DOM para lectores de pantalla (a menos que se marquen con `aria-hidden`).
+
+---
+
+## 📝 Estrategia Responsive: Formularios
+
+```html
+<form [formGroup]="form" class="flex flex-col gap-4">
+  <!-- Sección: Datos Fiscales -->
+  <fieldset class="border rounded-lg p-4">
+    <legend class="text-lg font-semibold px-2">Datos Fiscales</legend>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <app-input label="Razón Social" formControlName="name" />
+      <app-input label="CIF" formControlName="cif" />
+      <app-input label="Dirección" formControlName="address"
+                 class="md:col-span-2" />
+    </div>
+  </fieldset>
+
+  <!-- Sección: Contacto -->
+  <fieldset class="border rounded-lg p-4">
+    <legend class="text-lg font-semibold px-2">Contacto</legend>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <app-input label="Teléfono" formControlName="phone" />
+      <app-input label="Email" formControlName="email" />
+    </div>
+  </fieldset>
+
+  <app-button variant="primary" type="submit"
+              [loading]="isSubmitting()">Guardar cliente</app-button>
+</form>
+```
+
+Note:
+Formulario con secciones agrupadas en fieldsets. Cada sección usa grid responsive: 1 columna en móvil, 2 en desktop. Campos que ocupan ancho completo usan `md:col-span-2`. Las etiquetas siempre visibles, no placeholders. Validación reactiva en tiempo real con mensajes de error junto al campo. En móvil, los campos se apilan verticalmente; en desktop, se distribuyen en columnas.
+
+---
+
+## 🪟 Estrategia Responsive: Modales
+
+```html
+<!-- Modal: fullscreen en móvil, centrado en desktop -->
+@if (isOpen()) {
+  <div class="fixed inset-0 z-50 flex items-end md:items-center
+              justify-center"
+       (click)="closeOnOverlay() && close()">
+    <div class="fixed inset-0 bg-black/50"></div>
+    <div class="relative bg-white shadow-2xl overflow-y-auto
+                w-full rounded-t-2xl md:rounded-2xl
+                md:max-w-lg md:mx-4
+                max-h-[90vh]"
+         cdkTrapFocus role="dialog" aria-modal="true">
+      <!-- Contenido del modal -->
+    </div>
   </div>
-} @else {
-  <form [formGroup]="productForm">...</form>
+}
+```
+
+| Propiedad | Móvil | Desktop |
+|-----------|-------|---------|
+| Posición | `items-end` (anclado abajo) | `md:items-center` (centrado) |
+| Ancho | `w-full` (toda la pantalla) | `md:max-w-lg` (limitado) |
+| Bordes | `rounded-t-2xl` (solo arriba) | `md:rounded-2xl` (todos) |
+
+Note:
+El modal es uno de los componentes que más cambia entre móvil y desktop. En móvil, anclado abajo (como una action sheet nativa) o fullscreen. En desktop, centrado con ancho máximo. Las variantes responsive de Tailwind permiten ambas cosas en un solo componente. La accesibilidad (cdkTrapFocus, Escape, aria) es idéntica en ambos casos.
+
+---
+
+## 🔍 BreakpointObserver de Angular CDK
+
+<mark>Tailwind para lo visual. BreakpointObserver para lógica de negocio</mark>
+
+```typescript
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+
+@Injectable({ providedIn: 'root' })
+export class LayoutService {
+  private bo = inject(BreakpointObserver);
+
+  readonly isMobile = toSignal(
+    this.bo.observe(['(max-width: 767px)']).pipe(map(s => s.matches)),
+    { initialValue: true }
+  );
+
+  readonly isTablet = toSignal(
+    this.bo.observe([Breakpoints.Medium]).pipe(map(s => s.matches)),
+    { initialValue: false }
+  );
+
+  readonly isDesktop = toSignal(
+    this.bo.observe([Breakpoints.Large, Breakpoints.XLarge])
+      .pipe(map(s => s.matches)),
+    { initialValue: false }
+  );
 }
 ```
 
 Note:
-Cuando un formulario de edición carga datos de la API, mostrar campos vacíos durante 2-3 segundos causa desconcierto. En su lugar, mostramos skeletons: rectángulos grises con `animate-pulse` que imitan la forma del contenido que cargará. Las dimensiones de los skeletons deben coincidir aproximadamente con los campos reales para evitar saltos bruscos.
+`BreakpointObserver` trabaja con media queries CSS. En Angular 17+, `toSignal` convierte el observable en una señal reactiva. Esto se integra limpiamente con el modelo de señales. ¿Cuándo usar BreakpointObserver? Cuando necesitas lógica TypeScript: ¿inicializo el editor drag-and-drop? (solo desktop), ¿cargo datos completos o resumidos? (móvil = resumidos), ¿cambio el comportamiento de navegación? (móvil = push, desktop = tabs).
 
 ---
 
-## Toast de confirmación
+## 🔀 Sidebar Inteligente con BreakpointObserver
 
 ```typescript
-submitForm(): void {
-  if (this.form.invalid) {
-    this.markFormGroupTouched(this.form);
-    return;
+@Component({ ... })
+export class SidebarComponent {
+  private layout = inject(LayoutService);
+
+  manualOpen = signal(false);
+  autoOpen = signal(false);
+
+  readonly isOpen = computed(() => {
+    if (this.layout.isMobile()) return this.manualOpen();
+    return this.layout.isDesktop();
+  });
+
+  readonly sidebarState = computed(() => {
+    if (this.layout.isMobile()) return 'drawer';
+    if (this.layout.isTablet()) return 'collapsed';
+    return 'expanded';
+  });
+
+  // Al cruzar breakpoints, ajustar automáticamente
+  constructor() {
+    effect(() => {
+      if (this.layout.isDesktop()) this.manualOpen.set(true);
+      if (this.layout.isMobile()) this.manualOpen.set(false);
+    });
   }
-
-  this.submitting.set(true);
-  this.productService.create(this.form.value).subscribe({
-    next: (result) => {
-      this.toastService.success(
-        'Producto creado',
-        'El producto se ha guardado correctamente'
-      );
-      this.router.navigate(['/products', result.id]);
-    },
-    error: () => {
-      this.toastService.error(
-        'Error al guardar',
-        'No se pudo crear el producto. Inténtalo de nuevo'
-      );
-      this.submitting.set(false);
-    },
-  });
 }
 ```
 
 Note:
-El toast de confirmación es el cierre perfecto para la interacción. Éxito: toast verde con check, redirección automática. Error: toast rojo con mensaje descriptivo, el botón de envío se rehabilita para reintentar. El toast desaparece automáticamente (5s para éxito, 8s para error, dando más tiempo para leer).
+La sidebar inteligente: en móvil se abre/cierra manualmente. Al cruzar a tablet, se colapsa automáticamente. Al cruzar a desktop, se expande automáticamente. Si redimensionas de desktop a móvil, se cierra automáticamente. Los `effect()` reaccionan a cambios en las señales del LayoutService y ajustan el estado. La señal computada `sidebarState` devuelve 'drawer', 'collapsed' o 'expanded'.
 
 ---
 
-## Estados del botón de envío
+## 🖥️ Responsive en Electron
 
-| Estado | Visual | Comportamiento |
-|--------|--------|----------------|
-| Default | Color de variante | Clickable |
-| Hover | Oscurecido | Clickable |
-| Disabled | Atenuado, cursor not-allowed | No clickable |
-| Loading | Spinner + texto oculto (sr-only) | No clickable |
+<mark>La misma app Angular funciona en navegador y en ventana nativa</mark>
+
+```javascript
+// main.js (proceso principal de Electron)
+const { BrowserWindow } = require('electron');
+
+const win = new BrowserWindow({
+  width: 1280,
+  height: 800,
+  minWidth: 800,    // Tamaño mínimo: la UI deja de ser funcional
+  minHeight: 600,
+  webPreferences: {
+    nodeIntegration: false,
+    contextIsolation: true
+  }
+});
+
+win.loadURL('http://localhost:4200'); // Misma app Angular
+```
+
+- Sin código responsive específico de Electron: Tailwind y BreakpointObserver funcionan igual
+- Definir `minWidth`/`minHeight` para evitar ventanas demasiado pequeñas
+- En pantallas 4K: centrar contenido con `max-w-screen-2xl mx-auto`
+- La ventana puede redimensionarse libremente → la app debe responder
 
 Note:
-El botón de envío debe comunicar su estado claramente. Loading es crítico: el botón mantiene el mismo tamaño pero muestra un spinner, el texto se oculta visualmente pero permanece para lectores de pantalla, y el botón está deshabilitado. Esto evita dobles envíos y da feedback de que se está procesando.
+Electron ejecuta tu app Angular en un Chromium embebido. Todo el código responsive (Tailwind, BreakpointObserver) funciona exactamente igual que en el navegador. La diferencia principal: defines tamaños mínimos de ventana desde el proceso principal. En pantallas muy grandes (4K), puedes centrar el contenido con `max-w-screen-2xl mx-auto` para evitar que un dashboard de 4 widgets se vea ridículo.
 
 ---
 
-## Demo: Registro completo con UX
+## 🏗️ Proyecto: Dashboard Completamente Responsive
+
+<div class="mermaid">
+graph TD
+    subgraph Móvil
+        M1[Navbar sup. + hamburguesa]
+        M2[Sidebar: drawer overlay]
+        M3[Widgets: 1 columna]
+        M4[Tabla: scroll horiz. + 3 cols]
+        M5[Navbar inferior: 4 iconos]
+    end
+    subgraph Tablet
+        T1[Sidebar colapsada: w-16]
+        T2[Widgets: 2 columnas]
+        T3[Tabla: scroll + 5 cols]
+        T4[Sin barra inferior]
+    end
+    subgraph Desktop
+        D1[Sidebar expandida: w-64]
+        D2[Widgets: 3-4 columnas]
+        D3[Tabla: todas las cols]
+        D4[Navegación completa]
+    end
+</div>
+
+Note:
+Vamos a construir este dashboard como proyecto integrador. Tres experiencias distintas, un solo código base. La barra inferior de navegación solo en móvil (alcance del pulgar). La sidebar se transforma gradualmente. Los widgets se reorganizan. La tabla muestra más columnas a medida que hay más espacio. Todo con Tailwind responsive + BreakpointObserver para la lógica de la sidebar.
+
+---
+
+## 📱 Vista Móvil (< 768px)
+
+```html
+<!-- Layout móvil -->
+<div class="min-h-screen bg-gray-50 pb-16">
+  <!-- Navbar superior fijo -->
+  <nav class="fixed top-0 inset-x-0 z-30 h-14 bg-white
+              border-b border-gray-200 flex items-center
+              justify-between px-4">
+    <button class="p-2 rounded-lg hover:bg-gray-100"
+            (click)="toggleSidebar()">☰</button>
+    <span class="text-lg font-semibold">Dashboard</span>
+    <div class="w-8 h-8 rounded-full bg-primary-500">...</div>
+  </nav>
+
+  <!-- Contenido principal -->
+  <main class="pt-14 px-4">
+    <div class="grid grid-cols-1 gap-4">
+      <app-stats-widget ... />
+      <app-stats-widget ... />
+      <app-stats-widget ... />
+    </div>
+    <app-data-table class="mt-4" [mobileColumns]="3" />
+  </main>
+
+  <!-- Barra inferior de navegación -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 h-14 bg-white
+              border-t border-gray-200 flex items-center
+              justify-around md:hidden">
+    <a class="flex flex-col items-center text-xs
+              text-primary-600">📊 Home</a>
+    <a class="flex flex-col items-center text-xs
+              text-gray-400">👥 Clientes</a>
+    <a class="flex flex-col items-center text-xs
+              text-gray-400">📦 Pedidos</a>
+    <a class="flex flex-col items-center text-xs
+              text-gray-400">⚙️ Ajustes</a>
+  </nav>
+</div>
+```
+
+Note:
+Vista móvil: navbar superior con hamburguesa, contenido en 1 columna con padding ajustado, tabla con scroll horizontal y solo 3 columnas, y barra de navegación inferior fija (`md:hidden` la oculta en tablet+). El padding-bottom (pb-16) reserva espacio para la barra inferior. El padding-top (pt-14) para la barra superior fija.
+
+---
+
+## 💻 Vista Tablet (768px - 1023px) y Desktop (≥ 1024px)
+
+```html
+<!-- Añadiendo variantes md: y lg: al mismo HTML base -->
+<div class="min-h-screen bg-gray-50 pb-16 md:pb-0">
+  <!-- Navbar: hamburguesa oculta en tablet+ -->
+  <nav class="fixed top-0 inset-x-0 z-30 h-14 md:h-16
+              bg-white border-b flex items-center
+              justify-between px-4 md:px-6">
+    <button class="p-2 rounded-lg hover:bg-gray-100 md:hidden"
+            (click)="toggleSidebar()">☰</button>
+    ...
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="hidden md:flex md:flex-col md:fixed md:inset-y-0
+                md:left-0 md:z-40 md:w-16 lg:w-64
+                bg-gray-900 text-white transition-all duration-300">
+    ...
+  </aside>
+
+  <!-- Contenido con margen dinámico -->
+  <main class="pt-14 md:pt-16 md:ml-16 lg:ml-64
+               p-4 md:p-6 lg:p-8 transition-all duration-300">
+    <!-- Grid responsive -->
+    <div class="grid grid-cols-1 sm:grid-cols-2
+                lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      ...
+    </div>
+  </main>
+</div>
+```
+
+Note:
+Las variantes responsive se añaden al mismo HTML. `md:hidden` oculta la hamburguesa y la barra inferior. `hidden md:flex` muestra la sidebar desde tablet. `md:w-16 lg:w-64` controla el ancho. `md:ml-16 lg:ml-64` ajusta el margen del contenido. `p-4 md:p-6 lg:p-8` amplía el padding progresivamente. El resultado: una sola base de código, tres experiencias.
+
+---
+
+## 🔄 Navegación Adaptativa
+
+| Dispositivo | Patrón de navegación | Tailwind |
+|-------------|---------------------|----------|
+| **Móvil** | Barra inferior fija (3-5 iconos) + hamburguesa | `fixed bottom-0 ... md:hidden` |
+| **Tablet** | Sidebar colapsada (w-16, solo iconos) | `hidden md:flex md:w-16` |
+| **Desktop** | Sidebar expandida (w-64, icono + texto) | `lg:w-64` |
+| **Desktop grande** | Sidebar expandida + submenús visibles | `xl:w-72` |
+
+<mark>La barra inferior móvil sitúa las acciones al alcance del pulgar</mark>
+
+Note:
+La navegación es lo que más cambia entre dispositivos. En móvil, la barra inferior (patrón nativo) es ergonómica para el pulgar. En tablet/desktop, la sidebar lateral aprovecha el espacio horizontal. La transición es gradual y se implementa con variantes responsive de Tailwind, no con componentes diferentes.
+
+---
+
+## 🖼️ Imágenes y Medios Responsive
+
+```html
+<!-- Imagen responsive con srcset -->
+<img src="hero-mobile.webp"
+     srcset="hero-mobile.webp 640w,
+             hero-tablet.webp 1024w,
+             hero-desktop.webp 1920w"
+     sizes="(max-width: 640px) 100vw,
+            (max-width: 1024px) 50vw,
+            33vw"
+     class="w-full h-48 md:h-64 lg:h-80 object-cover rounded-xl"
+     loading="lazy"
+     alt="Dashboard overview" />
+
+<!-- Contenedor de vídeo con aspect-ratio -->
+<div class="aspect-video rounded-xl overflow-hidden">
+  <iframe class="w-full h-full" src="..." />
+</div>
+
+<!-- Galería de imágenes con grid responsive -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
+  <img class="w-full aspect-square object-cover" ... />
+</div>
+```
+
+Note:
+Imágenes: `srcset` + `sizes` para servir diferentes resoluciones según dispositivo. `loading="lazy"` para carga diferida. `object-cover` mantiene proporción. `aspect-*` garantiza ratio consistente. Galería: grid responsive con `gap-1` para mosaico compacto. SVG para iconos (vectoriales, escalan a cualquier resolución).
+
+---
+
+## 🏋️ Actividad en Clase
+
+**Dashboard Completamente Responsive**
+
+| ⏱️ Tiempo | 🎯 Objetivo | 📦 Entregable |
+|-----------|-------------|---------------|
+| 90 min | Dashboard funcional en 3 rangos (móvil, tablet, desktop) | Proyecto Angular con layout responsive |
+
+**Requisitos**:
+1. Sidebar con 3 comportamientos: drawer (móvil) → colapsada (tablet) → expandida (desktop)
+2. Navbar superior fija con hamburguesa visible solo en móvil
+3. Barra de navegación inferior en móvil con 4 iconos
+4. Grid de widgets: 1 col → 2 cols → 3 cols → 4 cols
+5. Tabla con scroll horizontal y columnas responsive
+6. Modal fullscreen en móvil, centrado en desktop
+
+Note:
+90 minutos, objetivo ambicioso. Empezad por el layout base móvil y añadid las variantes responsive progresivamente. El orden correcto: 1) HTML base móvil, 2) Sidebar drawer, 3) Añadir variantes md: y lg: para tablet/desktop, 4) Barra inferior móvil, 5) Integrar BreakpointObserver para la lógica de la sidebar. Probad redimensionando el navegador.
+
+---
+
+## ✅ Buenas Prácticas
+
+1. **Empieza siempre por el diseño móvil**: clases base = móvil, prefijos = hacia arriba
+2. **Usa `min-width` implícito** (variantes Tailwind), no `max-width` (desktop-first)
+3. **Prueba en dispositivos reales**: el viewport redimensionado no simula touch ni teclado virtual
+4. **No ocultes contenido crítico** en móvil: prioriza, no elimines
+5. **Tailwind para lo visual, BreakpointObserver para lógica** de negocio
+6. **Tamaño táctil mínimo 44x44px** en móvil: `p-3` en botones lo garantiza
+
+Note:
+La práctica 3 es crucial: el modo responsive de DevTools no es un dispositivo real. El teclado virtual ocupa el 40% de la pantalla en móvil. Los eventos touch son distintos a click. Probad en un teléfono real con USB debugging. La práctica 5: separación de responsabilidades. Si solo cambia la apariencia → Tailwind. Si cambia el comportamiento → BreakpointObserver.
+
+---
+
+## ❌ Errores Frecuentes
+
+| Error | Por qué | Solución |
+|-------|---------|----------|
+| **Desktop-first** | Diseñar en 1920px y luego "adaptar" | Empezar en 375px y enriquecer |
+| **Breakpoints por dispositivo** | Asumir `md` = iPad vertical | Diseñar para rango de espacio |
+| **Scroll horizontal global** | Un elemento desborda y arruina todo | `overflow-x-hidden` en body, local en tablas |
+| **Ignorar landscape** | Solo probar en portrait | La app debe funcionar en ambas orientaciones |
+| **`display: none` sin accesibilidad** | Contenido oculto no disponible para lectores | `sr-only` si es importante |
+| **No probar con teclado virtual** | Campos del final inaccesibles | Test con teclado abierto, usar `visualViewport` |
+
+Note:
+El error 1 es el más común en alumnos: vienen de diseñar en Figma a 1440px. Mobile-first requiere un cambio mental. El error 3 es sutil: una tabla con overflow-x-auto es correcto, pero si alguien pone un elemento con width fijo de 1200px, toda la página tendrá scroll horizontal. Verificad que `html, body` no tengan scroll horizontal.
+
+---
+
+## 🎯 BreakpointObserver: Cuándo Usarlo
+
+| Caso | Herramienta | Por qué |
+|------|------------|---------|
+| Mostrar/ocultar sidebar | Tailwind `md:hidden lg:block` | Es puramente visual |
+| Cambiar grid de 1 a 4 cols | Tailwind `grid-cols-1 xl:grid-cols-4` | Es layout CSS |
+| Inicializar drag-and-drop | <mark>BreakpointObserver</mark> | No tiene sentido en móvil táctil |
+| Cargar datos completos vs resumidos | <mark>BreakpointObserver</mark> | Optimizar rendimiento en móvil |
+| Cambiar patrón de navegación | <mark>BreakpointObserver</mark> | Push en móvil, tabs en desktop |
+| Ajustar tamaño de fuente | Tailwind `text-sm lg:text-base` | Es puramente visual |
+
+<mark>Regla: Tailwind para presentación, BreakpointObserver para comportamiento</mark>
+
+Note:
+La regla de oro evita la tentación de usar BreakpointObserver para todo. Si solo cambia el CSS, Tailwind es más simple y más rápido (no pasa por el ciclo de detección de cambios de Angular). Si cambia la lógica de negocio (qué datos cargar, qué funcionalidad inicializar), BreakpointObserver es la herramienta correcta.
+
+---
+
+## 🖥️ Electron: Configuración de Ventana
+
+```javascript
+// main.js - Proceso principal de Electron
+const { app, BrowserWindow } = require('electron');
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  // Cargar app Angular (desarrollo o producción)
+  if (process.env.NODE_ENV === 'development') {
+    win.loadURL('http://localhost:4200');
+  } else {
+    win.loadFile(path.join(__dirname, 'dist/index.html'));
+  }
+}
+
+app.whenReady().then(createWindow);
+```
+
+<mark>La app Angular es exactamente la misma en navegador y en Electron</mark>
+
+Note:
+Electron envuelve tu app Angular en una ventana nativa con Chromium. La misma base de código responsive (Tailwind + BreakpointObserver) funciona en ambos entornos. `minWidth: 800` evita que el usuario haga la ventana demasiado pequeña. En desarrollo, carga desde `localhost:4200` con HMR. En producción, carga los archivos compilados.
+
+---
+
+## 🎯 Rendimiento Responsive en Móvil
+
+| Técnica | Problema que resuelve | Implementación |
+|---------|----------------------|-----------------|
+| **Virtual scrolling** | 10.000 filas en móvil colapsan el navegador | `@angular/cdk/scrolling` |
+| **Carga condicional** | No cargar módulos de desktop en móvil | `@if (isDesktop())` con lazy loading |
+| **Imágenes responsive** | No servir imagen 4K a un móvil | `srcset` + `sizes` |
+| **Fontes del sistema** | No descargar webfonts en conexiones lentas | `font-family: system-ui` |
+| **CSS crítico inline** | Primer render rápido en 3G | Tailwind JIT ya genera CSS mínimo |
 
 ```typescript
-@Component({
-  selector: 'app-register-form',
-  standalone: true,
-  imports: [ReactiveFormsModule, NgClass, FormErrorComponent, ButtonComponent],
-  template: `...`,
-})
-export class RegisterFormComponent {
-  registerForm = this.fb.group({
-    personalInfo: this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', {
-        validators: [Validators.required, Validators.email],
-        asyncValidators: [this.emailExistsValidator()],
-        updateOn: 'blur',
-      }],
-      phone: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
-    }),
-    passwords: this.fb.group({
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      confirm: ['', Validators.required],
-    }, { validators: passwordMatchValidator('password', 'confirm') }),
-    terms: [false, Validators.requiredTrue],
-  });
-
-  formSubmitted = signal(false);
-  submitting = signal(false);
-}
+// Virtual scrolling para tablas grandes
+// En móvil cargar solo 20 items, en desktop 50
+readonly pageSize = computed(() => this.layout.isMobile() ? 20 : 50);
 ```
 
 Note:
-Vamos a construir un registro completo aplicando todo lo aprendido. Estructura: `personalInfo` (nombre, email con validación asíncrona, teléfono) + `passwords` (con validación cross-field) + `terms` (checkbox obligatorio). Signals para `formSubmitted` y `submitting`. Validación asíncrona en email con debounce de 500ms y estado pending.
+El responsive no es solo visual: es también de rendimiento. Un móvil con 4G tiene menos CPU y memoria que un desktop. Virtual scrolling (CDK) solo renderiza las filas visibles. Carga condicional: no inicialices el editor drag-and-drop en móvil. Tailwind JIT ya genera CSS mínimo (~15KB), pero cuida las imágenes y fuentes.
 
 ---
 
-## Actividad en clase: Validador de CIF e IBAN
+## 📊 Resumen
 
-**Duración:** 60 minutos
-
-**Objetivo:** Implementar validadores personalizados para CIF español e IBAN en un formulario de alta de cliente
-
-**Entregable:** `cifValidator()` + `ibanValidator()` + formulario funcional con feedback visual
-
-### Formato CIF español: <!-- .element: class="fragment" -->
-- Letra + 7 dígitos + dígito de control <!-- .element: class="fragment" -->
-- Algoritmo: sumar pares e impares por separado <!-- .element: class="fragment" -->
-
-### Formato IBAN español: <!-- .element: class="fragment" -->
-- ES + 22 dígitos <!-- .element: class="fragment" -->
-- Algoritmo: módulo 97 (usar BigInt) <!-- .element: class="fragment" -->
+| Tema | Clave |
+|------|-------|
+| **Mobile First** | Diseñar desde la restricción mejora todos los tamaños |
+| **Breakpoints** | `sm:640`, `md:768`, `lg:1024`, `xl:1280`, `2xl:1536`. Mobile-first |
+| **Sidebar** | Drawer overlay → colapsada w-16 → expandida w-64 |
+| **Tablas** | Scroll horizontal + ocultación progresiva de columnas |
+| **Grid** | `grid-cols-1 sm:2 lg:3 xl:4` en una línea |
+| **BreakpointObserver** | Tailwind para visual, `toSignal(bo.observe(...))` para lógica |
+| **Electron** | Mismo código responsive, definir `minWidth`/`minHeight` |
 
 Note:
-Implementad estos dos validadores como `ValidatorFn`. Para el CIF, el dígito de control se calcula de forma diferente según la letra inicial. Para el IBAN, el algoritmo es estándar: mover los 4 primeros caracteres al final, convertir letras a números (A=10, B=11...), y verificar que módulo 97 = 1. Usad `BigInt` porque el número es enorme.
+Hemos cubierto el responsive design desde los fundamentos (Mobile First) hasta la implementación concreta (Tailwind + BreakpointObserver). La clave: un solo código base que se adapta fluidamente a cualquier tamaño de pantalla. Sin media queries explícitas. Sin archivos CSS por dispositivo. Sin componentes duplicados para móvil/desktop.
 
 ---
 
-## Buenas prácticas
+## 🚀 Próximos Pasos
 
-1. <mark>Reactive Forms</mark> para formularios con lógica compleja <!-- .element: class="fragment" -->
-2. Validar en <mark>blur</mark>, no en cada pulsación <!-- .element: class="fragment" -->
-3. <mark>Nunca</mark> mostrar errores en campos untouched <!-- .element: class="fragment" -->
-4. Incluir siempre <mark>mensaje descriptivo</mark> en objetos de error <!-- .element: class="fragment" -->
-5. <mark>debounceTime(300-500)</mark> en validadores asíncronos <!-- .element: class="fragment" -->
-6. Scroll automático al <mark>primer error</mark> en envío fallido <!-- .element: class="fragment" -->
+**Fin del bloque de interfaces. Siguientes módulos:**
 
-Note:
-Seis prácticas que definen un formulario profesional. La más importante: nunca mostrar errores antes de la interacción. Un formulario limpio invita a rellenarlo; uno lleno de rojo ahuyenta. El debounce en validación asíncrona es obligatorio para no saturar la API.
+- **Programación de servicios y procesos** (backend con Java/Spring)
+- **Sistemas de gestión empresarial** (ERP, CRM)
+- **Proyecto integrador**: Aplicación completa con frontend Angular + Tailwind + backend
 
----
-
-## Errores frecuentes
-
-1. ❌ Usar `*ngIf="control.invalid"` sin comprobar `touched` <!-- .element: class="fragment" -->
-2. ❌ Validadores asíncronos sin `debounceTime` <!-- .element: class="fragment" -->
-3. ❌ No limpiar errores cross-field al corregir <!-- .element: class="fragment" -->
-4. ❌ `updateOn: 'change'` con validadores asíncronos <!-- .element: class="fragment" -->
-5. ❌ Olvidar `role="alert"` en mensajes de error dinámicos <!-- .element: class="fragment" -->
-6. ❌ No marcar `touched` en envío fallido <!-- .element: class="fragment" -->
+**Para profundizar en responsive**:
+- Instalar Responsively App (ver la app en 5 viewports a la vez)
+- Implementar virtual scrolling (CDK) para tablas con 10.000+ registros en móvil
+- Explorar Container Queries (más allá de media queries de viewport)
 
 Note:
-El error más común y más dañino: mostrar errores en `control.invalid` sin verificar `touched`. El resultado es un formulario que grita errores al usuario antes de que haya tocado el teclado. También es frecuente olvidar `debounceTime` en validadores asíncronos, lo que provoca una avalancha de peticiones HTTP.
-
----
-
-## Resumen
-
-```mermaid
-graph TD
-    A[FormControl<br/>FormGroup<br/>FormArray] --> B[Estados: touched<br/>dirty, valid, pending]
-    B --> C[Validadores<br/>síncronos y asíncronos]
-    C --> D[Mensajes de error<br/>contextualizados]
-    D --> E[UX avanzada:<br/>wizard, draft, máscaras]
-    E --> F[Micro-interacciones:<br/>shake, slideIn, checkmark]
-```
-
-Note:
-Hemos cubierto: Reactive Forms como base (FormControl/FormGroup/FormArray), estados de los controles y su traducción a feedback visual, validadores personalizados (DNI, IBAN, password match, email exists), sistema profesional de mensajes de error, UX avanzada (wizards, FormArray dinámico, auto-guardado, máscaras) y micro-interacciones que mejoran la percepción de calidad.
-
----
-
-## Próximos pasos
-
-### Unidad 09 — Design Systems
-
-- Atomic Design: átomos → moléculas → organismos <!-- .element: class="fragment" -->
-- Design Tokens: colores, tipografía, espaciado, sombras <!-- .element: class="fragment" -->
-- Implementación con Tailwind 4 `@theme` <!-- .element: class="fragment" -->
-- ThemeProvider y cambio de tema (claro/oscuro) <!-- .element: class="fragment" -->
-- Comparativa de Design Systems reales <!-- .element: class="fragment" -->
-
-Note:
-En la próxima unidad daremos el salto de componentes individuales a sistemas de diseño completos. Aprenderéis Atomic Design, a definir Design Tokens como fuente única de verdad, y a implementar un ThemeProvider con cambio de tema en tiempo real. Veremos cómo lo hacen los grandes (Material 3, Ant, Carbon).
-
----
-
-## ¡Gracias! ¿Preguntas?
-
-### Repaso rápido:
-- ¿Cuándo mostramos errores de validación? <!-- .element: class="fragment" -->
-- ¿Qué hace `debounceTime` en validación asíncrona? <!-- .element: class="fragment" -->
-- ¿Cómo se comparte estado de formulario entre pasos de un wizard? <!-- .element: class="fragment" -->
-
-Note:
-Tres preguntas para cerrar. 1) Mostramos errores solo cuando el control está touched o tras intento de envío. 2) debounceTime evita saturar la API con una petición por pulsación. 3) El estado se comparte mediante un FormGroup principal que agrupa los FormGroups de cada paso. ¿Alguna duda antes de terminar?
+Con esta unidad cerramos el bloque de desarrollo de interfaces. Ahora tenéis las herramientas para construir aplicaciones Angular profesionales: UX (unidad 11), accesibilidad (12), Tailwind (13), componentes (14) y responsive (15). El proyecto integrador del módulo pondrá todo esto en práctica. Pregunta final: ¿qué parte del desarrollo de interfaces os gustaría profundizar más?

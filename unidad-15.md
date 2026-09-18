@@ -1,674 +1,667 @@
+# Desarrollo de Interfaces
 
-<!-- .slide: data-background="#0c4a6e" -->
-## Módulo 0488 · Desarrollo de Interfaces
-### Unidad 15: Responsive Design en Aplicaciones Angular
+## Unidad 15 · Del Diseño a la Implementación
 
-Mobile First · Breakpoints Tailwind · BreakpointObserver · Dashboard Responsive
+**Módulo 0488 · Desarrollo de Interfaces**
+CFGS Desarrollo de Aplicaciones Multiplataforma (DAM)
 
-<small>CFGS DAM · Curso 2025/26</small>
+Curso 2025/2026
 
 Note:
-Última unidad del bloque de interfaces. Vamos a unir todo lo aprendido (UX, accesibilidad, Tailwind, componentes) y hacer que funcione en cualquier dispositivo. Del móvil al monitor 4K, pasando por tablet y ventanas de Electron. Pregunta: ¿quién ha probado su app en un móvil real?
+Bienvenidos a la unidad final. Aquí converge todo lo aprendido: Figma (U3), Layouts (U4), Angular + Tailwind + Storybook (U2). Vamos a recorrer el flujo profesional completo: inspeccionar un diseño en Figma, extraer design tokens, configurar Tailwind @theme, organizar componentes con Atomic Design, implementarlos, documentarlos y construir pantallas completas. Esta unidad es el 40% de la evaluación del módulo. Pregunta: ¿quién tiene ya su entorno de la Unidad 2 funcionando?
 
 ---
 
-<!-- .slide: data-background="#f0fdf4" -->
-## 🎯 Objetivos de Aprendizaje
+## Objetivos de aprendizaje
 
-1. Aplicar <mark>Mobile First</mark> en aplicaciones de gestión empresarial
-2. Dominar breakpoints de Tailwind: `sm`, `md`, `lg`, `xl`, `2xl`
-3. Implementar estrategias responsive para <mark>cada tipo de componente</mark>
-4. Utilizar `BreakpointObserver` de Angular CDK con Signals
-5. Construir un dashboard completamente responsive (3 rangos)
-6. Comprender responsive design en aplicaciones <mark>Electron</mark>
+<span class="fragment">1. Analizar diseños Figma con <mark>Dev Mode</mark> y extraer especificaciones sistemáticamente</span>
+
+<span class="fragment">2. Extraer y documentar un sistema de <mark>Design Tokens</mark> completo</span>
+
+<span class="fragment">3. Configurar <mark>Tailwind @theme</mark> con tokens semánticos y modo oscuro</span>
+
+<span class="fragment">4. Organizar componentes con <mark>Atomic Design</mark> (átomos, moléculas, organismos)</span>
+
+<span class="fragment">5. Implementar <mark>8+ componentes</mark> Angular + Tailwind con todos sus estados</span>
+
+<span class="fragment">6. Documentar en Storybook y construir <mark>pantallas completas</mark></span>
 
 Note:
-6 objetivos. Los 3 primeros son de estilos (Tailwind). El 4 es de lógica TypeScript. El 5 es el proyecto integrador. El 6 cubre el caso especial de aplicaciones de escritorio con Electron, donde la ventana puede redimensionarse a cualquier tamaño.
+Seis objetivos, 8 fases. Esta unidad es la más larga y la que más peso tiene. Cada fase se construye sobre la anterior. Si os saltáis la FASE 2 (extraer bien los tokens), arrastraréis errores durante toda la implementación. Dediquemos tiempo a hacerlo bien desde el principio.
 
 ---
 
-<!-- .slide: data-background="#f0fdf4" -->
-## 🤔 Mobile First: Diseñar desde la Restricción
+## Motivación
+
+<div style="font-size: 1.4rem; text-align: left;">
+
+¿Cuánto tiempo se pierde cuando el diseño y el código <mark>no coinciden</mark>?
+
+</div>
+
+<span class="fragment" style="font-size: 1.1rem;">El desarrollador implementa "de memoria" → 15 discrepancias visuales</span>
+<span class="fragment" style="font-size: 1.1rem;">El diseñador enumera diferencias → el desarrollador corrige → iterar</span>
+<span class="fragment" style="font-size: 1.1rem;"><mark>Solución:</mark> flujo sistemático Figma → Tokens → Tailwind → Componentes → Storybook</span>
+
+Note:
+Este es el problema que resuelve esta unidad. Sin un proceso sistemático, el handoff diseño-desarrollo es caótico. Con nuestro flujo de 8 fases, cada paso es trazable, verificable y automatizable. El resultado: el código refleja fielmente el diseño. Pregunta: ¿habéis sufrido alguna vez el "esto no se parece al diseño"?
+
+---
+
+## El flujo completo en 8 fases
 
 <div class="mermaid">
 graph LR
-    A[Desktop-First<br/>1920px → 375px] --> B[❌ Recortar<br/>Quitar elementos<br/>Información perdida]
-    C[Mobile-First<br/>375px → 1920px] --> D[✅ Añadir<br/>Enriquecer layout<br/>Información complementaria]
-</div>
-
-<mark>Empezar por el móvil obliga a priorizar: ¿qué es esencial?</mark>
-
-Note:
-Mobile First NO es "diseñar solo para móviles". Es empezar por lo más restrictivo. Cuando diseñas en 1920px todo cabe, y luego al reducirlo tienes que amputar. Si empiezas en 375px, solo pones lo esencial y luego añades. El resultado es una interfaz más clara en todos los tamaños. Ejemplo real: el comercial que visita clientes con tablet, el encargado de almacén con móvil, el administrativo con monitor de 24". Todos usan la misma app.
-
----
-
-## 📏 Breakpoints de Tailwind
-
-<div class="mermaid">
-graph LR
-    subgraph Móvil
-        A[0 - 639px<br/>sin prefijo]
-    end
-    subgraph "sm (640px)"
-        B[640 - 767px<br/>sm:]
-    end
-    subgraph "md (768px)"
-        C[768 - 1023px<br/>md:]
-    end
-    subgraph "lg (1024px)"
-        D[1024 - 1279px<br/>lg:]
-    end
-    subgraph "xl (1280px)"
-        E[1280 - 1535px<br/>xl:]
-    end
-    subgraph "2xl (1536px)"
-        F[1536px+<br/>2xl:]
-    end
-</div>
-
-<mark>Mobile-first: clases base = móvil, prefijos añaden hacia arriba</mark>
-
-Note:
-Estos breakpoints no representan dispositivos concretos (iPhone, iPad), sino rangos de espacio disponible. Diseñamos para "pantallas < 640px", no para "iPhone 15". Así el diseño funciona en cualquier dispositivo presente y futuro. En apps de gestión, el rango más usado es lg-xl (1024-1536px). Los breakpoints se pueden personalizar en @theme.
-
----
-
-## 📐 Grid Responsive: De 1 a 4 Columnas
-
-```html
-<!-- La línea más importante del responsive design -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 1</div>
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 2</div>
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 3</div>
-  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 4</div>
-</div>
-```
-
-| Breakpoint | Columnas | Ancho aprox | Caso de uso |
-|------------|----------|-------------|-------------|
-| (base) | 1 col | < 640px | Móvil vertical |
-| `sm:` | 2 cols | 640px+ | Móvil horizontal / tablet pequeña |
-| `lg:` | 3 cols | 1024px+ | Tablet horizontal / portátil |
-| `xl:` | 4 cols | 1280px+ | Desktop / monitor |
-
-Note:
-Esta línea de Tailwind es la navaja suiza del responsive. El gap también puede variar: `gap-4 md:gap-6`. Los widgets individuales no cambian de diseño, solo su disposición en el grid. Esto mantiene la consistencia visual. La clase base (sin prefijo) define el diseño móvil; los prefijos añaden columnas hacia arriba.
-
----
-
-## 🧭 Estrategia Responsive: Sidebar
-
-<div class="mermaid">
-graph TD
-    A[Sidebar] --> B[Móvil<br/>< 768px]
-    A --> C[Tablet<br/>768px - 1023px]
-    A --> D[Desktop<br/>≥ 1024px]
-    B --> B1[Oculta. Drawer con overlay<br/>Botón hamburguesa<br/>fixed, translate-x]
-    C --> C1[Colapsada: w-16<br/>Solo iconos<br/>Tooltip al hover]
-    D --> D1[Expandida: w-64<br/>Icono + texto<br/>Submenús expandibles]
+  A["F1: Inspección<br>Figma Dev Mode"] --> B["F2: Extracción<br>Design Tokens"]
+  B --> C["F3: Configuración<br>Tailwind @theme"]
+  C --> D["F4: Organización<br>Atomic Design"]
+  D --> E["F5: Implementación<br>Componentes"]
+  E --> F["F6: Assets<br>Iconos, imágenes"]
+  F --> G["F7: Pantallas<br>Composición"]
+  G --> H["F8: Testing<br>Calidad"]
 </div>
 
 Note:
-Tres comportamientos, un solo componente. En móvil: `fixed inset-y-0 left-0 z-40 w-64 -translate-x-full transition-transform`. Se abre añadiendo `translate-x-0` vía binding condicional. Overlay: `fixed inset-0 bg-black/50 md:hidden`. En tablet: `md:relative md:translate-x-0 md:w-16`. En desktop: `lg:w-64`. Contenido principal: `ml-0 md:ml-16 lg:ml-64`.
+Estas 8 fases son el esqueleto de la unidad. Las recorreremos en orden. Cada fase produce artefactos que alimentan la siguiente. Si una fase está mal, el error se propaga. Por eso insistimos en hacer cada fase con rigor. Pregunta: ¿qué fase creéis que es la más crítica? (La F2: si los tokens son incorrectos, todo lo demás será incorrecto)
 
 ---
 
-## 🧭 Sidebar: Código de la Transición
+## FASE 1: Inspección sistemática de diseños
 
-```html
-<!-- Sidebar: un componente, tres comportamientos -->
-<aside class="fixed inset-y-0 left-0 z-40
-              w-64 bg-gray-900 text-white
-              transition-transform duration-300
-              -translate-x-full
-              md:relative md:translate-x-0
-              md:w-16 lg:w-64"
-       [class.translate-x-0]="isMobileOpen()">
-  <!-- Items de navegación -->
-  <nav class="flex flex-col gap-1 p-2">
-    <a class="flex items-center gap-3 px-3 py-2 rounded-lg
-              md:justify-center lg:justify-start
-              hover:bg-gray-800 transition-colors">
-      <svg class="w-5 h-5 shrink-0">...</svg>
-      <span class="hidden lg:block">Dashboard</span>
-    </a>
-  </nav>
-</aside>
+<span class="fragment">1. <mark>Visión general</mark>: recorrer el diseño completo, entender el propósito</span>
 
-<!-- Overlay solo en móvil -->
-@if (isMobileOpen()) {
-  <div class="fixed inset-0 bg-black/50 z-30 md:hidden"
-       (click)="closeSidebar()"></div>
+<span class="fragment">2. <mark>Identificar patrones</mark>: elementos recurrentes → futuros componentes</span>
+
+<span class="fragment">3. <mark>Descomposición por capas</mark>: de fuera hacia dentro, identificar sistemas de layout</span>
+
+<span class="fragment">4. <mark>Inspección detallada</mark> con Dev Mode: dimensiones, colores, tipografías, bordes, sombras</span>
+
+<span class="fragment">5. <mark>Identificar estados</mark>: ideal, loading, empty, error, edge cases</span>
+
+<span class="fragment">6. <mark>Documentar</mark>: checklist, dudas, observaciones técnicas</span>
+
+Note:
+La inspección no es mirar el diseño 5 minutos y empezar a programar. Es un proceso estructurado de 6 pasos. El paso 5 es el más olvidado: el diseño muestra el "happy path", pero la app real necesita loading spinners, empty states, mensajes de error... Si no están en Figma, preguntad al diseñador antes de implementar. Pregunta: ¿qué pasa si implementáis estados sin consultar al diseñador? (Inconsistencia visual entre pantallas)
+
+---
+
+## Checklist de inspección
+
+<span class="fragment">☐ Dimensiones del viewport (width × height)</span>
+<span class="fragment">☐ Layout principal: ¿flex?, ¿grid?, ¿combinación?</span>
+<span class="fragment">☐ Breakpoints responsive: ¿móvil/tablet/desktop?</span>
+<span class="fragment">☐ <mark>Colores</mark>: primario, secundario, neutros, semánticos</span>
+<span class="fragment">☐ <mark>Tipografías</mark>: familias, tamaños, pesos, interlineados</span>
+<span class="fragment">☐ <mark>Espaciados</mark>: padding y gap en cada contenedor</span>
+
+Note:
+Este checklist deberíais completarlo ANTES de escribir una sola línea de código. Es vuestra garantía de que no se os escapa nada. Imprimidlo o tenedlo en un segundo monitor mientras trabajáis. Pregunta: ¿qué apartado del checklist suele ser el más ignorado? (Los breakpoints responsive: mucha gente solo mira la versión desktop)
+
+---
+
+## FASE 2: Extracción de Design Tokens
+
+**Paleta de colores:**
+
+<span class="fragment">• <mark>Brand</mark>: primary-50 al 950, secondary-50 al 950</span>
+<span class="fragment">• <mark>Neutral</mark>: neutral-0 (blanco), neutral-50 al 950 (escala de grises)</span>
+<span class="fragment">• <mark>Semánticos</mark>: success, warning, error, info (con variantes claras)</span>
+
+**Escala tipográfica:**
+
+<span class="fragment">• Familias (sans, heading, mono), tamaños (xs a 4xl), pesos (400 a 700)</span>
+<span class="fragment">• Interlineados (tight: 1.25, normal: 1.5, relaxed: 1.625)</span>
+
+Note:
+Si el diseño usa variables de Figma, la extracción es directa: abrid el panel de variables y documentad. Si no, tenéis que inferir los tokens inspeccionando múltiples componentes y buscando patrones. La paleta de colores debe cubrir TODOS los tonos, no solo los que aparecen en el diseño actual (siempre se necesitan variantes más claras/oscuras para hover, focus, etc.). Pregunta: ¿cuántos tonos debe tener una paleta de color profesional? (10 tonos: 50, 100, 200... 900, 950)
+
+---
+
+## FASE 2: Tabla de Design Tokens
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--color-primary` | `#2563EB` | Acciones principales |
+| `--color-primary-hover` | `#1D4ED8` | Hover de botones primary |
+| `--color-bg-primary` | `#FFFFFF` | Fondo principal |
+| `--color-bg-secondary` | `#F8FAFC` | Fondo secundario |
+| `--color-text-primary` | `#0F172A` | Texto principal |
+| `--color-text-secondary` | `#64748B` | Texto secundario |
+| `--color-border-default` | `#E2E8F0` | Bordes por defecto |
+| `--radius-lg` | `0.5rem` | Botones, inputs |
+| `--radius-xl` | `0.75rem` | Tarjetas, modales |
+| `--shadow-md` | `0 4px 6px -1px rgb(0 0 0/0.1)` | Elevación media |
+
+<span class="fragment">Esta tabla es el <mark>contrato</mark> entre diseño y desarrollo</span>
+
+Note:
+Documentad los tokens en una tabla como esta. Cada token tiene: nombre (que usaremos en @theme), valor (extraído de Figma), y uso (dónde se aplica). Esto evita ambigüedades. Si un token no está en esta tabla, no debería usarse en el código. Pregunta: ¿por qué usar nombres semánticos (text-primary) en lugar de nombres de color (slate-900)? (Porque si mañana el texto principal cambia de slate-900 a otra cosa, solo hay que cambiar el valor del token semántico)
+
+---
+
+## FASE 3: Configuración de Tailwind @theme
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Colores de marca */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #dbeafe;
+
+  /* Colores semánticos de superficie */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-border-default: #e2e8f0;
+
+  /* Estados */
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* Tipografía */
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
 }
 ```
 
+<span class="fragment">Cada token de la tabla → una línea en `@theme`. Sin `tailwind.config.js`.</span>
+
 Note:
-El truco está en la combinación de clases base + responsive + binding condicional. La sidebar siempre tiene `-translate-x-full` (oculta fuera de pantalla) pero `md:translate-x-0` la muestra en tablet+. En móvil, `translate-x-0` se añade condicionalmente cuando `isMobileOpen()` es true. Los textos se ocultan con `hidden lg:block`. Los iconos se centran con `md:justify-center lg:justify-start`.
+Este es el corazón de la configuración. Cada token de la FASE 2 se traduce a una custom property en @theme. Una vez definido, se usa como clase Tailwind: `bg-primary`, `text-text-secondary`, `rounded-xl`. Pregunta: ¿cómo se usa un color definido como `--color-primary` en Tailwind? (`bg-primary`, `text-primary`, `border-primary`, `ring-primary`...)
 
 ---
 
-## 📊 Estrategia Responsive: Tablas de Datos
+## FASE 3: Modo oscuro
 
-<mark>Dos técnicas complementarias: scroll horizontal + ocultación progresiva</mark>
+```css
+.dark {
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-border-default: #334155;
 
-```html
-<div class="overflow-x-auto rounded-lg border border-gray-200">
-  <table class="min-w-[800px] w-full text-sm">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th class="hidden md:table-cell">Email</th>
-        <th class="hidden lg:table-cell">Fecha</th>
-        <th class="hidden xl:table-cell">Departamento</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>...</tbody>
-  </table>
-</div>
-```
-
-| Columna | Móvil | Tablet (md) | Desktop (lg) | XL |
-|---------|-------|-------------|--------------|-----|
-| Nombre | ✅ | ✅ | ✅ | ✅ |
-| Email | ❌ | ✅ | ✅ | ✅ |
-| Fecha | ❌ | ❌ | ✅ | ✅ |
-| Depto | ❌ | ❌ | ❌ | ✅ |
-
-Note:
-El `min-w-[800px]` fuerza el scroll en pantallas más estrechas. Las columnas menos esenciales se ocultan con `hidden md:table-cell` (visible desde tablet), `hidden lg:table-cell` (visible desde desktop). La combinación de ambas técnicas garantiza que la tabla sea usable en todos los tamaños. Importante: los datos ocultos visualmente siguen en el DOM para lectores de pantalla (a menos que se marquen con `aria-hidden`).
-
----
-
-## 📝 Estrategia Responsive: Formularios
-
-```html
-<form [formGroup]="form" class="flex flex-col gap-4">
-  <!-- Sección: Datos Fiscales -->
-  <fieldset class="border rounded-lg p-4">
-    <legend class="text-lg font-semibold px-2">Datos Fiscales</legend>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <app-input label="Razón Social" formControlName="name" />
-      <app-input label="CIF" formControlName="cif" />
-      <app-input label="Dirección" formControlName="address"
-                 class="md:col-span-2" />
-    </div>
-  </fieldset>
-
-  <!-- Sección: Contacto -->
-  <fieldset class="border rounded-lg p-4">
-    <legend class="text-lg font-semibold px-2">Contacto</legend>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <app-input label="Teléfono" formControlName="phone" />
-      <app-input label="Email" formControlName="email" />
-    </div>
-  </fieldset>
-
-  <app-button variant="primary" type="submit"
-              [loading]="isSubmitting()">Guardar cliente</app-button>
-</form>
-```
-
-Note:
-Formulario con secciones agrupadas en fieldsets. Cada sección usa grid responsive: 1 columna en móvil, 2 en desktop. Campos que ocupan ancho completo usan `md:col-span-2`. Las etiquetas siempre visibles, no placeholders. Validación reactiva en tiempo real con mensajes de error junto al campo. En móvil, los campos se apilan verticalmente; en desktop, se distribuyen en columnas.
-
----
-
-## 🪟 Estrategia Responsive: Modales
-
-```html
-<!-- Modal: fullscreen en móvil, centrado en desktop -->
-@if (isOpen()) {
-  <div class="fixed inset-0 z-50 flex items-end md:items-center
-              justify-center"
-       (click)="closeOnOverlay() && close()">
-    <div class="fixed inset-0 bg-black/50"></div>
-    <div class="relative bg-white shadow-2xl overflow-y-auto
-                w-full rounded-t-2xl md:rounded-2xl
-                md:max-w-lg md:mx-4
-                max-h-[90vh]"
-         cdkTrapFocus role="dialog" aria-modal="true">
-      <!-- Contenido del modal -->
-    </div>
-  </div>
+  /* Sombras más sutiles en dark mode */
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
 }
-```
 
-| Propiedad | Móvil | Desktop |
-|-----------|-------|---------|
-| Posición | `items-end` (anclado abajo) | `md:items-center` (centrado) |
-| Ancho | `w-full` (toda la pantalla) | `md:max-w-lg` (limitado) |
-| Bordes | `rounded-t-2xl` (solo arriba) | `md:rounded-2xl` (todos) |
-
-Note:
-El modal es uno de los componentes que más cambia entre móvil y desktop. En móvil, anclado abajo (como una action sheet nativa) o fullscreen. En desktop, centrado con ancho máximo. Las variantes responsive de Tailwind permiten ambas cosas en un solo componente. La accesibilidad (cdkTrapFocus, Escape, aria) es idéntica en ambos casos.
-
----
-
-## 🔍 BreakpointObserver de Angular CDK
-
-<mark>Tailwind para lo visual. BreakpointObserver para lógica de negocio</mark>
-
-```typescript
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
-
-@Injectable({ providedIn: 'root' })
-export class LayoutService {
-  private bo = inject(BreakpointObserver);
-
-  readonly isMobile = toSignal(
-    this.bo.observe(['(max-width: 767px)']).pipe(map(s => s.matches)),
-    { initialValue: true }
-  );
-
-  readonly isTablet = toSignal(
-    this.bo.observe([Breakpoints.Medium]).pipe(map(s => s.matches)),
-    { initialValue: false }
-  );
-
-  readonly isDesktop = toSignal(
-    this.bo.observe([Breakpoints.Large, Breakpoints.XLarge])
-      .pipe(map(s => s.matches)),
-    { initialValue: false }
-  );
-}
-```
-
-Note:
-`BreakpointObserver` trabaja con media queries CSS. En Angular 17+, `toSignal` convierte el observable en una señal reactiva. Esto se integra limpiamente con el modelo de señales. ¿Cuándo usar BreakpointObserver? Cuando necesitas lógica TypeScript: ¿inicializo el editor drag-and-drop? (solo desktop), ¿cargo datos completos o resumidos? (móvil = resumidos), ¿cambio el comportamiento de navegación? (móvil = push, desktop = tabs).
-
----
-
-## 🔀 Sidebar Inteligente con BreakpointObserver
-
-```typescript
-@Component({ ... })
-export class SidebarComponent {
-  private layout = inject(LayoutService);
-
-  manualOpen = signal(false);
-  autoOpen = signal(false);
-
-  readonly isOpen = computed(() => {
-    if (this.layout.isMobile()) return this.manualOpen();
-    return this.layout.isDesktop();
-  });
-
-  readonly sidebarState = computed(() => {
-    if (this.layout.isMobile()) return 'drawer';
-    if (this.layout.isTablet()) return 'collapsed';
-    return 'expanded';
-  });
-
-  // Al cruzar breakpoints, ajustar automáticamente
-  constructor() {
-    effect(() => {
-      if (this.layout.isDesktop()) this.manualOpen.set(true);
-      if (this.layout.isMobile()) this.manualOpen.set(false);
-    });
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
   }
 }
 ```
 
+<span class="fragment">Alternancia con `<mark>.dark</mark>` en `<html>` (estrategia `class` de Tailwind)</span>
+
 Note:
-La sidebar inteligente: en móvil se abre/cierra manualmente. Al cruzar a tablet, se colapsa automáticamente. Al cruzar a desktop, se expande automáticamente. Si redimensionas de desktop a móvil, se cierra automáticamente. Los `effect()` reaccionan a cambios en las señales del LayoutService y ajustan el estado. La señal computada `sidebarState` devuelve 'drawer', 'collapsed' o 'expanded'.
+El modo oscuro se configura sobrescribiendo las variables semánticas dentro de `.dark`. Los neutros se invierten (fondo oscuro, texto claro). Las sombras se vuelven más sutiles (en dark mode, una sombra negra sobre fondo oscuro no se ve). Pregunta: ¿cómo activáis el modo oscuro en la app? (`document.documentElement.classList.toggle('dark')`)
 
 ---
 
-## 🖥️ Responsive en Electron
-
-<mark>La misma app Angular funciona en navegador y en ventana nativa</mark>
-
-```javascript
-// main.js (proceso principal de Electron)
-const { BrowserWindow } = require('electron');
-
-const win = new BrowserWindow({
-  width: 1280,
-  height: 800,
-  minWidth: 800,    // Tamaño mínimo: la UI deja de ser funcional
-  minHeight: 600,
-  webPreferences: {
-    nodeIntegration: false,
-    contextIsolation: true
-  }
-});
-
-win.loadURL('http://localhost:4200'); // Misma app Angular
-```
-
-- Sin código responsive específico de Electron: Tailwind y BreakpointObserver funcionan igual
-- Definir `minWidth`/`minHeight` para evitar ventanas demasiado pequeñas
-- En pantallas 4K: centrar contenido con `max-w-screen-2xl mx-auto`
-- La ventana puede redimensionarse libremente → la app debe responder
-
-Note:
-Electron ejecuta tu app Angular en un Chromium embebido. Todo el código responsive (Tailwind, BreakpointObserver) funciona exactamente igual que en el navegador. La diferencia principal: defines tamaños mínimos de ventana desde el proceso principal. En pantallas muy grandes (4K), puedes centrar el contenido con `max-w-screen-2xl mx-auto` para evitar que un dashboard de 4 widgets se vea ridículo.
-
----
-
-## 🏗️ Proyecto: Dashboard Completamente Responsive
+## FASE 4: Atomic Design en Angular
 
 <div class="mermaid">
-graph TD
-    subgraph Móvil
-        M1[Navbar sup. + hamburguesa]
-        M2[Sidebar: drawer overlay]
-        M3[Widgets: 1 columna]
-        M4[Tabla: scroll horiz. + 3 cols]
-        M5[Navbar inferior: 4 iconos]
-    end
-    subgraph Tablet
-        T1[Sidebar colapsada: w-16]
-        T2[Widgets: 2 columnas]
-        T3[Tabla: scroll + 5 cols]
-        T4[Sin barra inferior]
-    end
-    subgraph Desktop
-        D1[Sidebar expandida: w-64]
-        D2[Widgets: 3-4 columnas]
-        D3[Tabla: todas las cols]
-        D4[Navegación completa]
-    end
+graph TB
+  A["Átomos<br>Button, Input, Icon, Badge<br>shared/ui/"] --> B["Moléculas<br>InputField, SearchBar<br>shared/components/"]
+  B --> C["Organismos<br>Navbar, Card, Modal, Table<br>shared/ui/ o features/"]
+  C --> D["Templates<br>DashboardLayout, AuthLayout<br>shared/layouts/"]
+  D --> E["Pages<br>DashboardPage, LoginPage<br>features/"]
 </div>
 
 Note:
-Vamos a construir este dashboard como proyecto integrador. Tres experiencias distintas, un solo código base. La barra inferior de navegación solo en móvil (alcance del pulgar). La sidebar se transforma gradualmente. Los widgets se reorganizan. La tabla muestra más columnas a medida que hay más espacio. Todo con Tailwind responsive + BreakpointObserver para la lógica de la sidebar.
+Atomic Design (Brad Frost) aplicado a Angular. Átomos: elementos indivisibles. Moléculas: combinaciones de átomos. Organismos: secciones complejas. Templates: layouts de página. Pages: instancias con contenido real. Pregunta: ¿dónde pondríais un componente DataTable? (Organismo: combina Table + Input + Badge + Button + Pagination)
 
 ---
 
-## 📱 Vista Móvil (< 768px)
+## FASE 4: Estructura de carpetas
 
-```html
-<!-- Layout móvil -->
-<div class="min-h-screen bg-gray-50 pb-16">
-  <!-- Navbar superior fijo -->
-  <nav class="fixed top-0 inset-x-0 z-30 h-14 bg-white
-              border-b border-gray-200 flex items-center
-              justify-between px-4">
-    <button class="p-2 rounded-lg hover:bg-gray-100"
-            (click)="toggleSidebar()">☰</button>
-    <span class="text-lg font-semibold">Dashboard</span>
-    <div class="w-8 h-8 rounded-full bg-primary-500">...</div>
-  </nav>
-
-  <!-- Contenido principal -->
-  <main class="pt-14 px-4">
-    <div class="grid grid-cols-1 gap-4">
-      <app-stats-widget ... />
-      <app-stats-widget ... />
-      <app-stats-widget ... />
-    </div>
-    <app-data-table class="mt-4" [mobileColumns]="3" />
-  </main>
-
-  <!-- Barra inferior de navegación -->
-  <nav class="fixed bottom-0 inset-x-0 z-30 h-14 bg-white
-              border-t border-gray-200 flex items-center
-              justify-around md:hidden">
-    <a class="flex flex-col items-center text-xs
-              text-primary-600">📊 Home</a>
-    <a class="flex flex-col items-center text-xs
-              text-gray-400">👥 Clientes</a>
-    <a class="flex flex-col items-center text-xs
-              text-gray-400">📦 Pedidos</a>
-    <a class="flex flex-col items-center text-xs
-              text-gray-400">⚙️ Ajustes</a>
-  </nav>
-</div>
+```
+src/app/
+├── shared/
+│   ├── ui/                  # Átomos
+│   │   ├── button/          # ButtonComponent
+│   │   ├── input/           # InputComponent
+│   │   ├── badge/           # BadgeComponent
+│   │   ├── avatar/          # AvatarComponent
+│   │   ├── icon/            # IconComponent
+│   │   └── spinner/         # SpinnerComponent
+│   ├── components/          # Moléculas
+│   │   ├── input-field/     # InputFieldComponent
+│   │   └── search-bar/      # SearchBarComponent
+│   ├── layouts/             # Templates
+│   │   ├── dashboard-layout/
+│   │   └── auth-layout/
+│   └── services/
+├── features/                # Pages
+│   ├── dashboard/
+│   └── auth/
+└── app.component.ts
 ```
 
 Note:
-Vista móvil: navbar superior con hamburguesa, contenido en 1 columna con padding ajustado, tabla con scroll horizontal y solo 3 columnas, y barra de navegación inferior fija (`md:hidden` la oculta en tablet+). El padding-bottom (pb-16) reserva espacio para la barra inferior. El padding-top (pt-14) para la barra superior fija.
+Estructura escalable. En `shared/ui` van los átomos (puramente presentacionales, altamente reutilizables). En `shared/components` las moléculas (combinan átomos). En `shared/layouts` los templates (estructuras de página). En `features` las páginas completas y componentes específicos de una funcionalidad. Pregunta: ¿por qué separar shared de features? (shared es reutilizable entre features; features contiene código específico de una funcionalidad)
 
 ---
 
-## 💻 Vista Tablet (768px - 1023px) y Desktop (≥ 1024px)
+## FASE 5: Implementación iterativa (10 pasos)
+
+<span class="fragment">1. <mark>Analizar</mark> el componente en Figma (Dev Mode)</span>
+<span class="fragment">2. <mark>Crear</mark> con Angular CLI: `ng g c shared/ui/button --standalone`</span>
+<span class="fragment">3. <mark>Definir inputs</mark> usando `input<T>()` y `output<T>()`</span>
+<span class="fragment">4. <mark>Implementar template</mark> HTML con clases Tailwind</span>
+<span class="fragment">5. <mark>Clases condicionales</mark> basadas en inputs</span>
+<span class="fragment">6. <mark>Comparar visualmente</mark> con Figma (lado a lado)</span>
+
+Note:
+Estos son los primeros 6 pasos del ciclo de 10. El paso 6 es crucial: tened Figma abierto en una ventana y la app Angular en otra. Comparad constantemente. Diferencias de 1-2px son aceptables (los navegadores renderizan tipografías diferente a Figma). Pregunta: ¿qué comando de Angular CLI crea un componente standalone? (`ng g c nombre --standalone`)
+
+---
+
+## FASE 5: Iteración (continuación)
+
+<span class="fragment">7. <mark>Ajustar</mark> hasta que coincida con el diseño</span>
+<span class="fragment">8. Escribir <mark>stories</mark> de Storybook (todas las variantes y estados)</span>
+<span class="fragment">9. Escribir <mark>tests unitarios</mark> (renderización, cambios de estado)</span>
+<span class="fragment">10. <mark>Documentar</mark> en Storybook Docs (descripción, props, ejemplos)</span>
+
+<span class="fragment">Repetir para cada componente. Átomos: 15-20 min. Moléculas: 30-45 min. Organismos: 1-2 h.</span>
+
+Note:
+Los pasos 8, 9 y 10 son los que más se procrastinan. Hacedlos como parte del flujo, no como tarea separada. Un componente no está "terminado" hasta que tiene sus stories, sus tests y su documentación. Pregunta: ¿cuántas stories debería tener como mínimo un Button component? (Al menos 4 variantes × 3 tamaños + estados disabled/loading = 15+ stories)
+
+---
+
+## Ejemplo: InputFieldComponent (template)
 
 ```html
-<!-- Añadiendo variantes md: y lg: al mismo HTML base -->
-<div class="min-h-screen bg-gray-50 pb-16 md:pb-0">
-  <!-- Navbar: hamburguesa oculta en tablet+ -->
-  <nav class="fixed top-0 inset-x-0 z-30 h-14 md:h-16
-              bg-white border-b flex items-center
-              justify-between px-4 md:px-6">
-    <button class="p-2 rounded-lg hover:bg-gray-100 md:hidden"
-            (click)="toggleSidebar()">☰</button>
-    ...
-  </nav>
+<div class="flex flex-col gap-1.5">
+  <label [for]="id" class="text-sm font-medium"
+    [class.text-error]="!!error()">
+    {{ label() }}
+  </label>
 
-  <!-- Sidebar -->
-  <aside class="hidden md:flex md:flex-col md:fixed md:inset-y-0
-                md:left-0 md:z-40 md:w-16 lg:w-64
-                bg-gray-900 text-white transition-all duration-300">
-    ...
-  </aside>
-
-  <!-- Contenido con margen dinámico -->
-  <main class="pt-14 md:pt-16 md:ml-16 lg:ml-64
-               p-4 md:p-6 lg:p-8 transition-all duration-300">
-    <!-- Grid responsive -->
-    <div class="grid grid-cols-1 sm:grid-cols-2
-                lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-      ...
-    </div>
-  </main>
-</div>
-```
-
-Note:
-Las variantes responsive se añaden al mismo HTML. `md:hidden` oculta la hamburguesa y la barra inferior. `hidden md:flex` muestra la sidebar desde tablet. `md:w-16 lg:w-64` controla el ancho. `md:ml-16 lg:ml-64` ajusta el margen del contenido. `p-4 md:p-6 lg:p-8` amplía el padding progresivamente. El resultado: una sola base de código, tres experiencias.
-
----
-
-## 🔄 Navegación Adaptativa
-
-| Dispositivo | Patrón de navegación | Tailwind |
-|-------------|---------------------|----------|
-| **Móvil** | Barra inferior fija (3-5 iconos) + hamburguesa | `fixed bottom-0 ... md:hidden` |
-| **Tablet** | Sidebar colapsada (w-16, solo iconos) | `hidden md:flex md:w-16` |
-| **Desktop** | Sidebar expandida (w-64, icono + texto) | `lg:w-64` |
-| **Desktop grande** | Sidebar expandida + submenús visibles | `xl:w-72` |
-
-<mark>La barra inferior móvil sitúa las acciones al alcance del pulgar</mark>
-
-Note:
-La navegación es lo que más cambia entre dispositivos. En móvil, la barra inferior (patrón nativo) es ergonómica para el pulgar. En tablet/desktop, la sidebar lateral aprovecha el espacio horizontal. La transición es gradual y se implementa con variantes responsive de Tailwind, no con componentes diferentes.
-
----
-
-## 🖼️ Imágenes y Medios Responsive
-
-```html
-<!-- Imagen responsive con srcset -->
-<img src="hero-mobile.webp"
-     srcset="hero-mobile.webp 640w,
-             hero-tablet.webp 1024w,
-             hero-desktop.webp 1920w"
-     sizes="(max-width: 640px) 100vw,
-            (max-width: 1024px) 50vw,
-            33vw"
-     class="w-full h-48 md:h-64 lg:h-80 object-cover rounded-xl"
-     loading="lazy"
-     alt="Dashboard overview" />
-
-<!-- Contenedor de vídeo con aspect-ratio -->
-<div class="aspect-video rounded-xl overflow-hidden">
-  <iframe class="w-full h-full" src="..." />
-</div>
-
-<!-- Galería de imágenes con grid responsive -->
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
-  <img class="w-full aspect-square object-cover" ... />
-</div>
-```
-
-Note:
-Imágenes: `srcset` + `sizes` para servir diferentes resoluciones según dispositivo. `loading="lazy"` para carga diferida. `object-cover` mantiene proporción. `aspect-*` garantiza ratio consistente. Galería: grid responsive con `gap-1` para mosaico compacto. SVG para iconos (vectoriales, escalan a cualquier resolución).
-
----
-
-## 🏋️ Actividad en Clase
-
-**Dashboard Completamente Responsive**
-
-| ⏱️ Tiempo | 🎯 Objetivo | 📦 Entregable |
-|-----------|-------------|---------------|
-| 90 min | Dashboard funcional en 3 rangos (móvil, tablet, desktop) | Proyecto Angular con layout responsive |
-
-**Requisitos**:
-1. Sidebar con 3 comportamientos: drawer (móvil) → colapsada (tablet) → expandida (desktop)
-2. Navbar superior fija con hamburguesa visible solo en móvil
-3. Barra de navegación inferior en móvil con 4 iconos
-4. Grid de widgets: 1 col → 2 cols → 3 cols → 4 cols
-5. Tabla con scroll horizontal y columnas responsive
-6. Modal fullscreen en móvil, centrado en desktop
-
-Note:
-90 minutos, objetivo ambicioso. Empezad por el layout base móvil y añadid las variantes responsive progresivamente. El orden correcto: 1) HTML base móvil, 2) Sidebar drawer, 3) Añadir variantes md: y lg: para tablet/desktop, 4) Barra inferior móvil, 5) Integrar BreakpointObserver para la lógica de la sidebar. Probad redimensionando el navegador.
-
----
-
-## ✅ Buenas Prácticas
-
-1. **Empieza siempre por el diseño móvil**: clases base = móvil, prefijos = hacia arriba
-2. **Usa `min-width` implícito** (variantes Tailwind), no `max-width` (desktop-first)
-3. **Prueba en dispositivos reales**: el viewport redimensionado no simula touch ni teclado virtual
-4. **No ocultes contenido crítico** en móvil: prioriza, no elimines
-5. **Tailwind para lo visual, BreakpointObserver para lógica** de negocio
-6. **Tamaño táctil mínimo 44x44px** en móvil: `p-3` en botones lo garantiza
-
-Note:
-La práctica 3 es crucial: el modo responsive de DevTools no es un dispositivo real. El teclado virtual ocupa el 40% de la pantalla en móvil. Los eventos touch son distintos a click. Probad en un teléfono real con USB debugging. La práctica 5: separación de responsabilidades. Si solo cambia la apariencia → Tailwind. Si cambia el comportamiento → BreakpointObserver.
-
----
-
-## ❌ Errores Frecuentes
-
-| Error | Por qué | Solución |
-|-------|---------|----------|
-| **Desktop-first** | Diseñar en 1920px y luego "adaptar" | Empezar en 375px y enriquecer |
-| **Breakpoints por dispositivo** | Asumir `md` = iPad vertical | Diseñar para rango de espacio |
-| **Scroll horizontal global** | Un elemento desborda y arruina todo | `overflow-x-hidden` en body, local en tablas |
-| **Ignorar landscape** | Solo probar en portrait | La app debe funcionar en ambas orientaciones |
-| **`display: none` sin accesibilidad** | Contenido oculto no disponible para lectores | `sr-only` si es importante |
-| **No probar con teclado virtual** | Campos del final inaccesibles | Test con teclado abierto, usar `visualViewport` |
-
-Note:
-El error 1 es el más común en alumnos: vienen de diseñar en Figma a 1440px. Mobile-first requiere un cambio mental. El error 3 es sutil: una tabla con overflow-x-auto es correcto, pero si alguien pone un elemento con width fijo de 1200px, toda la página tendrá scroll horizontal. Verificad que `html, body` no tengan scroll horizontal.
-
----
-
-## 🎯 BreakpointObserver: Cuándo Usarlo
-
-| Caso | Herramienta | Por qué |
-|------|------------|---------|
-| Mostrar/ocultar sidebar | Tailwind `md:hidden lg:block` | Es puramente visual |
-| Cambiar grid de 1 a 4 cols | Tailwind `grid-cols-1 xl:grid-cols-4` | Es layout CSS |
-| Inicializar drag-and-drop | <mark>BreakpointObserver</mark> | No tiene sentido en móvil táctil |
-| Cargar datos completos vs resumidos | <mark>BreakpointObserver</mark> | Optimizar rendimiento en móvil |
-| Cambiar patrón de navegación | <mark>BreakpointObserver</mark> | Push en móvil, tabs en desktop |
-| Ajustar tamaño de fuente | Tailwind `text-sm lg:text-base` | Es puramente visual |
-
-<mark>Regla: Tailwind para presentación, BreakpointObserver para comportamiento</mark>
-
-Note:
-La regla de oro evita la tentación de usar BreakpointObserver para todo. Si solo cambia el CSS, Tailwind es más simple y más rápido (no pasa por el ciclo de detección de cambios de Angular). Si cambia la lógica de negocio (qué datos cargar, qué funcionalidad inicializar), BreakpointObserver es la herramienta correcta.
-
----
-
-## 🖥️ Electron: Configuración de Ventana
-
-```javascript
-// main.js - Proceso principal de Electron
-const { app, BrowserWindow } = require('electron');
-
-function createWindow() {
-  const win = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+  <div class="relative">
+    @if (leadingIcon()) {
+      <div class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+        <app-icon [name]="leadingIcon()!" size="sm" />
+      </div>
     }
-  });
 
-  // Cargar app Angular (desarrollo o producción)
-  if (process.env.NODE_ENV === 'development') {
-    win.loadURL('http://localhost:4200');
-  } else {
-    win.loadFile(path.join(__dirname, 'dist/index.html'));
-  }
-}
+    <input [type]="type()" [placeholder]="placeholder()"
+      [disabled]="disabled()" [(ngModel)]="value"
+      class="w-full px-3 py-2 text-sm rounded-lg border
+        focus:outline-none focus:ring-2
+        disabled:opacity-50 disabled:cursor-not-allowed"
+      [class.border-error]="!!error()"
+      [class.pl-10]="!!leadingIcon()" />
 
-app.whenReady().then(createWindow);
+    @if (error()) {
+      <p class="text-xs text-error mt-0.5 flex items-center gap-1">
+        <app-icon name="alert-circle" size="xs" /> {{ error() }}
+      </p>
+    }
+  </div>
+</div>
 ```
 
-<mark>La app Angular es exactamente la misma en navegador y en Electron</mark>
-
 Note:
-Electron envuelve tu app Angular en una ventana nativa con Chromium. La misma base de código responsive (Tailwind + BreakpointObserver) funciona en ambos entornos. `minWidth: 800` evita que el usuario haga la ventana demasiado pequeña. En desarrollo, carga desde `localhost:4200` con HMR. En producción, carga los archivos compilados.
+Este es un ejemplo real de implementación. Observad: `[class.border-error]="!!error()"` activa/desactiva clases condicionalmente (más limpio que concatenar strings). `@if` para renderizado condicional. `leadingIcon()` e `error()` son signals. Pregunta: ¿por qué usar `[class.xxx]` en lugar de `[ngClass]`? (Más simple y tipado para clases individuales)
 
 ---
 
-## 🎯 Rendimiento Responsive en Móvil
-
-| Técnica | Problema que resuelve | Implementación |
-|---------|----------------------|-----------------|
-| **Virtual scrolling** | 10.000 filas en móvil colapsan el navegador | `@angular/cdk/scrolling` |
-| **Carga condicional** | No cargar módulos de desktop en móvil | `@if (isDesktop())` con lazy loading |
-| **Imágenes responsive** | No servir imagen 4K a un móvil | `srcset` + `sizes` |
-| **Fontes del sistema** | No descargar webfonts en conexiones lentas | `font-family: system-ui` |
-| **CSS crítico inline** | Primer render rápido en 3G | Tailwind JIT ya genera CSS mínimo |
+## Ejemplo: InputFieldComponent (TypeScript)
 
 ```typescript
-// Virtual scrolling para tablas grandes
-// En móvil cargar solo 20 items, en desktop 50
-readonly pageSize = computed(() => this.layout.isMobile() ? 20 : 50);
+@Component({
+  selector: 'app-input-field',
+  standalone: true,
+  imports: [CommonModule, FormsModule, IconComponent],
+  templateUrl: './input-field.component.html',
+})
+export class InputFieldComponent {
+  readonly label = input.required<string>();
+  readonly type = input<'text' | 'email' | 'password' | 'number'>('text');
+  readonly placeholder = input('');
+  readonly error = input<string | null>(null);
+  readonly disabled = input(false);
+  readonly leadingIcon = input<string | undefined>(undefined);
+  readonly value = model('');
+
+  protected id = computed(() =>
+    this.label().toLowerCase().replace(/\s+/g, '-')
+  );
+}
 ```
 
+<span class="fragment">Todos los inputs con <mark>tipos literales</mark> (no `string` genérico)</span>
+
 Note:
-El responsive no es solo visual: es también de rendimiento. Un móvil con 4G tiene menos CPU y memoria que un desktop. Virtual scrolling (CDK) solo renderiza las filas visibles. Carga condicional: no inicialices el editor drag-and-drop en móvil. Tailwind JIT ya genera CSS mínimo (~15KB), pero cuida las imágenes y fuentes.
+Usamos `input.required()` para props obligatorias. `model()` para two-way binding con el padre (`[(value)]="email"`). `computed()` para derivar el id del label (accesibilidad: el label debe estar asociado al input vía `for`/`id`). Tipos literales ('text' | 'email' | 'password' | 'number') en lugar de `string` para autocompletado y validación en compilación. Pregunta: ¿qué diferencia hay entre `input()` y `model()`? (input es de solo lectura padre→hijo; model soporta two-way binding)
 
 ---
 
-## 📊 Resumen
+## FASE 5: Stories de Storybook
 
-| Tema | Clave |
-|------|-------|
-| **Mobile First** | Diseñar desde la restricción mejora todos los tamaños |
-| **Breakpoints** | `sm:640`, `md:768`, `lg:1024`, `xl:1280`, `2xl:1536`. Mobile-first |
-| **Sidebar** | Drawer overlay → colapsada w-16 → expandida w-64 |
-| **Tablas** | Scroll horizontal + ocultación progresiva de columnas |
-| **Grid** | `grid-cols-1 sm:2 lg:3 xl:4` en una línea |
-| **BreakpointObserver** | Tailwind para visual, `toSignal(bo.observe(...))` para lógica |
-| **Electron** | Mismo código responsive, definir `minWidth`/`minHeight` |
+```typescript
+const meta: Meta<InputFieldComponent> = {
+  title: 'Components/InputField',
+  component: InputFieldComponent,
+  tags: ['autodocs'],
+  argTypes: {
+    type: { control: 'select',
+      options: ['text', 'email', 'password', 'number'] },
+    error: { control: 'text' },
+    disabled: { control: 'boolean' },
+  },
+};
+
+export const Default: Story = {
+  args: { label: 'Email', type: 'email', placeholder: 'tu@email.com' },
+};
+
+export const WithError: Story = {
+  args: { label: 'Email', error: 'Email no válido' },
+};
+
+export const Disabled: Story = {
+  args: { label: 'Email', disabled: true },
+};
+
+export const WithLeadingIcon: Story = {
+  args: { label: 'Email', leadingIcon: 'mail' },
+};
+```
+
+<span class="fragment">Cada estado significativo → su propia story</span>
 
 Note:
-Hemos cubierto el responsive design desde los fundamentos (Mobile First) hasta la implementación concreta (Tailwind + BreakpointObserver). La clave: un solo código base que se adapta fluidamente a cualquier tamaño de pantalla. Sin media queries explícitas. Sin archivos CSS por dispositivo. Sin componentes duplicados para móvil/desktop.
+Las stories cubren todos los estados: default, con error, disabled, con iconos. `argTypes` define controles interactivos en el panel de Storybook. `tags: ['autodocs']` genera documentación automática. Pregunta: ¿qué addon de Storybook permite verificar accesibilidad automáticamente? (`@storybook/addon-a11y`)
 
 ---
 
-## 🚀 Próximos Pasos
+## FASE 6: Estrategia de iconos
 
-**Fin del bloque de interfaces. Siguientes módulos:**
+**Opción recomendada: librería (Lucide)**
 
-- **Programación de servicios y procesos** (backend con Java/Spring)
-- **Sistemas de gestión empresarial** (ERP, CRM)
-- **Proyecto integrador**: Aplicación completa con frontend Angular + Tailwind + backend
+```bash
+npm install lucide-angular
+```
 
-**Para profundizar en responsive**:
-- Instalar Responsively App (ver la app en 5 viewports a la vez)
-- Implementar virtual scrolling (CDK) para tablas con 10.000+ registros en móvil
-- Explorar Container Queries (más allá de media queries de viewport)
+```typescript
+import { Component, input } from '@angular/core';
+import { LucideAngularModule } from 'lucide-angular';
+
+@Component({
+  selector: 'app-icon',
+  standalone: true,
+  imports: [LucideAngularModule],
+  template: `<lucide-icon [name]="name()"
+              [size]="size()" [class]="className()" />`,
+})
+export class IconComponent {
+  readonly name = input.required<string>();
+  readonly size = input<number>(20);
+  readonly className = input('');
+}
+```
+
+<span class="fragment">No exportes iconos uno a uno de Figma. Usa una librería optimizada.</span>
 
 Note:
-Con esta unidad cerramos el bloque de desarrollo de interfaces. Ahora tenéis las herramientas para construir aplicaciones Angular profesionales: UX (unidad 11), accesibilidad (12), Tailwind (13), componentes (14) y responsive (15). El proyecto integrador del módulo pondrá todo esto en práctica. Pregunta final: ¿qué parte del desarrollo de interfaces os gustaría profundizar más?
+Lucide es la opción recomendada: +1000 iconos, optimizados, con componente Angular nativo. Alternativa: Heroicons (del equipo de Tailwind). Evitad exportar SVG manualmente de Figma para cada icono: es lento, propenso a errores y los SVG de Figma contienen metadatos innecesarios. Pregunta: ¿qué formato de exportación usaríais para un icono? (SVG — es vectorial, escalable y mínimo en tamaño)
+
+---
+
+## FASE 6: Imágenes y fuentes
+
+**Imágenes:**
+
+```html
+<img src="product-800w.webp"
+  srcset="product-400w.webp 400w, product-800w.webp 800w"
+  sizes="(max-width: 640px) 100vw, 50vw"
+  alt="Product description"
+  loading="lazy"
+  decoding="async" />
+```
+
+<span class="fragment">WebP como formato principal. <mark>`loading="lazy"`</mark> difiere carga. `srcset` para responsive.</span>
+
+**Fuentes:**
+
+```css
+@font-face {
+  font-family: 'Inter';
+  src: url('/assets/fonts/inter-var.woff2') format('woff2');
+  font-weight: 300 700;
+  font-display: swap; /* Evita FOIT */
+}
+```
+
+<span class="fragment"><mark>`font-display: swap`</mark>: muestra texto inmediatamente, la fuente se intercambia al cargar</span>
+
+Note:
+WebP ofrece 25-35% mejor compresión que PNG/JPEG con soporte universal en 2025. `loading="lazy"` mejora el LCP (Largest Contentful Paint) difiriendo imágenes fuera del viewport. `font-display: swap` es CRÍTICO: sin él, el navegador oculta el texto hasta que la fuente se descarga (FOIT: Flash of Invisible Text). Pregunta: ¿qué formato es aún mejor que WebP? (AVIF: hasta 50% mejor compresión que JPEG, soporte creciente)
+
+---
+
+## FASE 7: Pantallas completas — DashboardPage
+
+```typescript
+@Component({
+  selector: 'app-dashboard-page',
+  standalone: true,
+  template: `
+    <app-dashboard-layout pageTitle="Dashboard">
+      @if (loading()) {
+        <div class="flex justify-center py-20"><app-spinner size="lg" /></div>
+      }
+      @else if (error()) {
+        <div class="text-center py-20">
+          <h2 class="text-lg font-semibold mb-2">Error al cargar</h2>
+          <app-button variant="primary" (clicked)="loadData()">Reintentar</app-button>
+        </div>
+      }
+      @else if (stats().length === 0) {
+        <div class="text-center py-20">
+          <h2 class="text-lg font-semibold mb-2">No hay datos</h2>
+          <app-button variant="primary">Crear proyecto</app-button>
+        </div>
+      }
+      @else {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          @for (stat of stats(); track stat.id) {
+            <app-card>...</app-card>
+          }
+        </div>
+      }
+    </app-dashboard-layout>
+  `,
+})
+export class DashboardPageComponent {
+  protected loading = signal(true);
+  protected error = signal<string | null>(null);
+  protected stats = signal<Stat[]>([]);
+}
+```
+
+<span class="fragment">Todos los estados cubiertos: <mark>loading, error, empty, ideal</mark></span>
+
+Note:
+Esta es la implementación de una pantalla real. Observad los 4 estados: loading (spinner), error (mensaje + reintentar), empty (mensaje + acción), ideal (datos). El usuario NUNCA ve una pantalla en blanco o rota. Todos los componentes (Card, Button, Spinner) son reutilizados, no implementados aquí. Pregunta: ¿por qué usar signals en lugar de variables normales? (Los cambios en signals son reactivos: la UI se actualiza automáticamente)
+
+---
+
+## Gestión de todos los estados
+
+<div class="mermaid">
+stateDiagram-v2
+  [*] --> Loading
+  Loading --> Error: API falla
+  Loading --> Empty: Sin datos
+  Loading --> Ideal: Datos OK
+  Error --> Loading: Reintentar
+  Ideal --> Loading: Recargar
+  Ideal --> Empty: Datos eliminados
+  Empty --> Ideal: Datos añadidos
+</div>
+
+<span class="fragment">Cada estado tiene su propia UI. El usuario siempre sabe qué está pasando.</span>
+
+Note:
+Este diagrama muestra todas las transiciones de estado posibles en una pantalla. Cada estado tiene un tratamiento visual específico. Si el diseño de Figma no incluye todos estos estados, consultad con el diseñador. Implementar estados sin diseño es una de las principales causas de inconsistencia visual. Pregunta: ¿qué diferencia hay entre el estado Empty y el estado Error? (Empty: no hay datos que mostrar, es una situación normal. Error: algo fue mal al cargar, es una situación excepcional)
+
+---
+
+## Actividad en clase: Inspección colaborativa
+
+<span class="fragment">Se proyecta un diseño de Figma. Trabajo en parejas.</span>
+
+<span class="fragment">1. Completar el <mark>checklist de inspección</mark> para una pantalla asignada</span>
+
+<span class="fragment">2. Identificar: layout, colores, tipografías, espaciados</span>
+
+<span class="fragment">3. Identificar <mark>componentes reutilizables</mark> y sus variantes</span>
+
+<span class="fragment">4. Identificar <mark>estados necesarios</mark> (loading, empty, error)</span>
+
+<span class="fragment">5. Puesta en común: cada pareja expone sus hallazgos</span>
+
+**Duración:** 25 minutos
+
+Note:
+Actividad para practicar la FASE 1. El docente asigna una pantalla diferente a cada pareja. La puesta en común es importante: diferentes personas identifican diferentes patrones. Pregunta: ¿qué es más importante identificar primero: los colores o los componentes? (Los componentes: definen la estructura. Los colores se extraen después)
+
+---
+
+## Actividad en clase: Code review de un componente
+
+<span class="fragment">Se proporciona un <mark>componente con errores intencionados</mark></span>
+
+<span class="fragment">Errores típicos:</span>
+<span class="fragment">• Falta `min-w-0` → desbordamiento</span>
+<span class="fragment">• Clases condicionales incorrectas</span>
+<span class="fragment">• Falta estado disabled visual</span>
+<span class="fragment">• Tipado `any` en lugar de tipos literales</span>
+
+<span class="fragment">Identificar errores → proponer correcciones → comparar con Figma</span>
+
+**Duración:** 20 minutos
+
+Note:
+Actividad para desarrollar ojo crítico. El componente tiene 3-4 errores que simulan problemas reales. La comparación con Figma es el paso final: solo cuando el componente se ve IDÉNTICO al diseño, está correcto. Pregunta: ¿cuál es el error más difícil de detectar? (Falta de min-w-0: el desbordamiento solo se ve con contenido muy largo)
+
+---
+
+## Buenas prácticas
+
+<span class="fragment">1. <mark>Implementa los átomos primero</mark>. Una hora en átomos ahorra 10 horas después</span>
+
+<span class="fragment">2. <mark>Mantén Figma abierto</mark> durante TODA la implementación. No trabajes "de memoria"</span>
+
+<span class="fragment">3. <mark>Un componente, una responsabilidad</mark>. Lógica de negocio → servicios, no componentes</span>
+
+<span class="fragment">4. <mark>Documenta mientras implementas</mark>. Stories y tests como parte del flujo, no como tarea aparte</span>
+
+<span class="fragment">5. <mark>Usa tokens semánticos</mark>, no valores hardcodeados. `bg-primary`, no `bg-blue-600`</span>
+
+<span class="fragment">6. <mark>Prioriza la accesibilidad</mark> como requisito funcional, no como "nice to have"</span>
+
+Note:
+La #1 es la más importante: unos átomos bien diseñados son la base de todo el sistema. La #5 evita el problema de "15 tonos de azul diferentes porque en algunos sitios puse #3b82f6 y en otros #4a90d9". Pregunta: ¿qué práctica de estas 6 os parece más difícil de mantener? (La #4: documentar mientras implementas requiere disciplina)
+
+---
+
+## Errores frecuentes
+
+<span class="fragment">1. <mark>Empezar por las pantallas</mark> en lugar de por los componentes → duplicar código</span>
+
+<span class="fragment">2. <mark>No definir tokens</mark> y usar colores hardcodeados → inconsistencia visual</span>
+
+<span class="fragment">3. <mark>Ignorar estados</mark> (loading, empty, error) → pantalla rota con datos reales</span>
+
+<span class="fragment">4. <mark>Copiar y pegar</mark> componentes en lugar de añadir variantes mediante inputs</span>
+
+<span class="fragment">5. <mark>No tipar correctamente</mark>: `@Input() variant: string` en lugar de tipos literales</span>
+
+<span class="fragment">6. <mark>No verificar contra Figma</mark> durante el desarrollo → 15 discrepancias al final</span>
+
+Note:
+El error #4 es una trampa de productividad: copiar y pegar un componente para hacer una variante es más rápido a corto plazo (30 segundos) pero genera deuda técnica masiva. Añadir una variante al componente existente (5 minutos) es la inversión correcta. Pregunta: ¿cómo detectáis el error #3 en una aplicación ajena? (Navegad a una página, simulad que la API falla en DevTools → Network → Offline)
+
+---
+
+## Resumen de la unidad
+
+<span class="fragment">✅ <mark>F1 Inspección</mark>: Dev Mode, checklist, identificación de patrones</span>
+
+<span class="fragment">✅ <mark>F2 Design Tokens</mark>: paleta de colores, tipografía, espaciado, sombras</span>
+
+<span class="fragment">✅ <mark>F3 Tailwind @theme</mark>: traducción de tokens a CSS, modo oscuro</span>
+
+<span class="fragment">✅ <mark>F4 Atomic Design</mark>: átomos, moléculas, organismos, templates, pages</span>
+
+<span class="fragment">✅ <mark>F5 Implementación</mark>: ciclo de 10 pasos, tipos literales, clases condicionales</span>
+
+<span class="fragment">✅ <mark>F6 Assets</mark>: iconos (Lucide), imágenes (WebP/lazy), fuentes (swap)</span>
+
+Note:
+Esta unidad resume todo el módulo. Si domináis estas 8 fases, podéis enfrentar cualquier proyecto profesional de desarrollo de interfaces. El flujo Figma → Design Tokens → Tailwind @theme → Componentes Angular → Storybook → App es el estándar de la industria en 2025. Pregunta: ¿cuál de las 8 fases creéis que necesita más práctica?
+
+---
+
+## Próximos pasos
+
+<span class="fragment">📌 <mark>Actividad 1</mark>: Implementar 3 átomos (Badge, Avatar, Divider) desde Figma</span>
+
+<span class="fragment">📌 <mark>Actividad 2</mark>: Implementar DataTable con búsqueda, filtros y paginación</span>
+
+<span class="fragment">📌 <mark>Actividad 3</mark>: Proyecto completo: Biblioteca personal (Figma → Tokens → App)</span>
+
+<span class="fragment">📌 <mark>Actividad 4</mark>: Sistema de temas dinámicos con persistencia</span>
+
+<span class="fragment">📌 <mark>Actividad 5</mark>: Proyecto final: App de gestión de proyectos (Jira-like)</span>
+
+<span class="fragment">📌 <mark>Evaluación</mark>: La Actividad 5 puede usarse como proyecto de evaluación final</span>
+
+Note:
+Cinco actividades de dificultad creciente. La Actividad 3 es el flujo completo aplicado a una app pequeña (biblioteca personal). La Actividad 5 es el proyecto final del módulo: una app de gestión de proyectos tipo Jira con 15+ componentes, diseño responsive, drag & drop y despliegue. Planificad bien el tiempo.
+
+---
+
+## ¿Preguntas?
+
+<div style="font-size: 1.5rem; margin-top: 2rem;">
+
+`@theme` · `input.required<T>()` · `signal()` · `@container`
+
+<br>
+
+**¡Enhorabuena!** Habéis completado el módulo de Desarrollo de Interfaces 🎯
+
+</div>
+
+Note:
+Última sesión del módulo. Resolved todas las dudas pendientes. La Actividad 5 (proyecto final) es vuestra oportunidad de demostrar todo lo aprendido. Poned especial atención a: fidelidad al diseño Figma, tipado TypeScript sin any, cobertura de estados (loading/empty/error), y documentación en Storybook. ¡Buen trabajo!
+
+---
+
+## Referencias
+
+- **Angular Docs:** https://angular.dev
+- **Tailwind CSS v4:** https://tailwindcss.com/docs/v4
+- **Storybook Angular:** https://storybook.js.org/docs/angular
+- **Figma Dev Mode:** https://help.figma.com/hc/en-us/articles/15033890310167
+- **Lucide Icons:** https://lucide.dev
+- **Style Dictionary:** https://amzn.github.io/style-dictionary
+- **Atomic Design (Brad Frost):** https://atomicdesign.bradfrost.com
+- **axe DevTools:** https://www.deque.com/axe
+- **Squoosh (image optimizer):** https://squoosh.app

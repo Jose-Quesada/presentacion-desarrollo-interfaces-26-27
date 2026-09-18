@@ -1,840 +1,624 @@
-# Unidad 06 — Arquitectura de Interfaces con Angular
 
----
+<!-- .slide: data-background="#0f172a" -->
+## Módulo 0488 · Desarrollo de Interfaces
+### Unidad 6: Tailwind CSS 4 en Desarrollo de Interfaces
 
-## Portada
+Filosofía Utility-First · @theme · Vite · Clases Clave · Técnicas Avanzadas
 
-### Módulo 0488 — Desarrollo de Interfaces
-## Arquitectura de Interfaces con Angular
-#### Smart Components, Standalone y Señales
-
-Note:
-Bienvenidos a la Unidad 6. Hoy vamos a abordar cómo estructurar aplicaciones Angular profesionales usando patrones arquitectónicos modernos. Vamos a ver Standalone Components, el patrón Smart vs Presentational, Signals, y comunicación entre componentes. Todo orientado a construir interfaces escalables y mantenibles.
-
----
-
-## Objetivos de aprendizaje
-
-- Diferenciar Smart y Presentational Components <!-- .element: class="fragment" -->
-- Configurar Standalone Components con imports explícitos <!-- .element: class="fragment" -->
-- Integrar <mark>Tailwind CSS</mark> en plantillas Angular <!-- .element: class="fragment" -->
-- Comunicar componentes con @Input, @Output y Model Inputs <!-- .element: class="fragment" -->
-- Gestionar estado de interfaz con Signals <!-- .element: class="fragment" -->
-- Acceder al DOM con viewChild y contentChild <!-- .element: class="fragment" -->
+<small>CFGS DAM · Curso 2025/26</small>
 
 Note:
-Al finalizar esta unidad seréis capaces de diseñar la arquitectura completa de una interfaz Angular profesional. Los 6 objetivos cubren desde la estructura de componentes hasta la manipulación avanzada del DOM.
+Tailwind CSS 4 es un salto cualitativo. Abandona el archivo JS de configuración y adopta CSS nativo con @theme. Vamos a ver por qué el debate "CSS vs Tailwind" está mal planteado: Tailwind ES CSS. Cada clase como `flex` o `p-4` compila directamente a propiedades CSS. No hay magia, no hay runtime. Pregunta: ¿quién ha usado Tailwind antes? ¿CSS tradicional?
 
 ---
 
-## Motivación: El problema del "componente Dios"
+<!-- .slide: data-background="#f8fafc" -->
+## 🎯 Objetivos de Aprendizaje
 
-```typescript
-// ❌ 847 líneas, 23 imports, 15 responsabilidades
-export class GodComponent {
-  // Obtiene datos, renderiza, valida,
-  // gestiona errores, anima, rutea...
-}
-```
-
-### Consecuencias: <!-- .element: class="fragment" -->
-- Imposible de testear <!-- .element: class="fragment" -->
-- Imposible de reutilizar <!-- .element: class="fragment" -->
-- Conflictos constantes en equipo <!-- .element: class="fragment" -->
+1. Comprender la filosofía <mark>utility-first</mark> y cuándo aporta ventajas reales
+2. Configurar Tailwind 4 en Angular con Vite y `@theme`
+3. Organizar CSS en proyectos Angular: globales, plantillas, `@apply` moderado
+4. Dominar clases clave: layout, espaciado, colores, tipografía, estados, responsive
+5. Aplicar técnicas avanzadas: valores arbitrarios, `peer`, `group`, `has-*`
+6. Utilizar <mark>Tailwind CSS IntelliSense</mark> para productividad
 
 Note:
-Imaginad un componente que lo hace todo: obtiene datos de la API, renderiza HTML, valida formularios, gestiona errores, anima transiciones y controla la navegación. Esto es un "componente Dios". En equipos de 3+ personas, este antipatrón genera conflictos diarios. La solución es separar responsabilidades. ¿Alguien ha sufrido un componente así?
+6 objetivos progresivos: del "por qué" al "cómo hacerlo bien". El objetivo 3 es crítico: mucha gente abusa de @apply y recrea los problemas del CSS tradicional dentro de Tailwind. La regla: Tailwind en HTML para todo, @apply como excepción muy justificada.
 
 ---
 
-## La solución: Separación de responsabilidades
+<!-- .slide: data-background="#f8fafc" -->
+## 🤔 Motivación: CSS Tradicional vs Tailwind
 
-```mermaid
+<div class="mermaid">
 graph TD
-    A[Smart Component<br/>DashboardPage] --> B[StatCard]
-    A --> C[ChartWidget]
-    A --> D[DataTable]
-    A --> E[RecentActivity]
-    A --> F[PageHeader]
-```
-
-Note:
-La solución es descomponer. Un Smart Component se encarga de orquestar datos y delegar la presentación a múltiples componentes pequeños y especializados. Cada uno hace una sola cosa y la hace bien. Así es como escalan las aplicaciones reales.
-
----
-
-## Standalone Components
-
-```typescript
-@Component({
-  selector: 'app-stat-card',
-  standalone: true,  // ← Clave
-  imports: [NgClass, CurrencyPipe],
-  template: `...`,
-  styles: [`...`],
-})
-export class StatCardComponent {
-  @Input({ required: true }) data!: StatData;
-}
-```
-
-Note:
-Desde Angular 15, los Standalone Components eliminan la necesidad de NgModules. Cada componente declara explícitamente sus dependencias en el array `imports`. Esto hace que el código sea más explícito, fácil de entender y que el tree-shaking sea más efectivo. La propiedad `standalone: true` es obligatoria para marcar el componente como autónomo.
-
----
-
-## Selector, Template y Styles
-
-```typescript
-@Component({
-  selector: 'app-stat-card',        // Etiqueta HTML
-  templateUrl: './stat-card.html',  // Markup + Tailwind
-  styleUrl: './stat-card.css',      // Estilos encapsulados
-  standalone: true,
-  imports: [NgClass],
-})
-```
-
-| Propiedad | Función |
-|-----------|---------|
-| `selector` | Nombre de etiqueta HTML personalizada |
-| `template`/`templateUrl` | Markup con clases Tailwind |
-| `styles`/`styleUrls` | Estilos encapsulados del componente |
-
-Note:
-Tres atributos fundamentales definen un componente. El `selector` es el nombre de la etiqueta HTML que usaréis en las plantillas. El `template` contiene el HTML con clases Tailwind. Los `styles` definen estilos específicos encapsulados que no afectan al resto de la aplicación.
-
----
-
-## Template con Tailwind CSS
-
-```html
-<div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-  <div class="flex items-center justify-between">
-    <h3 class="text-sm font-medium text-gray-500">{{ title }}</h3>
-    <span class="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
-      {{ badge }}
-    </span>
-  </div>
-  <p class="mt-3 text-3xl font-bold text-gray-900">{{ value }}</p>
+    CSS[CSS Tradicional en equipos] --> P1[Guerras de naming<br/>.btn-primary vs .button-main]
+    CSS --> P2[Especificidad descontrolada<br/>.main .card .header .title]
+    CSS --> P3[CSS muerto<br/>clases que nadie se atreve a borrar]
+    CSS --> P4[Inconsistencia<br/>padding: 15px vs 16px]
+    TW[Tailwind] --> S1[Sin nombres: clases en HTML]
+    TW --> S2[Especificidad plana: 0-1-0]
+    TW --> S3[JIT genera solo CSS usado]
+    TW --> S4[Escala predefinida: p-4 = 16px siempre]
 </div>
+
+Note:
+Estos 4 problemas son reales en equipos de 5+ personas. Tailwind los resuelve de raíz eliminando la capa de nombres. El JIT (Just-In-Time) escanea tus plantillas y solo genera el CSS que usas. En un proyecto Angular típico, el CSS generado rara vez supera los 15-20 KB comprimidos. El sistema de diseño viene embebido: no necesitas acordar manualmente qué tono de azul usar.
+
+---
+
+## 🔑 Premisa Fundamental
+
+<mark>Tailwind NO reemplaza saber CSS. Todo lo contrario.</mark>
+
+| Clase Tailwind | CSS generado |
+|----------------|-------------|
+| `flex` | `display: flex` |
+| `items-center` | `align-items: center` |
+| `justify-between` | `justify-content: space-between` |
+| `gap-4` | `gap: 1rem` |
+| `p-4` | `padding: 1rem` |
+| `text-lg` | `font-size: 1.125rem; line-height: 1.75rem` |
+
+<mark>Si no sabes qué hace `justify-between`, no sabrás usar Tailwind</mark>
+
+Note:
+Esta transparencia es la clave. Cada clase de Tailwind es una traducción directa de CSS. No hay abstracción mágica. Si no entiendes flexbox, no entenderás por qué `items-center` no funciona en un contenedor sin `flex`. Estudia CSS primero, Tailwind después. Tailwind acelera a quien ya sabe CSS; confunde a quien no.
+
+---
+
+## 📦 Instalación de Tailwind 4 en Angular
+
+```bash
+# Paso 1: Instalar paquetes
+npm install tailwindcss @tailwindcss/vite
+
+# Paso 2: Configurar vite.config.ts
+```
+```typescript
+import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [tailwindcss()]
+});
 ```
 
-Note:
-Tailwind en Angular supone un cambio de paradigma: en lugar de escribir CSS separado, aplicáis clases utilitarias directamente en el HTML. Esto elimina la fricción de nombrar clases, garantiza consistencia con el sistema de diseño y acelera el desarrollo. Cada clase describe un aspecto visual: `rounded-xl` (borde redondeado), `p-6` (padding de 1.5rem), `shadow-sm` (sombra pequeña).
-
----
-
-## Tailwind: Variantes arbitrarias con clases Angular
-
-```html
-<input
-  [formControl]="emailControl"
-  class="block w-full rounded-lg border px-3 py-2
-         focus:outline-none focus:ring-2
-         [&.ng-invalid.ng-touched]:border-red-400
-         [&.ng-valid.ng-touched]:border-green-400" />
+**Paso 3**: Añadir al inicio de `src/styles.css`:
+```css
+@import "tailwindcss";
 ```
 
-<br/>
-
-`[&.ng-invalid.ng-touched]:border-red-400` reacciona a las clases CSS que Angular añade automáticamente
+<mark>Tailwind 4: sin tailwind.config.js, sin content scanning manual</mark>
 
 Note:
-Esta sintaxis es muy potente. Las variantes arbitrarias de Tailwind como `[&.ng-invalid.ng-touched]:border-red-400` permiten reaccionar a las clases que Angular añade automáticamente a los controles de formulario. Así eliminamos lógica TypeScript adicional para gestionar clases condicionales. Todo queda en el template.
+3 pasos y Tailwind está funcionando. En Tailwind 3 necesitabas un archivo JS de configuración con content paths. En v4, el plugin de Vite detecta automáticamente todos los archivos que procesa (plantillas Angular, TypeScript). El `@import "tailwindcss"` reemplaza las antiguas directivas `@tailwind base/components/utilities`. Más simple, más estándar.
 
 ---
 
-## Encapsulación de estilos: ViewEncapsulation
-
-| Estrategia | Comportamiento | Cuándo usarla |
-|-----------|---------------|---------------|
-| `Emulated` | Aísla con atributos únicos | **Por defecto**, recomendada |
-| `None` | Estilos globales | Componente raíz, themes |
-| `ShadowDom` | Shadow DOM nativo | Widgets embebidos |
-
-Note:
-Angular ofrece 3 estrategias de encapsulación. Emulated es el valor por defecto y aísla los estilos añadiendo atributos únicos a los elementos y selectores CSS. None desactiva el encapsulamiento — rara vez recomendable. ShadowDom usa Shadow DOM nativo pero presenta limitaciones con Tailwind porque las clases globales no penetran el Shadow DOM.
-
----
-
-## :host y ::ng-deep
+## 🎨 Configuración @theme con Colores oklch
 
 ```css
-/* Afecta al elemento contenedor del componente */
-:host {
-  display: block;
-  width: 100%;
-}
-:host(.highlighted) {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
-}
+@import "tailwindcss";
 
-/* ⚠️ Usar con moderación — estiliza componentes hijos */
-::ng-deep .third-party-slider .track {
-  background-color: theme('colors.blue.500');
-}
-```
+@theme {
+  --color-primary-50: oklch(0.97 0.01 255);
+  --color-primary-100: oklch(0.93 0.03 255);
+  --color-primary-300: oklch(0.75 0.11 255);
+  --color-primary-500: oklch(0.62 0.19 255);
+  --color-primary-700: oklch(0.47 0.17 255);
+  --color-primary-900: oklch(0.28 0.10 255);
 
-Note:
-`:host` selecciona el elemento anfitrión del componente, es decir, la etiqueta HTML personalizada como `<app-stat-card>`. Es muy útil para definir display, márgenes o dimensiones del contenedor. `::ng-deep` fuerza a que los estilos atraviesen la encapsulación — está deprecado por Angular pero sigue siendo la única solución para estilizar componentes de terceros. Pregunta al aula: ¿qué alternativas a ::ng-deep conocéis?
+  --color-success-500: oklch(0.62 0.19 145);
+  --color-danger-500: oklch(0.55 0.22 25);
 
----
-
-## Ciclo de vida relevante para interfaces
-
-```mermaid
-graph LR
-    A[constructor] --> B[ngOnInit]
-    B --> C[ngAfterViewInit]
-    C --> D[ngOnDestroy]
-    
-    B -.-> E[Inicializar datos<br/>Signals<br/>Suscripciones]
-    C -.-> F[Gráficos<br/>Mapas<br/>Medir DOM]
-    D -.-> G[Limpiar suscripciones<br/>Destruir librerías<br/>Cancelar timers]
-```
-
-Note:
-Tres hooks son fundamentales para interfaces. `ngOnInit`: inicializar datos y suscripciones. `ngAfterViewInit`: el DOM ya está disponible para librerías externas como Chart.js o mapas. `ngOnDestroy`: limpiar todo para evitar memory leaks. El uso de `takeUntilDestroyed()` desde Angular 16 simplifica enormemente la limpieza de suscripciones.
-
----
-
-## ngOnInit con Signals y takeUntilDestroyed
-
-```typescript
-private dataService = inject(DashboardService);
-
-loading = signal(true);
-stats = signal<Stat[]>([]);
-error = signal<string | null>(null);
-
-ngOnInit(): void {
-  this.dataService.getDashboardStats().pipe(
-    takeUntilDestroyed()
-  ).subscribe({
-    next: (data) => { this.stats.set(data); this.loading.set(false); },
-    error: () => { this.error.set('Error al cargar'); this.loading.set(false); }
-  });
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --radius-button: 0.5rem;
+  --radius-card: 0.75rem;
 }
 ```
 
 Note:
-`takeUntilDestroyed()` vincula la suscripción al ciclo de vida del componente. Cuando el componente se destruye, la suscripción se cancela automáticamente. Ya no necesitamos gestionar manualmente Subjects de destrucción. Las Signals almacenan el estado de UI de forma reactiva: `loading`, `stats`, `error`.
+oklch es un espacio de color perceptualmente uniforme. Cambios iguales en sus coordenadas producen cambios visuales iguales. Esto facilita crear escalas de color: mismo tono (cuarto parámetro), varías la luminosidad (primer parámetro). Al definir `--color-primary-500`, automáticamente tienes `bg-primary-500`, `text-primary-500`, `border-primary-500`, etc. IntelliSense lo detecta y autocompleta.
 
 ---
 
-## ngAfterViewInit: Inicializar librerías externas
+## 🏗️ Organización del CSS en Angular + Tailwind
 
-```typescript
-private chartContainer = viewChild<ElementRef>('chartContainer');
-
-ngAfterViewInit(): void {
-  const container = this.chartContainer();
-  if (container) {
-    const ctx = container.nativeElement.querySelector('canvas')?.getContext('2d');
-    if (ctx) {
-      new Chart(ctx, { type: 'line', data: {...}, options: {...} });
-    }
-  }
-}
-```
-
-Note:
-`viewChild` con señales devuelve una referencia reactiva que se actualiza cuando el elemento está disponible. En `ngAfterViewInit`, el DOM ya está renderizado y podemos inicializar librerías como Chart.js, mapas de Leaflet, o editores de texto enriquecido. Es crítico que estas inicializaciones ocurran aquí y no en ngOnInit.
-
----
-
-## Sección B: Organización de proyectos profesionales
-
-```
-src/app/
-├── core/          # Servicios singleton, guards, interceptors
-├── shared/        # Componentes UI reutilizables
-│   └── components/
-│       ├── button/
-│       ├── modal/
-│       ├── card/
-│       ├── input/
-│       └── data-table/
-├── features/      # Pantallas por funcionalidad
-│   ├── dashboard/
-│   ├── products/
-│   └── users/
-├── layout/        # Shell: header, sidebar, footer
-└── design-system/ # Tokens, tipografía, tema
-```
-
-Note:
-Esta estructura feature-based es el estándar profesional. `core/` contiene servicios singleton. `shared/` alberga componentes reutilizables sin lógica de negocio. `features/` organiza las pantallas por funcionalidad. `layout/` define el shell de la aplicación. `design-system/` centraliza los tokens de diseño. Esta estructura es predecible y escala bien con equipos grandes.
-
----
-
-## Feature-based vs Layer-based
-
-```mermaid
+<div class="mermaid">
 graph TD
-    subgraph "Layer-based ❌"
-        L1[components/] --> L1a[50+ archivos sin relación]
-        L2[services/] --> L2a[Mezcla de responsabilidades]
-        L3[models/] --> L3a[Sin contexto de uso]
-    end
-    
-    subgraph "Feature-based ✅"
-        F1[dashboard/] --> F1a[Página + componentes propios]
-        F2[products/] --> F2a[Página + componentes propios]
-        F3[shared/] --> F3a[Solo lo reutilizable]
-    end
-```
-
-Note:
-Layer-based agrupa por tipo técnico: todos los componentes juntos, todos los servicios juntos. Cuando la app crece, se convierte en un vertedero. Feature-based agrupa por funcionalidad de negocio: todo lo relacionado con "dashboard" está junto. Esto reduce la carga cognitiva y permite trabajar en features de forma independiente.
-
----
-
-## Principio de Responsabilidad Única (SRP)
-
-> "Un componente debe tener una, y solo una, razón para cambiar"
-
-<div class="fragment">
-
-### ❌ Componente página monolítico
-- Obtiene datos de 3 endpoints
-- Renderiza 5 secciones distintas
-- Gestiona 4 estados de UI
-- Maneja errores, navegación, animaciones
-
-</div>
-
-<div class="fragment">
-
-### ✅ Descomposición correcta
-- **DashboardPage**: orquesta datos
-- **StatCard**: renderiza estadística
-- **ChartWidget**: renderiza gráfico
-- **RecentActivity**: renderiza lista de actividad
-
+    A[3 niveles de CSS] --> B["1. styles.css<br/>@import tailwind + @theme<br/>< 50 líneas"]
+    A --> C["2. Clases en plantillas<br/>ESTÁNDAR<br/>class='flex gap-4 p-6...'"]
+    A --> D["3. @apply en .component.css<br/>EXCEPCIÓN<br/>solo si mucha repetición"]
+    D --> E{¿Repites las mismas<br/>8 clases en 20 td?}
+    E -->|Sí| F[.td-base { @apply px-4 py-3... }]
+    E -->|No| G[❌ No uses @apply<br/>extrae un componente]
 </div>
 
 Note:
-La S de SOLID aplicada a componentes UI. Un componente página no debería contener directamente el HTML de tarjetas, gráficos y tablas. Debe delegar cada sección en un componente especializado. El DashboardPage orquesta, los componentes presentacionales renderizan. Esto facilita el testing, la reutilización y el trabajo en paralelo.
+Regla de los 3 niveles. El nivel 1 es mínimo: solo @import y @theme. El nivel 2 es donde vive el 95% de tu CSS: directamente en el HTML. El nivel 3 es la excepción, no la regla. Si necesitas @apply constantemente, probablemente necesitas crear un componente Angular, no luchar contra Tailwind. El antipatrón: usar @apply para recrear .btn-primary en un archivo global.
 
 ---
 
-## Sección C: Smart vs Presentational Components
+## 📐 Clases de Layout Esenciales
+
+| Categoría | Clases | Uso |
+|-----------|--------|-----|
+| **Flex** | `flex`, `flex-col`, `flex-row`, `flex-wrap`, `flex-1` | Contenedor flexible |
+| **Alineación** | `items-center`, `justify-between`, `justify-center` | Ejes de flex/grid |
+| **Grid** | `grid`, `grid-cols-3`, `col-span-2`, `gap-6` | Cuadrícula |
+| **Tamaño** | `w-full`, `h-screen`, `min-h-screen`, `max-w-lg` | Ancho y alto |
+| **Posición** | `relative`, `absolute`, `fixed`, `sticky`, `inset-0` | Posicionamiento |
+| **Centrado** | `mx-auto`, `container` | Centrar horizontalmente |
 
-```mermaid
-graph TB
-    subgraph "Smart Components (Containers)"
-        S1[DashboardPage]
-        S2[ProductsPage]
-        S3[UserProfilePage]
-    end
-    
-    subgraph "Presentational Components (Dumb)"
-        P1[StatCard]
-        P2[ChartWidget]
-        P3[DataTable]
-        P4[Button]
-        P5[Modal]
-        P6[Card]
-    end
-    
-    S1 -->|@Input data| P1
-    S1 -->|@Input data| P2
-    S1 -->|@Input data| P3
-    P1 -->|@Output events| S1
-    P2 -->|@Output events| S1
-```
-
-Note:
-Este es el patrón arquitectónico más importante para interfaces Angular. Los Smart Components obtienen datos de servicios y contienen lógica de negocio. Los Presentational Components solo reciben datos por @Input y emiten eventos por @Output. No inyectan servicios, no conocen rutas, son puramente visuales y 100% reutilizables.
-
----
-
-## Smart Component: DashboardPage
-
-```typescript
-@Component({
-  selector: 'app-dashboard-page',
-  standalone: true,
-  imports: [StatCardComponent, ChartWidgetComponent, DataTableComponent],
-  template: `
-    <app-page-header [title]="'Dashboard'" />
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      @for (stat of stats(); track stat.id) {
-        <app-stat-card [data]="stat" />
-      }
-    </div>
-  `,
-})
-export class DashboardPageComponent implements OnInit {
-  private dashboardService = inject(DashboardService);
-  stats = signal<StatData[]>([]);
-  loading = signal(true);
-  // ...
-}
-```
-
-Note:
-Observad el template: es una composición de componentes presentacionales. No contiene prácticamente HTML nativo ni clases de estilo. El Smart Component se limita a orquestar: inyecta el servicio, obtiene datos y los distribuye. Las Signals (`stats`, `loading`) gestionan el estado de UI de forma reactiva.
-
----
-
-## Presentational Component: StatCard
-
-```typescript
-@Component({
-  selector: 'app-stat-card',
-  standalone: true,
-  imports: [NgClass],
-  template: `
-    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <p class="text-sm font-medium text-gray-500">{{ data.label }}</p>
-      <p class="mt-3 text-3xl font-bold text-gray-900">{{ data.value }}</p>
-      <span [ngClass]="data.trend >= 0 ? 'text-green-600' : 'text-red-600'">
-        {{ data.trend }}%
-      </span>
-    </div>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class StatCardComponent {
-  @Input({ required: true }) data!: StatData;
-}
-```
-
-Note:
-Reglas de oro del Presentational Component: 1) Recibe todo por @Input. 2) Emite todo por @Output. 3) No inyecta servicios. 4) No conoce rutas ni features. 5) Altamente reutilizable. Observad `ChangeDetectionStrategy.OnPush`: mejora el rendimiento porque solo se reevalúa cuando cambian sus inputs.
-
----
-
-## Las 5 reglas de oro del Presentational Component
-
-1. Reciben <mark>TODO</mark> lo que necesitan mediante `@Input()` <!-- .element: class="fragment" -->
-2. Emiten <mark>TODO</mark> lo que sucede mediante `@Output()` <!-- .element: class="fragment" -->
-3. <mark>NO</mark> inyectan servicios de datos ni estado global <!-- .element: class="fragment" -->
-4. <mark>NO</mark> conocen la estructura de la aplicación <!-- .element: class="fragment" -->
-5. Son <mark>altamente reutilizables</mark> en diferentes contextos <!-- .element: class="fragment" -->
-
-Note:
-Estas 5 reglas definen un componente presentacional puro. Si vuestro componente inyecta HttpClient o Router, es un Smart Component. Si solo recibe datos y emite eventos, es presentacional. La pureza de los presentacionales los hace infinitamente reutilizables y trivialmente testeables.
-
----
-
-## Sección D: Comunicación entre componentes
-
-```mermaid
-graph LR
-    A[Padre<br/>Smart] -->|@Input<br/>datos ↓| B[Hijo<br/>Presentational]
-    B -->|@Output<br/>eventos ↑| A
-    A -->|"[()]<br/>two-way"| C[Hijo<br/>Model Input]
-```
-
-Note:
-Tres mecanismos de comunicación: @Input para pasar datos hacia abajo, @Output para emitir eventos hacia arriba, y Model Inputs para two-way binding. El flujo de datos es unidireccional descendente. Los eventos fluyen hacia arriba. Esto hace que la aplicación sea predecible y fácil de depurar.
-
----
-
-## @Input con required y transform
-
-```typescript
-// Input obligatorio — el compilador exige que el padre lo proporcione
-@Input({ required: true }) title!: string;
-@Input({ required: true }) items!: MenuItem[];
-
-// Input con transformación automática
-@Input({
-  required: true,
-  transform: (value: string) => value.toLowerCase().trim()
-}) email!: string;
-
-@Input({
-  transform: (value: Date | string) =>
-    value instanceof Date ? value : new Date(value)
-}) createdAt!: Date;
-```
-
-Note:
-`required: true` elimina errores en tiempo de ejecución: el compilador de Angular exige que el padre proporcione el valor. El operador `!` (non-null assertion) indica a TypeScript que Angular inicializará la propiedad. La función `transform` aplica una transformación al valor antes de asignarlo — muy útil para normalizar datos (emails en minúsculas, strings de fecha a objetos Date).
-
----
-
-## @Output: Emitir eventos hacia el padre
-
-```typescript
-// En el componente hijo (Presentational)
-@Output() itemSelected = new EventEmitter<MenuItem>();
-@Output() actionClicked = new EventEmitter<string>();
-
-selectItem(item: MenuItem): void {
-  this.itemSelected.emit(item);
-}
-
-// En el componente padre (Smart) — template
-// <app-menu (itemSelected)="onItemSelected($event)" />
-```
-
-Note:
-`@Output` + `EventEmitter<T>` permite a los hijos comunicar eventos. El hijo emite describiendo qué hizo el usuario. El padre recibe y decide la acción de negocio. Es importante tipar el `EventEmitter` con genéricos para tener seguridad de tipos tanto al emitir como al recibir.
-
----
-
-## Model Inputs: Two-way binding
-
-```typescript
-// En el componente hijo — declara una propiedad "model"
-checked = model(false);
-label = model<string>('');
-
-// En el componente padre — binding bidireccional con [()]
-// <app-toggle [(checked)]="isDarkMode" label="Modo oscuro" />
-```
-
-<br/>
-
-<div class="fragment">
-
-Reemplaza el patrón tradicional de `@Input` + `@Output(XXXChange)`
-
-Ideal para: switches, selectores, sliders, cualquier control de formulario personalizado
-
-</div>
-
-Note:
-Los Model Inputs, introducidos en Angular 17.2, simplifican el two-way binding. La función `model()` crea una propiedad que actúa como input y output simultáneamente. El hijo puede leer y escribir la propiedad como una señal normal, y Angular propaga los cambios al padre automáticamente. Esto reemplaza el patrón verboso de @Input + @Output con nombre `xxxChange`.
-
----
-
-## Signals para estado de interfaz
-
-```typescript
-// Estado local del componente
-searchTerm = signal('');
-isSidebarOpen = signal(true);
-selectedFilters = signal<Filter[]>([]);
-
-// Valores derivados (computados) — lazy + memoizados
-sidebarWidth = computed(() =>
-  this.isSidebarOpen() ? '16rem' : '4rem'
-);
-
-isEmptyState = computed(() =>
-  this.data().length === 0 && !this.loading()
-);
-```
-
-Note:
-Las Signals son el nuevo sistema de reactividad de Angular. A diferencia de RxJS, siempre tienen un valor actual y su API es síncrona. `computed()` crea valores derivados que solo se recalculan cuando cambian sus dependencias — son lazy y memoizados. Esto es ideal para estado de UI: clases CSS condicionales, visibilidad, textos dinámicos.
-
----
-
-## Servicio de estado global con Signals
-
-```typescript
-@Injectable({ providedIn: 'root' })
-export class UIStateService {
-  private sidebarOpen = signal(true);
-  private theme = signal<'light' | 'dark'>('light');
-
-  isSidebarOpen = this.sidebarOpen.asReadonly();
-  currentTheme = this.theme.asReadonly();
-
-  toggleSidebar(): void {
-    this.sidebarOpen.update(v => !v);
-  }
-
-  setTheme(theme: 'light' | 'dark'): void {
-    this.theme.set(theme);
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }
-}
-```
-
-Note:
-El estado compartido se implementa con servicios que exponen Signals. `asReadonly()` expone la señal para lectura pero impide modificaciones externas — las mutaciones solo ocurren a través de los métodos del servicio. Este patrón es suficiente para estado de UI global y evita la complejidad de NgRx para casos simples.
-
----
-
-## Sección E: viewChild y contentChild
-
-```mermaid
-graph TD
-    subgraph "viewChild — Template propio"
-        V1[Componente Padre]
-        V2[#chartCanvas]
-        V3[#searchInput]
-        V1 -->|viewChild| V2
-        V1 -->|viewChild| V3
-    end
-    
-    subgraph "contentChild — Contenido proyectado"
-        C1[Componente Padre]
-        C2[AccordionItem]
-        C3[AccordionItem]
-        C1 -->|contentChild| C2
-        C1 -->|contentChild| C3
-    end
-```
-
-Note:
-`viewChild` accede a elementos que forman parte del template del propio componente. `contentChild` accede a elementos proyectados desde el padre mediante `<ng-content>`. Esta distinción es fundamental para construir componentes compuestos como acordeones, tabs, wizards.
-
----
-
-## viewChild: Acceder al DOM propio
-
-```typescript
-chartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('chartCanvas');
-
-ngAfterViewInit(): void {
-  const canvas = this.chartCanvas();
-  if (canvas) {
-    new Chart(canvas.nativeElement.getContext('2d')!, {
-      type: 'bar', data: {...}, options: {...}
-    });
-  }
-}
-```
-
-### Casos de uso: <!-- .element: class="fragment" -->
-- Gráficos y visualizaciones <!-- .element: class="fragment" -->
-- Gestión del foco <!-- .element: class="fragment" -->
-- Scroll programático <!-- .element: class="fragment" -->
-- Animaciones imperativas <!-- .element: class="fragment" -->
-
-Note:
-La sintaxis moderna de `viewChild` con señales devuelve una señal reactiva que se actualiza cuando el elemento está disponible. Los casos de uso más comunes: inicializar gráficos, enfocar campos automáticamente, hacer scroll al primer error de formulario, controlar animaciones complejas con la Web Animations API.
-
----
-
-## contentChild: Acceder a contenido proyectado
-
-```typescript
-@Component({
-  selector: 'app-accordion',
-  standalone: true,
-  template: `<div class="divide-y"><ng-content /></div>`,
-})
-export class AccordionComponent {
-  items = contentChildren(AccordionItemComponent);
-
-  collapseAll(): void {
-    this.items().forEach(item => item.collapse());
-  }
-
-  expandAll(): void {
-    this.items().forEach(item => item.expand());
-  }
-}
-```
-
-Note:
-`contentChildren` (la versión plural) accede a todos los hijos proyectados. El componente Accordion recibe AccordionItems como contenido y puede invocar sus métodos públicos (collapse, expand). La comunicación se hace a través de las APIs públicas de los componentes hijos, respetando la encapsulación.
-
----
-
-## Patrón: Foco automático en modal
-
-```typescript
-private searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-
-showSearch(): void {
-  this.isSearchVisible.set(true);
-  afterNextRender(() => {
-    this.searchInput()?.nativeElement.focus();
-  });
-}
-```
-
-Note:
-Cuando se abre un modal o se muestra un formulario de búsqueda, es buena práctica enfocar automáticamente el primer campo. `afterNextRender` (Angular 17+) es preferible a `setTimeout` porque se integra con el ciclo de detección de cambios de Angular. La señal `searchInput` solo tendrá valor después de que Angular haya renderizado el elemento.
-
----
-
-## Patrón: Scroll al primer error
-
-```typescript
-private formContainer = viewChild<ElementRef>('formContainer');
-
-onSubmit(): void {
-  if (this.form.invalid) {
-    this.markAllAsTouched();
-    afterNextRender(() => {
-      const firstError = this.formContainer()
-        ?.nativeElement.querySelector('.ng-invalid');
-      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      (firstError as HTMLElement)?.focus();
-    });
-  }
-}
-```
-
-Note:
-En formularios largos, tras un envío fallido, desplazamos la vista hasta el primer campo con error. Buscamos el elemento con clase `.ng-invalid` (que Angular añade automáticamente) dentro del contenedor del formulario, hacemos scroll suave y enfocamos el campo. Esto mejora drásticamente la UX en formularios extensos.
-
----
-
-## Demo: Dashboard completo en 3 pasos
-
-### Paso 1: Smart Component DashboardPage
-```typescript
-stats = signal<StatData[]>([]);
-chartData = signal<ChartSeries[]>([]);
-recentTransactions = signal<Transaction[]>([]);
-loading = signal(true);
-
-ngOnInit(): void {
-  forkJoin({
-    stats: this.dashboardService.getStats(),
-    chart: this.dashboardService.getChartData(),
-    transactions: this.dashboardService.getRecentTransactions(),
-  }).pipe(takeUntilDestroyed()).subscribe({
-    next: ({ stats, chart, transactions }) => {
-      this.stats.set(stats);
-      this.chartData.set(chart);
-      this.recentTransactions.set(transactions);
-      this.loading.set(false);
-    }
-  });
-}
-```
-
-Note:
-Vamos a construir paso a paso un dashboard profesional. Paso 1: el Smart Component obtiene datos de 3 endpoints en paralelo con `forkJoin`. Almacena los resultados en Signals. `takeUntilDestroyed()` limpia automáticamente.
-
----
-
-## Demo: Dashboard (Paso 2)
-
-### Template del Smart Component
 ```html
-<div class="flex h-screen bg-gray-50">
-  <app-sidebar [collapsed]="sidebarCollapsed()" />
-
-  <div class="flex flex-1 flex-col overflow-hidden">
-    <app-header-bar (menuToggle)="toggleSidebar()" />
-
-    <main class="flex-1 overflow-y-auto p-6">
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        @for (stat of stats(); track stat.id) {
-          <app-stat-card [data]="stat" />
-        }
-      </div>
-      <!-- Más secciones con ChartWidget y DataTable -->
-    </main>
-  </div>
+<div class="flex items-center justify-between gap-4">
+  <span>Logo</span>
+  <nav class="hidden md:flex gap-2">...</nav>
 </div>
 ```
 
 Note:
-El template es pura composición: sidebar, header, grid de stat-cards, gráficos y tablas. Cada sección es un componente presentacional que recibe datos. La nueva sintaxis `@for` de Angular 17 reemplaza a `*ngFor` con mejor rendimiento y soporte de `track`.
+Estas 6 categorías cubren el 90% del layout en aplicaciones de gestión. `flex items-center justify-between` es probablemente la combinación más usada: crea una barra horizontal con elementos espaciados. `min-h-screen` garantiza que el contenido ocupe al menos toda la ventana, esencial en layouts de dashboard.
 
 ---
 
-## Demo: Dashboard (Paso 3)
+## 🎨 Clases de Color
 
-### Presentational Component StatCard
+| Uso | Clase | Significado |
+|-----|-------|-------------|
+| Texto | `text-gray-900` | Texto principal oscuro |
+| Texto secundario | `text-gray-500` | Texto menos importante |
+| Fondo | `bg-white` | Fondo blanco |
+| Fondo página | `bg-gray-50` | Fondo ligeramente gris |
+| Borde | `border-gray-200` | Borde sutil |
+| Primario | `bg-primary-500`, `text-primary-600` | Acción principal |
+
+<mark>Paleta con 22 colores × 11 tonos (50-950) → 242 clases de color</mark>
+
+```
+bg-{color}-{tono}   text-{color}-{tono}   border-{color}-{tono}
+ring-{color}-{tono}  accent-{color}-{tono}
+```
+
+Note:
+Tailwind incluye una paleta científicamente diseñada: slate, gray, zinc, neutral, stone, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, purple, fuchsia, pink, rose. Cada uno con 11 tonos. Tus colores personalizados en @theme siguen el mismo patrón. La clase `bg-primary-500` existe automáticamente si definiste `--color-primary-500`.
+
+---
+
+## 🔤 Clases de Tipografía
+
+| Clase | Tamaño | Uso típico |
+|-------|--------|------------|
+| `text-xs` | 12px / 0.75rem | Badges, labels pequeñas |
+| `text-sm` | 14px / 0.875rem | Texto de tabla, secundario |
+| `text-base` | 16px / 1rem | Texto cuerpo por defecto |
+| `text-lg` | 18px / 1.125rem | Subtítulos |
+| `text-xl` | 20px / 1.25rem | Títulos de sección |
+| `text-2xl` | 24px / 1.5rem | Títulos de página |
+| `text-3xl` | 30px / 1.875rem | Valores destacados (dashboard) |
+| `text-4xl` | 36px / 2.25rem | Valor principal KPI |
+
+Peso: `font-normal`, `font-medium`, `font-semibold`, `font-bold`
+
+Utilidades: `truncate`, `line-clamp-2`, `text-center`, `leading-relaxed`
+
+Note:
+La escala tipográfica de Tailwind es mobile-first y cubre todas las necesidades. `truncate` es esencial en celdas de tabla: aplica `overflow:hidden; text-overflow:ellipsis; white-space:nowrap` en una clase. `line-clamp-2` limita a 2 líneas con puntos suspensivos, ideal para previews de texto.
+
+---
+
+## 🎯 Estados Interactivos
+
+```html
+<!-- Botón completo con todos los estados -->
+<button class="
+  bg-primary-500 text-white px-4 py-2 rounded-lg font-medium
+  hover:bg-primary-600
+  active:bg-primary-700
+  focus-visible:ring-2 focus-visible:ring-primary-500
+  focus-visible:ring-offset-2 focus-visible:outline-none
+  disabled:opacity-50 disabled:cursor-not-allowed
+  transition-colors duration-200
+">
+  Guardar cambios
+</button>
+```
+
+| Variante | Gatillo | Ejemplo |
+|----------|---------|---------|
+| `hover:` | Ratón encima | `hover:bg-primary-600` |
+| `focus:` | Elemento enfocado | `focus:ring-2` |
+| `active:` | Clic presionado | `active:scale-95` |
+| `disabled:` | `[disabled]` | `disabled:opacity-50` |
+| `focus-visible:` | Foco por teclado | `focus-visible:ring-2` |
+| `dark:` | Modo oscuro | `dark:bg-gray-800` |
+
+Note:
+Las variantes se anteponen a cualquier clase. `focus-visible` es preferible a `focus` porque solo muestra el anillo cuando navegas con teclado, no al hacer clic. `transition-colors duration-200` suaviza los cambios de color. La variante `dark:` permite modo oscuro: defines `bg-white dark:bg-gray-900` y Tailwind genera ambas versiones.
+
+---
+
+## 📱 Clases Responsive
+
+```html
+<!-- Mobile-first: 1 col → 2 col (md) → 4 col (xl) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 1</div>
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 2</div>
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 3</div>
+  <div class="bg-white rounded-xl p-4 shadow-sm">Widget 4</div>
+</div>
+```
+
+| Breakpoint | Ancho mínimo | Dispositivo típico |
+|------------|-------------|-------------------|
+| (base) | 0px | Móvil |
+| `sm:` | 640px | Móvil grande / tablet pequeña |
+| `md:` | 768px | Tablet |
+| `lg:` | 1024px | Portátil / desktop |
+| `xl:` | 1280px | Desktop estándar |
+| `2xl:` | 1536px | Desktop grande |
+
+Note:
+Mobile-first significa que las clases sin prefijo son para móvil y los prefijos añaden estilos hacia arriba. `grid-cols-1 md:grid-cols-2` = 1 columna en móvil, 2 desde tablet. NUNCA escribas `lg:grid-prefix` seguido de clase sin prefijo que la anule. El orden correcto es: clase base primero, luego variantes responsive.
+
+---
+
+## ⚔️ Caso Práctico: Navbar CSS Tradicional vs Tailwind
+
+<div style="display: flex; gap: 1rem; font-size: 0.5em;">
+
+<div style="flex: 1;">
+
+**CSS Tradicional** (~25 líneas)
+```css
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 4rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+.navbar-logo { font-weight: 700; font-size: 1.25rem; }
+.navbar-links { display: none; gap: 0.5rem; }
+.navbar-link {
+  padding: 0.5rem 0.75rem;
+  color: #4b5563;
+  border-radius: 0.5rem;
+}
+.navbar-link:hover { background: #f3f4f6; }
+@media (min-width: 768px) { .navbar-links { display: flex; } }
+```
+
+</div>
+<div style="flex: 1;">
+
+**Tailwind** (~10 líneas HTML)
+```html
+<nav class="flex items-center
+  justify-between px-4 h-16
+  bg-white border-b
+  border-gray-200">
+  <span class="text-xl font-bold
+    text-gray-900">Logo</span>
+  <div class="hidden md:flex
+    items-center gap-2">
+    <a class="px-3 py-2 text-sm
+      text-gray-600 rounded-lg
+      hover:bg-gray-100">Inicio</a>
+  </div>
+</nav>
+```
+
+</div>
+</div>
+
+Note:
+Comparativa lado a lado. CSS tradicional: 25 líneas en un archivo separado, necesitas cambiar de archivo para entender el estilo. Tailwind: las clases están en el HTML, ves todo de un vistazo. La media query está implícita en `md:flex`. Sin archivos CSS adicionales. Sin colisiones de nombres. Sin CSS muerto: si eliminas el nav del HTML, el CSS desaparece automáticamente.
+
+---
+
+## 🧪 Técnicas Avanzadas
+
+### Valores Arbitrarios
+```html
+<div class="w-[300px] h-[calc(100vh-4rem)] bg-[#bada55] 
+            grid-cols-[200px_1fr_200px]">
+```
+
+### Peer: reaccionar al estado de un hermano
+```html
+<input class="peer" required />
+<p class="hidden peer-invalid:block text-red-500">
+  Este campo es obligatorio
+</p>
+```
+
+### Group: reaccionar al estado del padre
+```html
+<div class="group">
+  <h2 class="group-hover:text-blue-500">Título</h2>
+</div>
+```
+
+### Has: estilizar padre según descendiente
+```html
+<fieldset class="has-[:invalid]:border-red-500">
+  <input required />
+</fieldset>
+```
+
+Note:
+Valores arbitrarios con `[]` para cuando necesitas salirte de la escala. Úsalos con moderación: si un valor se repite, promociónalo a token en @theme. `peer` y `group` evitan lógica TypeScript innecesaria: en lugar de un flag `isInvalid` que maneje clases, delegas al CSS. `has-*` es potente para formularios: el fieldset entero se marca como error si algún hijo es inválido.
+
+---
+
+## 🌓 Modo Oscuro con Tailwind
+
 ```typescript
-@Component({
-  selector: 'app-stat-card',
-  standalone: true,
-  imports: [NgClass, CurrencyPipe],
-  template: `
-    <div class="rounded-xl border border-gray-200 bg-white p-6
-                shadow-sm transition-shadow hover:shadow-md">
-      <p class="text-sm font-medium text-gray-500">{{ data.label }}</p>
-      <p class="mt-3 text-3xl font-bold text-gray-900">
-        {{ data.value | currency:'EUR' }}
-      </p>
-      <span [ngClass]="data.trend >= 0 ? 'text-green-600' : 'text-red-600'">
-        {{ data.trend >= 0 ? '↑' : '↓' }} {{ data.trend }}%
-      </span>
-    </div>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class StatCardComponent {
-  @Input({ required: true }) data!: StatData;
+// theme.service.ts
+@Injectable({ providedIn: 'root' })
+export class ThemeService {
+  private dark = signal(false);
+  readonly isDark = this.dark.asReadonly();
+
+  constructor() {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      this.setDark(true);
+    }
+  }
+
+  toggle() { this.setDark(!this.dark()); }
+  private setDark(value: boolean) {
+    this.dark.set(value);
+    document.documentElement.classList.toggle('dark', value);
+    localStorage.setItem('theme', value ? 'dark' : 'light');
+  }
 }
 ```
 
-Note:
-El StatCard es presentacional puro: un solo @Input requerido, sin dependencias de servicios, con OnPush para rendimiento. El template usa Tailwind con transiciones (hover:shadow-md) y pipes de Angular (currency). Así de limpio debe ser un componente presentacional.
-
----
-
-## Actividad en clase: Construir un UserProfilePage
-
-**Duración:** 90 minutos
-
-**Objetivo:** Aplicar el patrón Smart/Presentational construyendo una página de perfil de usuario
-
-**Entregable:** `UserProfilePage` (Smart) + `ProfileCard`, `ActivityList`, `SettingsForm` (Presentational)
-
-### Requisitos: <!-- .element: class="fragment" -->
-1. Smart que obtenga datos de un servicio <!-- .element: class="fragment" -->
-2. Signals para estado de UI (loading, error, data) <!-- .element: class="fragment" -->
-3. Presentational components con @Input/@Output <!-- .element: class="fragment" -->
-4. Tailwind para estilos, OnPush en todos <!-- .element: class="fragment" -->
-
-Note:
-Vais a aplicar todo lo aprendido en un ejercicio práctico. Construiréis una página de perfil de usuario con el patrón Smart/Presentational. El Smart obtiene datos del servicio. Los Presentational reciben datos y emiten eventos. Usad Signals, Tailwind y OnPush. Al final compararemos soluciones.
-
----
-
-## Buenas prácticas
-
-1. <mark>Un componente = una responsabilidad</mark> (SRP) <!-- .element: class="fragment" -->
-2. Standalone + imports explícitos siempre <!-- .element: class="fragment" -->
-3. Signals para estado de UI, RxJS para datos asíncronos <!-- .element: class="fragment" -->
-4. `takeUntilDestroyed()` — nunca gestionar suscripciones manualmente <!-- .element: class="fragment" -->
-5. `ChangeDetectionStrategy.OnPush` en todos los componentes <!-- .element: class="fragment" -->
-6. Si un componente se usa en 2+ features → mover a `shared/` <!-- .element: class="fragment" -->
-
-Note:
-Estas 6 prácticas marcan la diferencia entre un proyecto mantenible y uno caótico. OnPush en todos los componentes mejora el rendimiento. `takeUntilDestroyed()` evita memory leaks. La regla de "2+ features → shared/" mantiene el catálogo de componentes reutilizables actualizado.
-
----
-
-## Errores frecuentes
-
-1. ❌ Crear "componentes Dios" que hacen de todo <!-- .element: class="fragment" -->
-2. ❌ Usar `::ng-deep` sin considerar alternativas <!-- .element: class="fragment" -->
-3. ❌ Inyectar servicios en componentes presentacionales <!-- .element: class="fragment" -->
-4. ❌ No limpiar suscripciones en ngOnDestroy <!-- .element: class="fragment" -->
-5. ❌ `ViewEncapsulation.None` sin motivo justificado <!-- .element: class="fragment" -->
-6. ❌ Olvidar `track` en `@for` <!-- .element: class="fragment" -->
-
-Note:
-Estos son los errores que más veo en proyectos reales. El "componente Dios" es el más común y el más dañino. Inyectar servicios en presentacionales rompe la reutilización. No limpiar suscripciones causa memory leaks difíciles de detectar. `::ng-deep` está deprecado — usad variables CSS o inputs de estilo como alternativa.
-
----
-
-## Resumen
-
-```mermaid
-graph LR
-    A[Standalone<br/>Components] --> B[Smart vs<br/>Presentational]
-    B --> C[@Input / @Output<br/>Model Inputs]
-    C --> D[Signals<br/>para UI State]
-    D --> E[viewChild<br/>contentChild]
-    E --> F[Arquitectura<br/>Feature-based]
+```html
+<!-- Uso en plantillas -->
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <app-card class="bg-white dark:bg-gray-800" />
+</body>
 ```
 
 Note:
-Hemos cubierto: Standalone Components como base, patrón Smart/Presentational para separar responsabilidades, comunicación con @Input/@Output/Model Inputs, Signals para estado de UI reactivo, viewChild/contentChild para manipulación del DOM, y estructura feature-based para proyectos escalables. Todo esto forma la base sobre la que construiréis interfaces profesionales.
+Estrategia `class`: añade/quita la clase `dark` al `<html>`. Alternativa `media`: respeta `prefers-color-scheme` del SO. La estrategia class es preferible en apps de gestión: permite al usuario elegir independientemente del SO. El servicio persiste en localStorage y respeta la preferencia inicial del sistema.
 
 ---
 
-## Próximos pasos
+## 🚦 Estrategia de Migración a Tailwind
 
-### Unidad 07 — Componentes Reutilizables
+<div class="mermaid">
+graph LR
+    F0[Fase 0: Instalar<br/>sin romper CSS] --> F1[Fase 1: Tailwind<br/>solo en componentes nuevos]
+    F1 --> F2[Fase 2: Migrar<br/>al modificar existentes]
+    F2 --> F3[Fase 3: Eliminar<br/>CSS heredado vacío]
+    F3 --> F4[Fase 4: Consolidar<br/>Tailwind como estándar]
+</div>
 
-- Catálogo de 14 componentes UI <!-- .element: class="fragment" -->
-- Proyección de contenido con ng-content <!-- .element: class="fragment" -->
-- Accesibilidad (ARIA, teclado, foco) <!-- .element: class="fragment" -->
-- Estados de interfaz: loading, empty, error, data <!-- .element: class="fragment" -->
-- Patrón: interfaz TypeScript → template Tailwind → tests <!-- .element: class="fragment" -->
+| Fase | Acción | Riesgo |
+|------|--------|--------|
+| 0 | Instalar Tailwind, añadir `@import` al final | Ninguno |
+| 1 | Nuevos componentes = Tailwind | Bajo |
+| 2 | Migrar componentes al tocarlos por otras razones | Medio |
+| 3 | Eliminar CSS heredado no usado | Medio. Usar Coverage en DevTools |
+| 4 | Limpiar dependencias CSS antiguas, documentar | Alto si quedaba CSS necesario |
 
 Note:
-En la próxima unidad construiremos un catálogo completo de componentes reutilizables siguiendo todo lo aprendido hoy. Veremos proyección de contenido, accesibilidad como parte integral del diseño, y gestión consistente de los 4 estados de interfaz. ¡Traed los ordenadores preparados para codificar!
+No hagáis "big bang". La migración incremental permite que el proyecto siga funcionando mientras se adopta Tailwind. En la fase 3, usad la pestaña Coverage de Chrome DevTools para identificar CSS no utilizado. Reglas de coexistencia: no mezclar Tailwind y CSS tradicional en el mismo componente, documentar componentes migrados, mantener tests visuales.
+
+---
+
+## ❌ Antipatrones: @apply Mal Usado
+
+```css
+/* ❌ MAL: Recrear clases semánticas en CSS global */
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-500 text-white rounded-lg
+           hover:bg-primary-600 font-medium;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border p-6;
+  }
+}
+```
+
+```html
+<!-- ✅ BIEN: Componente Angular reutilizable -->
+<app-button variant="primary">Guardar</app-button>
+<app-card>Título</app-card>
+```
+
+<mark>@apply destruye la ventaja principal de Tailwind: transparencia en el HTML</mark>
+
+Note:
+Este es el error más común al migrar. El desarrollador echa de menos sus clases semánticas y las recrea con @apply. El resultado: tienes que ir a otro archivo a buscar qué hace `.btn-primary`, perdiendo la inmediatez de Tailwind. Si necesitas reutilizar estilos, extrae un componente Angular. @apply solo para casos extremos (20 `<td>` con las mismas 8 clases).
+
+---
+
+## ⚡ Motor JIT (Just-In-Time)
+
+<div class="mermaid">
+graph LR
+    A[Escribes clases<br/>en plantillas] --> B[JIT escanea<br/>todos los archivos]
+    B --> C[Genera solo<br/>el CSS usado]
+    C --> D[Bundle final<br/>~15-20 KB comprimido]
+    E[Clases NO usadas] --> F[❌ No se incluyen]
+</div>
+
+```
+Clases totales de Tailwind:   ~100,000   (varios MB)
+Clases usadas en proyecto:    ~500-1500
+CSS generado en producción:   ~15-20 KB comprimido
+```
+
+Note:
+El JIT es la magia que hace viable Tailwind. Sin JIT, tendrías que cargar un CSS de varios MB. Con JIT, solo se genera el CSS que realmente usas. Escanea tus plantillas Angular, archivos TS (busca strings que parezcan clases de Tailwind) y genera exactamente las reglas CSS necesarias. El resultado es un CSS mínimo en producción.
+
+---
+
+## 🛠️ Tailwind CSS IntelliSense para VS Code
+
+| Funcionalidad | Descripción |
+|---------------|-------------|
+| **Autocompletado** | Escribe `bg-` y sugiere todos los colores con previsualización |
+| **Previsualización de color** | Cuadrado de color junto a cada clase de color |
+| **Linting** | Subraya clases inválidas (`bg-primari-500` → sugiere `bg-primary-500`) |
+| **Documentación inline** | Hover sobre clase → tooltip con CSS equivalente |
+| **@theme support** | Lee tu `@theme` y autocompleta tus colores personalizados |
+
+<mark>Instalad la extensión oficial: Tailwind CSS IntelliSense (bradlc)</mark>
+
+Note:
+Esta extensión transforma la experiencia. Sin ella, tienes que consultar la documentación para cada clase. Con ella, escribes `bg-` y ves todos los colores disponibles con su previsualización. Si defines `--color-brand-500` en @theme, la extensión lo detecta y te sugiere `bg-brand-500`. El linting te avisa de erratas y conflictos (dos clases que se anulan).
+
+---
+
+## 🎬 Demo: Dashboard Widget en 15 Minutos
+
+**Construimos un KPI Widget sin escribir CSS**
+
+```html
+<article class="bg-white rounded-xl shadow-sm border
+                border-gray-200 p-6 flex flex-col gap-4">
+  <h3 class="text-sm font-medium text-gray-500 uppercase
+             tracking-wide">Ingresos Mensuales</h3>
+  <p class="text-4xl font-bold text-gray-900">47.250 €</p>
+  <span class="inline-flex items-center gap-1 px-2 py-1
+               text-sm font-medium rounded-full
+               bg-emerald-50 text-emerald-600">
+    ↑ 12.5%
+  </span>
+  <!-- Gráfico placeholder con divs -->
+  <div class="flex items-end gap-1 h-24">
+    <div class="w-4 bg-primary-200 rounded-t h-[40px]"></div>
+    <div class="w-4 bg-primary-200 rounded-t h-[65px]"></div>
+    <div class="w-4 bg-primary-500 rounded-t h-[80px]"></div>
+  </div>
+</article>
+```
+
+Note:
+Este widget de KPI muestra: título, valor grande, tendencia con color condicional, y gráfico placeholder con barras de divs. Cero CSS personalizado. Todo con clases de Tailwind. La barra "actual" se destaca con color primario. Las alturas usan valores arbitrarios. Tiempo de implementación: ~15 minutos. Con CSS tradicional, fácilmente el doble entre escribir CSS, nombrar clases y ajustar media queries.
+
+---
+
+## 🏋️ Actividad en Clase
+
+**Construir un Dashboard Completo con Tailwind**
+
+| ⏱️ Tiempo | 🎯 Objetivo | 📦 Entregable |
+|-----------|-------------|---------------|
+| 60 min | Crear dashboard con 4 widgets, tabla y gráficos | Componente Angular funcional |
+
+**Requisitos**:
+1. Fila 1: 4 widgets KPI en grid responsive (`grid-cols-1 sm:2 lg:4`)
+2. Fila 2: Tabla zebra con scroll horizontal y columnas responsive
+3. Fila 3: Dos gráficos placeholder (barras + líneas)
+4. Todo con Tailwind, <mark>cero CSS personalizado</mark>
+
+Note:
+Aplicaréis todo lo aprendido en un dashboard real. Los widgets usan grid responsive: 1 columna en móvil, 2 en tablet, 4 en desktop. La tabla usa `overflow-x-auto` para móvil y `even:bg-gray-50` para zebra. Los gráficos se construyen con divs (barras) y SVG inline (líneas), todo estilado con Tailwind. 60 minutos, objetivo ambicioso pero alcanzable.
+
+---
+
+## ✅ Buenas Prácticas
+
+1. **Domina CSS antes de Tailwind**. Tailwind es CSS con otro nombre
+2. **Usa los tokens de @theme**: no valores arbitrarios como `p-[13px]`
+3. **No abuses de @apply**: si lo usas constantemente, extrae un componente
+4. **Agrupa clases lógicamente**: layout → espaciado → tamaño → tipografía → color
+5. **Usa `focus-visible` en lugar de `focus`**: accesibilidad sin sacrificar estética
+6. **Aprovecha `peer` y `group`** para reducir lógica TypeScript innecesaria
+
+Note:
+La práctica 1 es la más importante. La práctica 4 mejora la legibilidad: adoptad un orden consistente de clases en el equipo. La extensión Headwind para VS Code ordena automáticamente. La práctica 5: `focus-visible:ring-2` muestra el anillo solo al navegar con teclado, no al hacer clic con ratón. Win-win para estética y accesibilidad.
+
+---
+
+## ❌ Errores Frecuentes
+
+| Error | Consecuencia | Solución |
+|-------|-------------|----------|
+| **Usar Tailwind sin saber CSS** | Código frágil, probar clases al azar | Aprender CSS primero |
+| **Abusar de valores arbitrarios** | `w-[314px] h-[127px]` en todo → CSS inline | Usar escala de Tailwind |
+| **@apply masivo** | `.btn { @apply... }` → recrear CSS tradicional | Componentes Angular |
+| **Olvidar el mobile-first** | `lg:grid-cols-3 grid-cols-1` → la base pisa lg | Base primero: `grid-cols-1 lg:grid-cols-3` |
+| **No verificar contraste** | Colores personalizados sin verificar WCAG AA | WebAIM Contrast Checker |
+
+Note:
+El error 4 es sutil pero común. Recuerda: en CSS, la última regla gana. Si escribes `class="lg:grid-cols-3 grid-cols-1"`, la clase `grid-cols-1` (sin prefijo = se aplica SIEMPRE) pisa a `lg:grid-cols-3` porque aparece después. El orden correcto es `grid-cols-1 lg:grid-cols-3`. La clase base define el default móvil; las variantes lo sobrescriben hacia arriba.
+
+---
+
+## 🧩 Formularios y Accesibilidad con Tailwind
+
+```html
+<input type="text"
+       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg
+              focus:border-primary-500 focus:ring-2
+              focus:ring-primary-200 focus:outline-none
+              disabled:opacity-50 disabled:bg-gray-100
+              disabled:cursor-not-allowed
+              read-only:bg-gray-50
+              placeholder:text-gray-400" />
+
+<select class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg
+               focus:border-primary-500 focus:ring-2
+               focus:ring-primary-200 focus:outline-none
+               accent-primary-500">
+  <option>Opción 1</option>
+</select>
+```
+
+- `accent-primary-500`: color de acento en checkbox/radio nativos
+- `sr-only`: oculta visualmente, accesible para lectores
+- `peer-invalid:block`: muestra error cuando input hermano es inválido
+
+Note:
+Tailwind estila formularios nativos sin perder accesibilidad. `disabled:opacity-50 disabled:cursor-not-allowed` comunica visualmente que el campo no es editable. `read-only:bg-gray-50` diferencia read-only de disabled. `placeholder:text-gray-400` estila solo el placeholder. Los inputs nativos mantienen su comportamiento accesible.
+
+---
+
+## 📊 Resumen
+
+| Concepto | Clave |
+|----------|-------|
+| **Filosofía** | Tailwind es CSS con otro nombre. Utility-first elimina guerras de naming |
+| **Configuración** | `npm install` + plugin Vite + `@import "tailwindcss"` + `@theme` |
+| **@theme** | Colores oklch, fuentes, espaciados. Sin archivos JS de configuración |
+| **Organización** | 95% en plantillas, `@apply` solo como excepción |
+| **Clases clave** | Layout, colores, tipografía, estados, responsive, dark mode |
+| **Técnicas** | Valores arbitrarios `[]`, `peer`, `group`, `has-*`, JIT |
+
+Note:
+Tailwind 4 simplifica todo: sin config JS, sin content paths manuales, configuración CSS nativa con @theme. El JIT garantiza bundles mínimos. La clave del éxito: saber CSS, usar los tokens del tema, aplicar clases en plantillas, y solo recurrir a @apply cuando realmente haya repetición excesiva.
+
+---
+
+## 🚀 Próximos Pasos
+
+**Unidad 14: Implementación de Componentes con Tailwind**
+
+- Sistema completo de botones con variantes y tamaños
+- Cards, formularios, tablas de datos avanzadas
+- Modales accesibles con Angular CDK + Tailwind
+- Barras de navegación: navbar horizontal + sidebar colapsable
+- Dashboard completo y comparativa CSS tradicional vs Tailwind
+
+**Para profundizar**:
+- Instalar Tailwind CSS IntelliSense en VS Code
+- Leer la documentación de `@theme` y oklch
+- Practicar: migrar un componente de CSS tradicional a Tailwind
+
+Note:
+En la unidad 14 pondremos en práctica todo esto construyendo componentes reales. Veremos cómo implementar botones con 5 variantes y 3 tamaños usando exclusivamente Tailwind, sin CSS personalizado. También haremos una comparativa seria: mismo componente en CSS tradicional y en Tailwind, midiendo líneas de código, mantenibilidad y tiempo de desarrollo.

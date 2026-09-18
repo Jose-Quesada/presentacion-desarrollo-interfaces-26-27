@@ -1,543 +1,180 @@
-# Unidad 20: Proyecto Final Integrador "GesFlow"
+# Unidad 20: Aplicaciones de Escritorio con Electron
 
 ---
 
 ## Portada
 
 ### Módulo 0488 — Desarrollo de Interfaces
-# Proyecto Final: GesFlow
+# Aplicaciones de Escritorio con Electron
 
-### Sistema de Gestión Empresarial Integral
+**Angular + Electron · Main Process · IPC · Preload · Native APIs**
 
-**Angular 18+ · Electron · Figma · Storybook · Chart.js · PDFMake**
-
-Curso DAM — Unidad 20 · 40 horas
+Curso DAM — Unidad 18
 
 Note:
-Bienvenidos al proyecto final del módulo. GesFlow integra TODOS los conocimientos de las 19 unidades anteriores en una aplicación empresarial completa. Vais a diseñar, implementar, documentar y empaquetar un producto real.
+Bienvenidos a la unidad más transformadora del módulo. Vais a aprender a convertir vuestras aplicaciones Angular en aplicaciones de escritorio nativas para Windows, macOS y Linux. Electron es la tecnología que usan VS Code, Discord, Slack, Figma, Postman y WhatsApp Desktop.
 
 ---
 
-## Objetivos del Proyecto
+## Objetivos de Aprendizaje
 
-1. Integrar <mark>TODOS los RA del módulo</mark> en un único proyecto
-2. Diseñar interfaces profesionales en <mark>Figma</mark> (Auto Layout, Design Tokens)
-3. Implementar un <mark>Design System</mark> con Storybook (10+ componentes)
-4. Desarrollar <mark>arquitectura Angular profesional</mark> feature-based
-5. Construir <mark>7 funcionalidades empresariales</mark> completas
-6. <mark>Empaquetar como app de escritorio</mark> con Electron
+1. Comprender la <mark>arquitectura Electron</mark>: Chromium + Node.js
+2. Dominar los <mark>3 procesos</mark>: Main, Renderer, Preload
+3. Implementar <mark>comunicación IPC</mark>: ipcMain ↔ ipcRenderer
+4. Integrar <mark>Angular + Electron</mark> con enfoque profesional
+5. Aplicar <mark>seguridad obligatoria</mark>: nodeIntegration false + contextIsolation true
+6. Usar <mark>APIs nativas</mark>: fs, dialog, Menu, Tray, Notification, globalShortcut
 
 Note:
-Este proyecto evalúa los 6 resultados de aprendizaje del módulo. Es la culminación de vuestro aprendizaje en Desarrollo de Interfaces. El proyecto simula un encargo profesional real: desde el diseño en Figma hasta el instalador final.
+Al finalizar esta unidad seréis capaces de crear aplicaciones de escritorio completas usando solo tecnologías web. La seguridad es el aspecto más crítico: un XSS en Electron puede comprometer todo el sistema operativo del usuario.
 
 ---
 
-## Visión General de GesFlow
+## Motivación — ¿Por qué Electron?
+
+- <mark>Un solo código base → 3 plataformas</mark> (Windows, macOS, Linux)
+- Usáis <mark>tecnologías que ya domináis</mark>: HTML, CSS, TypeScript
+- <mark>Ecosistema npm</mark> con cientos de miles de paquetes
+- Acceso a <mark>APIs del sistema operativo</mark> imposibles desde un navegador
+- Desarrollo más rápido que nativo (C++, C#, JavaFX, Qt)
+
+Note:
+Electron democratiza el desarrollo de escritorio. Antes, crear una app para 3 plataformas requería 3 equipos especializados. Ahora, un desarrollador frontend puede hacerlo solo. El coste: mayor consumo de RAM (~50-100 MB base) y tamaño de instalador (~60-80 MB). Para la mayoría de apps empresariales, el trade-off es aceptable.
+
+---
+
+## ¿Cómo Funciona Electron?
 
 <div class="mermaid">
 graph TB
-    AUTH["🔐 Autenticación<br/>JWT + Guards"]
-    DASH["📊 Dashboard<br/>5 KPIs + 3 gráficos"]
-    CLIENTS["👥 Clientes<br/>CRUD completo"]
-    INVOICES["🧾 Facturas<br/>Creación + PDF"]
-    PRODUCTS["📦 Productos<br/>CRUD + stock"]
-    REPORTS["📈 Informes<br/>PDF + CSV + Excel"]
-    SETTINGS["⚙️ Configuración<br/>Perfil + Tema"]
-
-    AUTH --> DASH
-    DASH --> CLIENTS
-    DASH --> INVOICES
-    DASH --> PRODUCTS
-    DASH --> REPORTS
-    DASH --> SETTINGS
+    subgraph "Electron App"
+        MP["<mark>Main Process</mark><br/>(Node.js)<br/>Acceso total al SO"]
+        RP["<mark>Renderer Process</mark><br/>(Chromium)<br/>HTML + CSS + JS<br/>Angular"]
+        PS["<mark>Preload Script</mark><br/>Puente seguro"]
+        MP <-->|"IPC"| PS
+        PS <-->|"contextBridge"| RP
+    end
+    MP -->|"fs, dialog, Menu..."| OS[Sistema Operativo]
+    RP -->|"Interfaz de usuario"| UI[Ventana Nativa]
 </div>
 
 Note:
-GesFlow cubre el flujo completo de una pyme: autenticación, dashboard de control, gestión de clientes, facturación con PDF profesional, catálogo de productos, informes exportables y configuración. Cada módulo aplica tecnologías específicas vistas en unidades anteriores.
+Electron combina Chromium (motor de renderizado de Chrome) y Node.js en un solo ejecutable. El Main Process es el "cerebro": tiene acceso total al SO pero no al DOM. El Renderer Process ejecuta Angular y la UI en una ventana nativa. El Preload Script es el puente seguro entre ambos, aplicando el principio de mínimo privilegio.
 
 ---
 
-## Resultados de Aprendizaje Evaluados
+## Los 3 Procesos de Electron
 
-| RA | Descripción | Peso en GesFlow |
-|---|---|---|
-| RA 1 | Diseña interfaces de usuario | Figma + Design System |
-| RA 2 | Implementa interfaces | Angular + Tailwind |
-| RA 3 | Crea apps multiplataforma | Electron |
-| RA 4 | Distribuye apps | electron-builder |
-| RA 5 | Dashboards interactivos | Chart.js + KPIs |
-| RA 6 | Genera informes | PDFMake + CSV + Excel |
+| Proceso | ¿Cuántos? | ¿Acceso Node.js? | ¿Acceso DOM? | Función |
+|---|---|---|---|---|
+| <mark>Main</mark> | 1 por app | ✅ Completo | ❌ | Orquestador: ventanas, menús, SO |
+| <mark>Renderer</mark> | 1 por ventana | ❌ (por seguridad) | ✅ | UI: Angular, HTML, CSS |
+| <mark>Preload</mark> | 1 por ventana | ✅ Limitado | ✅ | Puente seguro: expone API mínima |
 
 Note:
-Cada RA se evalúa en fases específicas del proyecto. La rúbrica detallada mapea cada criterio de evaluación oficial a una tarea concreta de GesFlow. No hay examen teórico: la evaluación es 100% práctica basada en el proyecto.
+El Main Process es el punto de entrada (definido en `"main"` de package.json). Solo hay uno. Los Renderers son procesos aislados: cada BrowserWindow tiene el suyo. El Preload se ejecuta antes de cargar la web y tiene acceso a ambos mundos, pero de forma controlada mediante `contextBridge`.
 
 ---
 
-## Las 9 Fases del Proyecto
+## Comunicación IPC (Inter-Process Communication)
 
-| Fase | Descripción | Horas | Semana |
-|---|---|---|---|
-| <mark>FASE 1</mark> | Diseño en Figma | 6h | 1 |
-| <mark>FASE 2</mark> | Configuración proyecto Angular | 2h | 1 |
-| <mark>FASE 3</mark> | Design System + Storybook | 8h | 1 |
-| <mark>FASE 4</mark> | Layout y navegación | 3h | 1 |
-| <mark>FASE 5</mark> | Features (funcionalidades) | 10h | 1-2 |
-| <mark>FASE 6</mark> | UX y Accesibilidad | 3h | 2 |
-| <mark>FASE 7</mark> | Responsive Design | 3h | 2 |
-| <mark>FASE 8</mark> | Empaquetado Electron | 3h | 2 |
-| <mark>FASE 9</mark> | Documentación final | 2h | 2 |
+<div class="mermaid">
+sequenceDiagram
+    participant R as Renderer (Angular)
+    participant P as Preload
+    participant M as Main Process
+    R->>P: window.electronAPI.openFile()
+    P->>M: ipcRenderer.invoke('dialog:openFile')
+    M->>M: dialog.showOpenDialog()
+    M-->>P: Result { filePaths, canceled }
+    P-->>R: return result
+    R->>R: Mostrar contenido del archivo
+</div>
 
 Note:
-La planificación está diseñada para 40 horas (2 semanas a 4h/día). Las fases 1, 3 y 5 son las más intensivas. Empezar por el diseño (Figma) antes de programar es obligatorio: un buen diseño ahorra horas de refactorización.
+IPC es el mecanismo de comunicación. El modelo recomendado es invoke/handle (solicitud-respuesta asíncrona), más limpio que el antiguo send/on. El renderer NUNCA llama directamente a IPC: siempre pasa por el preload, que expone solo los métodos necesarios mediante `contextBridge`.
 
 ---
 
-## Timeline del Proyecto
-
-```mermaid
-gantt
-    title Planificación GesFlow — 40 horas
-    dateFormat  HH
-    axisFormat  %Hh
-    section Semana 1
-    FASE 1 - Figma           :f1, 0, 6h
-    FASE 2 - Configuración   :f2, after f1, 2h
-    FASE 3 - Design System   :f3, after f2, 8h
-    FASE 4 - Layout          :f4, after f3, 3h
-    FASE 5 - Features        :f5, after f4, 10h
-    section Semana 2
-    FASE 6 - UX/Accesibilidad:f6, after f5, 3h
-    FASE 7 - Responsive      :f7, after f6, 3h
-    FASE 8 - Electron        :f8, after f7, 3h
-    FASE 9 - Documentación   :f9, after f8, 2h
-```
-
-Note:
-La semana 1 se centra en diseño, arquitectura e implementación. La semana 2 se centra en pulido (UX, accesibilidad, responsive), empaquetado y documentación. Algunas fases pueden solaparse: podéis empezar la documentación mientras hacéis responsive.
-
----
-
-## FASE 1 — Diseño en Figma (6h)
-
-### Pantallas obligatorias (mínimo 5):
-
-1. <mark>Login / Registro</mark> — Email + contraseña, validación visual
-2. <mark>Dashboard principal</mark> — KPIs + gráficos + tabla
-3. <mark>Listado de clientes</mark> — Tabla + búsqueda + filtros + paginación
-4. <mark>Creación/edición de factura</mark> — Líneas dinámicas + cálculos
-5. <mark>Detalle de factura / Vista previa</mark> — Simulación del PDF
-
-Note:
-El diseño debe ser de alta fidelidad (píxel perfect). Usad Auto Layout para todo. Cada pantalla debe mostrar TODOS los estados: normal, hover, focus, error, disabled, loading, empty. Esto es lo que diferencia un diseño profesional de uno amateur.
-
----
-
-## Design System en Figma
-
-### Componentes obligatorios con variantes:
+## Casos Reales — Aplicaciones Electron Famosas
 
 <div class="fragment">
 
-- **Tokens**: colores (primario, éxito, error, neutros), tipografía (Inter), espaciado
-- <mark>Button</mark> — 5 variantes, 3 tamaños, 6 estados
-- <mark>Input</mark> — 5 tipos, 4 estados, con/sin label/icono
-- <mark>Card</mark> — 3 variantes, con/sin header/footer
-- <mark>Modal</mark> — 4 tamaños, overlay, animación
-- <mark>Table</mark> — 3 variantes, paginación, ordenación
-- <mark>Badge</mark> — 5 colores, 2 tamaños
-- <mark>Toast</mark> — 4 variantes, 4 posiciones
-- <mark>Dropdown</mark> — click/hover, alineación
-- <mark>Tabs, Spinner, EmptyState, Skeleton</mark>
+| App | Categoría | Dato destacado |
+|---|---|---|
+| <mark>VS Code</mark> | Editor código | Cientos de extensiones, excelente rendimiento |
+| <mark>Discord</mark> | Chat voz/vídeo | WebRTC + overlay en juegos |
+| <mark>Slack</mark> | Mensajería | Inversión masiva en optimización RAM |
+| <mark>Figma</mark> | Diseño UI | Renderizado GPU con <mark>WebGL</mark> |
+| <mark>Postman</mark> | Cliente HTTP | Sin restricciones CORS |
+| <mark>Obsidian</mark> | Notas Markdown | Acceso a sistema de archivos local |
 
 </div>
 
 Note:
-El Design System en Figma es la base de todo el proyecto. Cada componente debe diseñarse con Auto Layout y variantes. Los Design Tokens (colores, tipografía, espaciado) se exportarán a Tailwind CSS con `@theme`. Esto garantiza consistencia visual entre diseño y código.
+VS Code demuestra que Electron puede escalar a apps enormes con excelente rendimiento. Su secreto: Web Workers para tareas pesadas, lazy loading de extensiones y renderizado virtualizado. Figma es único: usa WebGL en lugar del renderizado DOM tradicional de Chromium para un rendimiento comparable al nativo.
 
 ---
 
-## FASE 2 — Configuración del Proyecto (2h)
+## Lecciones de los Casos Reales
+
+1. <mark>Separación clara UI (web) ↔ lógica nativa (Node.js)</mark>
+2. Actualizaciones automáticas silenciosas
+3. Instalación nativa, no "abrir en navegador"
+4. Funcionalidades del SO que <mark>diferencian la app de su versión web</mark>
+5. Enfoque <mark>offline-first</mark>: la app funciona sin internet
+
+Note:
+Todas las apps exitosas comparten estos patrones. La diferencia con la versión web es lo que justifica Electron: menú nativo, bandeja del sistema, acceso a archivos, notificaciones nativas, atajos de teclado globales. Si tu app de escritorio no aprovecha estas capacidades, mejor quédate con la versión web.
+
+---
+
+## Configuración: Proyecto Angular + Electron
+
+### Enfoque recomendado:
+
+<div class="fragment">
+
+1. Proyecto Angular standalone independiente (`ng new`)
+2. Electron como <mark>capa que envuelve</mark> la app compilada
+3. Desarrollo: `electron .` carga `http://localhost:4200`
+4. Producción: `electron .` carga `dist/index.html` desde sistema de archivos
+
+</div>
+
+Note:
+El proyecto Angular existe de forma independiente. Electron no interfiere con el desarrollo web normal. Durante el desarrollo, la ventana de Electron carga el servidor de Angular (con hot reload). En producción, carga los archivos compilados. Esto permite que la misma app funcione como SPA web y como app de escritorio.
+
+---
+
+## Instalación de Electron
 
 ```bash
-ng new gesflow --standalone --routing --style=css
-cd gesflow
+npm install --save-dev electron
 ```
 
 ```bash
-# Tailwind CSS 4
-npm install tailwindcss @tailwindcss/vite
-
-# Chart.js
-npm install chart.js
-
-# PDFMake
-npm install pdfmake
-
-# SheetJS
-npm install xlsx
-
-# Storybook
-npx storybook@latest init --type angular
-
-# Electron (dev)
-npm install --save-dev electron electron-builder
+# Herramientas auxiliares para desarrollo
 npm install --save-dev concurrently wait-on cross-env
 ```
 
 Note:
-Instalación completa de dependencias. Tailwind CSS 4 con `@tailwindcss/vite`. Storybook se inicializa con soporte Angular. Electron y herramientas auxiliares como devDependencies. Verificad que `ng serve` funciona antes de continuar.
+Electron se instala como dependencia de desarrollo (~60 MB, contiene Chromium + Node.js para la plataforma actual). `concurrently` ejecuta ng serve y electron en paralelo. `wait-on` espera a que el servidor Angular esté listo antes de lanzar Electron. `cross-env` permite variables de entorno multiplataforma.
 
 ---
 
-## Configuración Tailwind CSS 4 con @theme
-
-```css
-@import "tailwindcss";
-
-@theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-
-  --color-success-500: #10b981;
-  --color-warning-500: #f59e0b;
-  --color-danger-500: #ef4444;
-
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-}
-```
-
-Note:
-`@theme` es la nueva forma de personalizar Tailwind CSS 4. Definimos la paleta de colores corporativa completa y la tipografía. Estos tokens deben coincidir con los definidos en Figma. Ahora podemos usar clases como `bg-primary-600`, `text-success-500`, `font-sans`.
-
----
-
-## Estructura de Carpetas Profesional
-
-```
-src/app/
-├── core/
-│   ├── services/       ← auth, api, electron, pdf, csv, excel
-│   ├── guards/         ← auth.guard.ts
-│   ├── interceptors/   ← auth.interceptor.ts
-│   └── models/         ← user, client, invoice, product
-├── shared/
-│   └── components/     ← button, input, card, modal, table...
-├── features/
-│   ├── auth/           ← login, register
-│   ├── dashboard/      ← KPIs, gráficos, tabla
-│   ├── clients/        ← list, form, detail
-│   ├── invoices/       ← list, form, detail
-│   ├── products/       ← CRUD
-│   ├── reports/        ← informes + exportación
-│   └── settings/       ← perfil + empresa + preferencias
-├── layout/
-│   ├── main-layout/    ← header + sidebar + contenido
-│   ├── header/
-│   ├── sidebar/
-│   └── footer/
-├── app.component.ts
-├── app.config.ts
-└── app.routes.ts
-```
-
-Note:
-Arquitectura feature-based: cada funcionalidad es una carpeta independiente con sus componentes, servicios y rutas. `core/` contiene servicios globales singleton. `shared/` contiene componentes del Design System reutilizables. `layout/` contiene la estructura común (header, sidebar). Esto escala bien a proyectos grandes.
-
----
-
-## FASE 3 — Design System + Storybook (8h)
-
-### Componentes obligatorios (mínimo 10):
-
-Para cada componente: standalone, tipado estricto, ARIA, historias de Storybook con todos los estados
-
-<div class="fragment">
-
-1. <mark>gfl-button</mark> — 5 variantes × 3 tamaños × 6 estados
-2. <mark>gfl-input</mark> — 5 tipos × 4 estados
-3. <mark>gfl-card</mark> — 3 variantes
-4. <mark>gfl-modal</mark> — overlay + animación
-5. <mark>gfl-table</mark> — paginación + ordenación
-6. <mark>gfl-badge</mark> — 5 colores
-7. <mark>gfl-toast</mark> — notifications service
-8. <mark>gfl-spinner</mark> — 3 tamaños
-9. <mark>gfl-empty-state</mark> — ilustración + mensaje
-10. <mark>gfl-skeleton</mark> — texto, card, tabla
-
-</div>
-
-Note:
-El Design System es la base de la consistencia visual. Cada componente debe implementarse como standalone, con inputs tipados, accesibilidad ARIA y documentación en Storybook. Las historias deben cubrir TODOS los estados y variantes. Los tests de interacción (play functions) son un plus.
-
----
-
-## Ejemplo: Componente Button
-
-```typescript
-export type ButtonVariant = 'primary' | 'secondary'
-  | 'outline' | 'ghost' | 'danger';
-
-@Component({
-  selector: 'gfl-button', standalone: true,
-  template: `
-    <button [type]="type" [disabled]="disabled || isLoading"
-      [attr.aria-busy]="isLoading"
-      (click)="onClick.emit($event)">
-      @if (isLoading) { <gfl-spinner /> }
-      @if (icon && iconPosition === 'left' && !isLoading) {
-        <span class="material-icons-outlined">{{ icon }}</span> }
-      @if (label) { <span>{{ label }}</span> }
-    </button>
-  `
-})
-export class ButtonComponent {
-  @Input() variant: ButtonVariant = 'primary';
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
-  @Input() label = '';
-  @Input() icon = '';
-  @Input() disabled = false;
-  @Input() isLoading = false;
-  @Output() onClick = new EventEmitter<MouseEvent>();
-}
-```
-
-Note:
-El componente Button ejemplifica el estándar de calidad: tipado estricto de variantes, soporte para iconos, estado loading con spinner, atributos ARIA (`aria-busy`), y eventos tipados. El mismo nivel de detalle se aplica a los 10+ componentes del Design System.
-
----
-
-## Historia de Storybook para Button
-
-```typescript
-const meta: Meta<ButtonComponent> = {
-  title: 'Design System/Button',
-  component: ButtonComponent,
-  tags: ['autodocs'],
-  argTypes: {
-    variant: { control: 'select',
-      options: ['primary', 'secondary', 'outline',
-        'ghost', 'danger'] },
-    size: { control: 'select',
-      options: ['sm', 'md', 'lg'] }
-  }
-};
-
-export const Primary: Story = { args: { variant: 'primary' } };
-export const Disabled: Story = { args: { disabled: true } };
-export const Loading: Story = { args: { isLoading: true } };
-
-export const ClickInteraction: Story = {
-  args: { label: 'Haz clic aquí' },
-  play: async ({ canvasElement }) => {
-    const button = within(canvasElement)
-      .getByRole('button');
-    await userEvent.click(button);
-  }
-};
-```
-
-Note:
-Cada historia documenta un estado. `autodocs` genera documentación automática. Los controls permiten interactuar con las props desde la UI de Storybook. Las play functions simulan interacciones de usuario y verifican que los eventos se emiten correctamente.
-
----
-
-## FASE 4 — Layout y Navegación (3h)
-
-```typescript
-export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  {
-    path: 'auth',
-    loadChildren: () => import('./features/auth/auth.routes')
-      .then(m => m.AUTH_ROUTES)
-  },
-  {
-    path: '',
-    canActivate: [authGuard],
-    loadComponent: () => import('./layout/main-layout/...')
-      .then(m => m.MainLayoutComponent),
-    children: [
-      { path: 'dashboard',
-        loadChildren: () => import('./features/dashboard/...')
-          .then(m => m.DASHBOARD_ROUTES) },
-      { path: 'clients',
-        loadChildren: () => import('./features/clients/...')
-          .then(m => m.CLIENTS_ROUTES) },
-      { path: 'invoices',
-        loadChildren: () => import('./features/invoices/...')
-          .then(m => m.INVOICES_ROUTES) },
-      { path: 'products', /* ... */ },
-      { path: 'reports', /* ... */ },
-      { path: 'settings', /* ... */ }
-    ]
-  },
-  { path: '**', redirectTo: 'dashboard' }
-];
-```
-
-Note:
-Lazy loading en todas las features: cada módulo se carga solo cuando el usuario navega a él. `authGuard` protege las rutas internas. El layout principal (header + sidebar + contenido) envuelve todas las features internas. Las rutas de auth (login/register) están fuera del layout.
-
----
-
-## FASE 5 — Features (10h): Autenticación
-
-- **Login**: Reactive Form con email + password
-- **Register**: Formulario con nombre, email, password, confirmación
-- <mark>**AuthService**</mark>: `login()`, `register()`, `logout()`, `isAuthenticated()`
-- <mark>**AuthGuard**</mark>: redirige a `/auth/login` si no hay token
-- <mark>**AuthInterceptor**</mark>: añade `Authorization: Bearer <token>` a todas las peticiones
-
-```typescript
-@Injectable({ providedIn: 'root' })
-export class AuthService {
-  private tokenKey = 'gesflow_token';
-  isAuthenticated = signal(false);
-
-  constructor() {
-    this.isAuthenticated.set(!!localStorage.getItem(this.tokenKey));
-  }
-
-  login(email: string, password: string): Observable<any> {
-    return this.http.post('/api/auth/login', { email, password })
-      .pipe(tap((res: any) => {
-        localStorage.setItem(this.tokenKey, res.token);
-        this.isAuthenticated.set(true);
-      }));
-  }
-}
-```
-
-Note:
-La autenticación usa JWT simulado (json-server-auth o datos mock). El token se almacena en localStorage. `isAuthenticated` es un Signal para reactividad en la UI. El interceptor añade automáticamente el token a todas las peticiones salientes.
-
----
-
-## FASE 5 — Dashboard
-
-### Implementar:
-
-- <mark>5 KPI Cards</mark>: ingresos, facturas, clientes, ticket medio, tasa cobro
-- <mark>Gráfico de líneas</mark>: evolución ingresos 12 meses (ChartWidget)
-- <mark>Barras horizontales</mark>: top 5 productos (ChartWidget)
-- <mark>Doughnut</mark>: distribución por categoría (ChartWidget)
-- <mark>Tabla</mark>: últimas 10 facturas con Badge de estado
-- <mark>Filtro de fechas</mark>: 7d, 30d, 90d, 1 año, personalizado
-- <mark>Exportación</mark>: CSV + PDF con gráficos incrustados
-
-Note:
-El dashboard integra Chart.js, Signals, Tailwind Grid y PDFMake. Los datos se obtienen de un DashboardService que devuelve datos mock. `computed()` transforma los datos al formato que esperan los componentes. `effect()` recarga al cambiar filtros.
-
----
-
-## FASE 5 — Clientes (CRUD)
-
-- <mark>Listado</mark>: tabla paginada, búsqueda con debounce 300ms, filtros (ciudad, estado), ordenación por columnas
-- <mark>Formulario</mark>: Reactive Form con validación (nombre, NIF, email, teléfono, ciudad, CP)
-- <mark>Detalle</mark>: datos del cliente + historial de facturas
-- <mark>Acciones</mark>: editar, desactivar, eliminar con modal de confirmación
-- <mark>Estados</mark>: vacío (ilustración + "Crear primer cliente"), carga (skeleton), error
-
-Note:
-Implementación CRUD completa con todos los estados de UI. La búsqueda usa debounce para no sobrecargar la API. El NIF debe validarse con formato español. La eliminación requiere confirmación mediante modal.
-
----
-
-## FASE 5 — Facturas
-
-### Creación de factura:
-- <mark>Cabecera</mark>: selector cliente (dropdown buscable), fechas, número auto-generado
-- <mark>Líneas</mark>: FormArray dinámico (concepto, cantidad, precio, IVA, importe calculado)
-- <mark>Resumen</mark>: base imponible + IVA desglosado + total — <mark>computed()</mark> en tiempo real
-- <mark>Acciones</mark>: Vista previa (PDF en nueva pestaña), Guardar borrador, Emitir
-
-### Vista previa / PDF:
-- Simulación visual del PDF en pantalla
-- Botones: Descargar PDF, Marcar como pagada, Editar, Enviar por email
-
-Note:
-La factura es la funcionalidad más compleja. El FormArray permite añadir/eliminar líneas dinámicamente. Los totales se recalculan en tiempo real con `computed()`. El PDF se genera con PDFMake usando la plantilla profesional de la unidad 16. La vista previa usa `pdfMake.createPdf().open()`.
-
----
-
-## FASE 5 — Productos, Informes y Configuración
-
-### Productos (CRUD simple):
-- Listado con tabla paginada
-- Formulario: nombre, descripción, categoría, precio, IVA, stock
-- Toggle activo/inactivo
-
-### Informes:
-- Selector de tipo: ventas por período, por cliente, top productos, resumen IVA
-- Tabla + gráfico del informe seleccionado
-- Exportación: PDF (con gráfico incrustado), CSV, Excel
-
-### Configuración:
-- <mark>Perfil</mark>: editar nombre, email, avatar, cambiar contraseña
-- <mark>Empresa</mark>: datos que aparecen en las facturas (logo, CIF, banco)
-- <mark>Preferencias</mark>: tema (claro/oscuro/sistema), idioma, moneda
-
-Note:
-Productos es el CRUD más sencillo. Informes reutiliza los servicios de PDF/CSV/Excel. Configuración permite personalizar la experiencia: el tema oscuro se implementa con la clase `dark` de Tailwind y un Signal global. Los datos de empresa se usan en las plantillas de factura.
-
----
-
-## FASE 6 — UX y Accesibilidad (3h)
-
-### Checklist de accesibilidad:
-
-1. <mark>Lighthouse</mark>: puntuación ≥ 95 en accesibilidad
-2. <mark>WAVE</mark>: cero errores (missing labels, contrast, empty buttons)
-3. <mark>axe DevTools</mark>: tests automatizados
-4. <mark>Navegación por teclado</mark>: Tab, Enter, Escape, flechas — todo accesible
-5. <mark>Contraste</mark>: mínimo 4.5:1 (texto normal), 3:1 (texto grande)
-6. <mark>Estados de UI</mark>: carga (skeleton), vacío (ilustración), error (reintentar)
-
-Note:
-La accesibilidad no es opcional ni un "extra". WCAG AA es el estándar mínimo profesional. Cada componente del Design System debe ser accesible desde su creación. No dejéis la accesibilidad para el final: es más costoso corregir 20 componentes que hacerlos bien desde el principio.
-
----
-
-## FASE 7 — Responsive Design (3h)
-
-### Adaptación por breakpoints:
-
-| Breakpoint | Layout |
-|---|---|
-| 320-767px (móvil) | Sidebar overlay, 1 columna, scroll horizontal en tablas |
-| 768-1023px (tablet) | Sidebar colapsado, 2 columnas KPIs |
-| 1024-1279px (desktop) | Sidebar expandido, 4 columnas KPIs, 3 cols gráficos |
-| 1280-1919px (wide) | Sidebar expandido, 5 columnas KPIs |
-| 1920px+ (ultrawide) | Max-width 1400px centrado |
-
-Note:
-Probad cada pantalla en 5 breakpoints. El sidebar se adapta: overlay en móvil, colapsado en tablet, expandido en desktop. Las tablas con scroll horizontal en pantallas pequeñas. Los gráficos se apilan verticalmente. Los botones y elementos táctiles deben medir mínimo 44x44px.
-
----
-
-## FASE 8 — Empaquetado con Electron (3h)
+## main.js — Crear BrowserWindow
 
 ```javascript
-// main.js
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
-
-let mainWindow;
+let mainWindow = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1366, height: 900,
-    minWidth: 1024, minHeight: 700,
-    title: 'GesFlow - Gestión Empresarial',
-    icon: path.join(__dirname, 'assets/icon.png'),
+    width: 1200, height: 800,
+    minWidth: 800, minHeight: 600,
+    title: 'Mi App Angular + Electron',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -547,392 +184,667 @@ function createWindow() {
 
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:4200');
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(
       path.join(__dirname, 'dist', 'index.html'));
   }
 }
 
-app.whenReady().then(() => {
-  createWindow();
-  createMenu(mainWindow);
-});
-
-// Preload: exponer APIs para exportación, diálogos, notificaciones
+app.whenReady().then(createWindow);
 ```
 
 Note:
-La integración Electron sigue el patrón de la unidad 18. Añade funcionalidades nativas: menú Archivo/Edición/Ver/Ayuda, diálogos de archivo para exportar, notificaciones para facturas vencidas. electron-builder genera instaladores para las 3 plataformas.
+Este es el punto de entrada de la aplicación. `webPreferences` es crítico para la seguridad: `nodeIntegration: false` + `contextIsolation: true` son obligatorios. En desarrollo, carga el servidor Angular y abre DevTools. En producción, carga los archivos compilados. `app.whenReady()` espera a que Electron esté listo para crear ventanas.
 
 ---
 
-## FASE 8 — Scripts de Build
+## Eventos del Ciclo de Vida de la App
 
-```json
-{
-  "scripts": {
-    "start": "ng serve",
-    "build": "ng build --configuration production",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static",
-    "electron:dev": "cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
-    "electron:build": "ng build --configuration production && electron-builder",
-    "electron:build:win": "ng build --configuration production && electron-builder --win",
-    "electron:build:mac": "ng build --configuration production && electron-builder --mac",
-    "electron:build:linux": "ng build --configuration production && electron-builder --linux"
+```javascript
+app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();  // Windows/Linux: cerrar app
+  }
+  // macOS: la app sigue en el Dock sin ventanas
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();  // macOS: reabrir al click en Dock
+  }
+});
+```
+
+Note:
+En macOS, las aplicaciones no se cierran al cerrar todas las ventanas (permanecen en el Dock). En Windows/Linux, sí. `activate` se emite en macOS cuando el usuario hace clic en el icono del Dock sin ventanas abiertas. Respetad las convenciones de cada plataforma.
+
+---
+
+## preload.js — Puente Seguro con contextBridge
+
+```javascript
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  openFileDialog: (options) =>
+    ipcRenderer.invoke('dialog:openFile', options),
+  saveFileDialog: (options) =>
+    ipcRenderer.invoke('dialog:saveFile', options),
+  readFile: (filePath) =>
+    ipcRenderer.invoke('fs:readFile', filePath),
+  writeFile: (filePath, data) =>
+    ipcRenderer.invoke('fs:writeFile', filePath, data),
+  getAppVersion: () =>
+    ipcRenderer.invoke('app:getVersion'),
+  getPlatform: () =>
+    ipcRenderer.invoke('app:getPlatform'),
+  onMenuEvent: (channel, callback) => {
+    const validChannels = ['menu:new', 'menu:open',
+      'menu:save', 'menu:saveAs'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.on(channel,
+        (event, ...args) => callback(...args));
+    }
+  }
+});
+```
+
+Note:
+`contextBridge.exposeInMainWorld` es el ÚNICO mecanismo seguro para exponer APIs al renderer. El objeto expuesto (`electronAPI`) no puede ser modificado por código del renderer. NUNCA expongáis `ipcRenderer` directamente: eso daría al renderer acceso a todos los canales IPC. Validar los canales en el preload añade una capa extra de seguridad.
+
+---
+
+## Manejadores IPC en Main Process
+
+```javascript
+const { ipcMain, dialog } = require('electron');
+const fs = require('fs');
+
+ipcMain.handle('dialog:openFile', async (event, options) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Abrir archivo',
+    filters: [{ name: 'Documentos',
+      extensions: ['txt', 'md', 'json'] }],
+    properties: ['openFile'], ...options
+  });
+  return result;
+});
+
+ipcMain.handle('fs:readFile', async (event, filePath) => {
+  try {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('app:getPlatform', () => process.platform);
+ipcMain.handle('app:getVersion', () => app.getVersion());
+```
+
+Note:
+`ipcMain.handle` es el patrón moderno para solicitud-respuesta. Siempre devolver objetos estructurados `{ success, data/error }` para que el renderer pueda manejar errores. NUNCA confiéis en los datos recibidos del renderer: validar tipos, rutas y rangos antes de ejecutar operaciones en el sistema de archivos.
+
+---
+
+## ElectronService en Angular
+
+```typescript
+export interface ElectronAPI {
+  openFileDialog: (options?: any) => Promise<any>;
+  readFile: (path: string) =>
+    Promise<{ success: boolean; data?: string; error?: string }>;
+  getPlatform: () => Promise<NodeJS.Platform>;
+  // ...
+}
+
+@Injectable({ providedIn: 'root' })
+export class ElectronService {
+  isElectron = signal(false);
+  platform = signal<string>('browser');
+  private electronAPI: ElectronAPI | undefined;
+
+  constructor() {
+    if (typeof window !== 'undefined' &&
+        (window as any).electronAPI) {
+      this.electronAPI = (window as any).electronAPI;
+      this.isElectron.set(true);
+      this.electronAPI!.getPlatform()
+        .then(p => this.platform.set(p));
+    }
+  }
+
+  async openFile(): Promise<{ filePath: string;
+      content: string } | null> {
+    if (!this.electronAPI) return null;
+    const result = await this.electronAPI
+      .openFileDialog();
+    if (result.canceled || !result.filePaths.length)
+      return null;
+    const filePath = result.filePaths[0];
+    const read = await this.electronAPI
+      .readFile(filePath);
+    return read.success
+      ? { filePath, content: read.data! } : null;
   }
 }
 ```
 
 Note:
-Scripts para desarrollo (ng serve + storybook), producción (build), y Electron (desarrollo + empaquetado). `electron:dev` ejecuta Angular y Electron en paralelo para desarrollo con hot reload.
+`ElectronService` abstrae la detección del entorno y proporciona una API unificada. Si la app se ejecuta en navegador (sin `electronAPI`), los métodos devuelven `null` y se puede implementar un fallback web (`<input type="file">` en lugar de diálogo nativo). Esto permite que la misma app funcione en ambos entornos.
 
 ---
 
-## FASE 9 — Documentación Final (2h)
+## Scripts en package.json
 
-### Entregables:
-
-1. <mark>README.md</mark>: título, capturas, tecnologías, instrucciones, estructura, enlaces
-2. <mark>Memoria PDF</mark>: portada, índice, análisis, diseño, implementación, pruebas, conclusiones
-3. <mark>Storybook desplegado</mark>: GitHub Pages / Netlify / Vercel
-4. <mark>Código fuente</mark>: repositorio GitHub público/privado
-5. <mark>Instaladores</mark>: al menos 1 plataforma (.exe / .dmg / .AppImage)
+```json
+{
+  "name": "mi-app-electron",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --configuration production",
+    "electron:dev": "cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
+    "electron:build": "ng build --configuration production && electron-builder",
+    "electron:start": "electron ."
+  }
+}
+```
 
 Note:
-La documentación es parte de la evaluación. El README debe ser profesional: badges de shields.io, capturas de las 5 pantallas, árbol de directorios. La memoria PDF se puede generar con PDFMake (meta: usáis vuestra propia herramienta para documentarla). Storybook desplegado es la referencia del Design System.
+`electron:dev` ejecuta Angular y Electron en paralelo. `wait-on` espera a que `localhost:4200` responda antes de lanzar Electron. `electron:build` compila Angular en modo producción y luego empaqueta con electron-builder (lo veremos en la unidad 19). `"main": "main.js"` le dice a Electron cuál es el punto de entrada.
 
 ---
 
-## Requisitos Técnicos Obligatorios (20 requisitos)
+## Seguridad en Electron — Reglas OBLIGATORIAS
 
 <div class="fragment">
 
-1. ✅ Angular 18+ standalone con arquitectura feature-based
-2. ✅ Tailwind CSS 4 con `@theme` y dark mode
-3. ✅ Design System con 10+ componentes documentados en Storybook
-4. ✅ Signals para estado reactivo (mínimo 10 signals)
-5. ✅ Lazy loading en todas las features
-6. ✅ Reactive Forms con validación
-7. ✅ AuthGuard + AuthInterceptor
-8. ✅ Chart.js con ChartWidget reutilizable
-9. ✅ 5 KPI cards con tendencia y formato
-10. ✅ 3 tipos de gráficos (líneas, barras, doughnut)
-11. ✅ PDFMake con factura profesional (logo, tabla, QR, estilos)
-12. ✅ Exportación CSV con BOM UTF-8
-13. ✅ Exportación Excel con SheetJS
-14. ✅ CRUD completo de clientes con todos los estados
-15. ✅ FormArray dinámico en facturas
-16. ✅ Lighthouse accesibilidad ≥ 85
-17. ✅ Responsive verificado en 5 breakpoints
-18. ✅ Electron: main.js + preload.js + ElectronService
-19. ✅ Menú nativo en Electron
-20. ✅ Instalador funcional (al menos 1 plataforma)
+1. <mark>`nodeIntegration: false`</mark> — SIEMPRE, sin excepciones
+2. <mark>`contextIsolation: true`</mark> — SIEMPRE (por defecto desde Electron 12)
+3. <mark>Usar `contextBridge`</mark> en preload, nunca exponer `ipcRenderer` directamente
+4. <mark>Content Security Policy (CSP)</mark> restrictiva
+5. <mark>Validar TODOS los datos</mark> recibidos por IPC en el Main Process
+6. <mark>No cargar contenido remoto</mark> sin sanitizar (XSS → compromiso total del SO)
 
 </div>
 
 Note:
-Estos 20 requisitos son la base para aprobar. Cada uno se evalúa en la rúbrica. Si cumplís todos, tenéis asegurado al menos un 7. Para llegar al 9-10, necesitáis calidad, buenas prácticas y ampliaciones.
+Con `nodeIntegration: true`, un ataque XSS en el renderer permite ejecutar `require('child_process').exec('rm -rf /')` con los privilegios del usuario. Es un riesgo existencial para la aplicación y el usuario. La seguridad en Electron no es opcional. Revisad periódicamente el Security Checklist oficial.
 
 ---
 
-## Rúbrica de Evaluación
+## Content Security Policy (CSP)
 
-| Criterio | Peso | Excelente (10) | Notable (7-8) | Suficiente (5-6) | Insuficiente (<5) |
-|---|---|---|---|---|---|
-| <mark>Diseño Figma</mark> | 10% | DS completo, 5+ pantallas HD | 5 pantallas, Auto Layout | Diseño básico | Sin Figma |
-| <mark>DS + Storybook</mark> | 15% | 10+ componentes, tests interacción | 6-9 componentes | 3-5 básicos | Sin Storybook |
-| <mark>Funcionalidad</mark> | 20% | Todo implementado y funcionando | ~80%, bugs menores | ~60% | <50% |
-| <mark>Arquitectura</mark> | 10% | Feature-based, Signals, lazy loading | Buena organización | Estructura básica | Código desordenado |
-| <mark>Tailwind + Responsive</mark> | 10% | @theme, 5 breakpoints, dark mode | Bien usado, responsive | Uso básico | Sin responsive |
-| <mark>UX + Accesibilidad</mark> | 10% | Lighthouse ≥ 95, WAVE 0 errores | Lighthouse ≥ 85 | Lighthouse ≥ 70 | Sin criterios |
-| <mark>PDF / Exportación</mark> | 10% | Factura profesional, informes con gráficos | Factura funcional, CSV/Excel | PDF básico, exportación parcial | No genera |
-| <mark>Electron</mark> | 10% | Instalador funcional, menú, diálogos | App en ventana nativa | Config básica | Sin Electron |
-| <mark>Código y prácticas</mark> | 5% | Sin any, sin console.log, ESLint clean | Tipado mayoritario | Uso de any | Errores compilación |
+```html
+<meta http-equiv="Content-Security-Policy"
+  content="
+    default-src 'self';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    connect-src 'self' https:;
+    font-src 'self';
+  ">
+```
 
 Note:
-La funcionalidad pesa un 20% (lo más importante). Design System + Storybook un 15%. El resto se reparte equitativamente. Fijaos en que Electron vale un 10% — no lo dejéis para el final o no tendréis tiempo de hacerlo bien.
+La CSP previene ataques XSS limitando qué recursos puede cargar el renderer. `default-src 'self'` solo permite recursos del mismo origen. `'unsafe-inline'` en styles es necesario para Tailwind (que inyecta estilos inline). Si usáis fuentes de Google Fonts o CDNs, añadidlos explícitamente.
 
 ---
 
-## Entregables (6 elementos)
+## APIs Nativas Clave de Electron
 
-1. 🔗 <mark>Repositorio GitHub</mark> con código fuente completo
-2. 🎨 <mark>Proyecto Figma</mark> (enlace solo lectura)
-3. 📚 <mark>Storybook desplegado</mark> (GitHub Pages/Netlify)
-4. 💿 <mark>Instaladores</mark> (al menos 1 plataforma, ideal 3)
-5. 📄 <mark>Memoria PDF</mark> del proyecto
-6. 📋 <mark>README.md</mark> completo
+| API | Descripción | Ejemplo |
+|---|---|---|
+| <mark>`fs`</mark> | Sistema de archivos | Leer/guardar documentos |
+| <mark>`dialog`</mark> | Diálogos nativos SO | Abrir/guardar archivo |
+| <mark>`Menu`</mark> | Menú nativo | Archivo, Edición, Ayuda |
+| <mark>`Tray`</mark> | Bandeja del sistema | Icono + menú contextual |
+| <mark>`Notification`</mark> | Notificaciones nativas | Factura vencida, recordatorio |
+| <mark>`globalShortcut`</mark> | Atajos globales | Ctrl+Shift+Space (incluso sin foco) |
+| <mark>`clipboard`</mark> | Portapapeles | Copiar/pegar texto e imágenes |
+| <mark>`shell`</mark> | Integración SO | Abrir URL, revelar archivo en explorador |
 
 Note:
-Los 6 entregables son obligatorios. El más pesado en trabajo es el código fuente. El más importante para la primera impresión es el README. La memoria PDF debe ser profesional y puede generarse con vuestro propio PdfService (meta: usad GesFlow para documentar GesFlow).
+Estas APIs son lo que diferencia una app Electron de una web. `dialog` muestra los diálogos nativos del SO (no HTML simulado). `globalShortcut` funciona incluso cuando la app está en segundo plano. `shell.openExternal()` abre URLs en el navegador por defecto del sistema. Usadlas para aportar valor real al usuario.
 
 ---
 
-## Mapeo Criterios Evaluación → GesFlow
+## Menú Nativo Completo
 
-| CE Oficial | Dónde se evalúa |
-|---|---|
-| RA1.a — Identifica elementos de diseño | FASE 1 Figma, FASE 3 Design System |
-| RA1.b — Aplica principios de diseño | FASE 1 Figma |
-| RA1.c — Crea componentes reutilizables | FASE 3 Storybook |
-| RA1.d — Diseña interfaces responsive | FASE 7 Responsive |
-| RA2.a — Implementa interfaces | FASE 2-5 Angular |
-| RA2.b — Eventos y validación | FASE 5 Formularios, Signals |
-| RA2.c — Gestiona estado UI | FASE 5 Signals, carga/vacío/error |
-| RA2.d — Aplica estilos | FASE 2 Tailwind CSS 4 |
-| RA3.a — Crea apps multiplataforma | FASE 8 Electron |
-| RA3.b — Configura entorno escritorio | FASE 8 Electron + Angular |
-| RA3.c — Implementa IPC | FASE 8 Main Process + Preload |
-| RA4.a — Distribuye apps | FASE 8 electron-builder |
-| RA5.a — Diseña dashboards | FASE 5 Dashboard |
-| RA5.b — Usa librerías gráficos | FASE 5 Chart.js |
-| RA6.a — Identifica tipos informes | FASE 5 Facturas, Informes |
-| RA6.b — Usa librerías PDF | FASE 5 PDFMake |
-| RA6.d — Genera documentos | FASE 5 PDF, CSV, Excel |
+```javascript
+const { Menu, shell } = require('electron');
 
-Note:
-Cada criterio de evaluación oficial del currículo DAM está cubierto por al menos una fase del proyecto. Esta tabla demuestra la alineación completa entre el proyecto y la normativa educativa. No hay criterios que se queden sin evaluar.
-
----
-
-## Actividades de Ampliación (7 opciones)
-
-1. 🧪 <mark>Tests unitarios</mark> (Jasmine/Karma) — 5 servicios + 5 componentes
-2. 🎭 <mark>Tests e2e</mark> (Cypress/Playwright) — 5 flujos completos
-3. ⚙️ <mark>CI/CD completo</mark> — lint → test → build → deploy Storybook → release Electron
-4. 📱 <mark>PWA</mark> — Service Worker, manifiesto, instalable en móvil
-5. ☁️ <mark>Backend real</mark> — Firebase o Supabase
-6. 🌍 <mark>i18n</mark> — español + inglés (ngx-translate)
-7. 📲 <mark>Versión móvil</mark> con Capacitor (Android/iOS)
-
-Note:
-Estas ampliaciones son para subir nota o para alumnos avanzados. La ampliación 3 (CI/CD) es especialmente relevante para el mundo laboral. La 1 (tests) demuestra madurez profesional. La 6 (i18n) es muy valorada en empresas con producto internacional. Elegid 1-2 ampliaciones, no intentéis hacerlas todas.
-
----
-
-## Planificación Temporal (40 horas totales)
-
-| Día | Fase | Horas | Actividad principal |
-|---|---|---|---|
-| Lunes | FASE 1 | 4h | Diseño Figma: Login, Dashboard, Clientes |
-| Martes | FASE 1 + 2 | 2h + 2h | Terminar Figma + Configurar proyecto |
-| Miércoles | FASE 3 | 4h | Design System: Button, Input, Card, Modal |
-| Jueves | FASE 3 + 4 | 4h + 3h | Terminar DS + Layout y navegación |
-| Viernes | FASE 5 | 4h | Auth + Dashboard |
-| Lunes | FASE 5 | 4h | Clientes CRUD + Facturas |
-| Martes | FASE 5 | 4h | Productos + Informes + Configuración |
-| Miércoles | FASE 6 + 7 | 3h + 3h | Auditoría UX/Accesibilidad + Responsive |
-| Jueves | FASE 8 | 3h | Empaquetado Electron + instaladores |
-| Viernes | FASE 9 | 2h | Documentación + README + Memoria PDF |
-
-Note:
-Planificación día a día. Las primeras horas en Figma son las más importantes: un buen diseño acelera todo lo demás. El viernes de la primera semana deberíais tener Auth y Dashboard funcionando. El miércoles de la segunda semana se pule todo. El jueves se empaqueta. El viernes se documenta y entrega.
-
----
-
-## Demo: Servicio de Factura PDF para GesFlow
-
-```typescript
-@Injectable({ providedIn: 'root' })
-export class InvoicePdfService {
-  constructor() { pdfMake.vfs = pdfFonts.vfs; }
-
-  generateInvoicePdf(invoice: Invoice,
-      company: CompanyData): void {
-    const docDef = this.buildDocument(invoice, company);
-    pdfMake.createPdf(docDef)
-      .download(`Factura_${invoice.number}.pdf`);
-  }
-
-  previewInvoicePdf(invoice: Invoice,
-      company: CompanyData): void {
-    pdfMake.createPdf(
-      this.buildDocument(invoice, company)).open();
-  }
-
-  private buildDocument(invoice: Invoice,
-      company: CompanyData): TDocumentDefinitions {
-    const subtotal = invoice.lines.reduce(
-      (sum, l) => sum + l.quantity * l.unitPrice, 0);
-    const taxTotal = this.groupTaxes(invoice.lines)
-      .reduce((sum, g) => sum + g.amount, 0);
-
-    return {
-      pageSize: 'A4',
-      pageMargins: [45, 50, 45, 50],
-      images: company.logoBase64
-        ? { companyLogo: company.logoBase64 } : {},
-      defaultStyle: { font: 'Roboto', fontSize: 10 },
-      styles: {
-        companyName: { fontSize: 16, bold: true,
-          color: '#1e40af' },
-        invoiceTitle: { fontSize: 26, bold: true,
-          color: '#1e40af' },
-        tableHeader: { fillColor: '#1e40af',
-          color: '#ffffff', bold: true },
-        totalAmount: { bold: true, color: '#1e40af' }
-      },
-      content: [
-        { image: 'companyLogo', width: 120 },
-        { text: 'FACTURA', style: 'invoiceTitle' },
-        // Columnas: datos empresa | datos cliente
-        { columns: [ /* ... */ ] },
-        // Tabla de líneas con totales
-        { table: {
-          headerRows: 1,
-          widths: ['*', 50, 75, 50, 75],
-          body: [ /* cabecera + líneas + totales */ ]
-        }},
-        // Datos bancarios + QR
-        { columns: [
-          { text: company.bankAccount },
-          { qr: `https://gesflow.app/verify/
-            ${invoice.number}`, fit: 80 }
-        ]}
+function createMenu(mainWindow) {
+  const template = [
+    {
+      label: 'Archivo',
+      submenu: [
+        { label: 'Nuevo', accelerator: 'CmdOrCtrl+N',
+          click: () => mainWindow.webContents
+            .send('menu:new') },
+        { label: 'Abrir...', accelerator: 'CmdOrCtrl+O',
+          click: () => mainWindow.webContents
+            .send('menu:open') },
+        { type: 'separator' },
+        { label: 'Guardar', accelerator: 'CmdOrCtrl+S',
+          click: () => mainWindow.webContents
+            .send('menu:save') },
+        { role: 'quit', label: 'Salir' }
       ]
-    };
+    },
+    {
+      label: 'Edición',
+      submenu: [
+        { role: 'undo' }, { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' }, { role: 'copy' },
+        { role: 'paste' }, { role: 'selectAll' }
+      ]
+    }
+  ];
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+```
+
+Note:
+El menú nativo se comunica con el renderer mediante `webContents.send()`. Los roles estándar (undo, redo, cut, copy, paste) los maneja Electron automáticamente. En macOS, el primer menú debe ser el de la aplicación (con About, Services, Hide, Quit). Los atajos de teclado usan `CmdOrCtrl` para funcionar en ambas plataformas.
+
+---
+
+## Bandeja del Sistema (Tray)
+
+```javascript
+const { Tray, nativeImage } = require('electron');
+
+let tray = null;
+function createTray() {
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, 'assets', 'icon.png'));
+  tray = new Tray(icon.resize({ width: 16, height: 16 }));
+  tray.setToolTip('Gestor de Notas');
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Mostrar ventana',
+      click: () => mainWindow.show() },
+    { type: 'separator' },
+    { label: 'Salir', click: () => app.quit() }
+  ]);
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => mainWindow.show());
+}
+```
+
+Note:
+El Tray permite que la app siga ejecutándose en segundo plano (minimizada a la bandeja). Al cerrar la ventana, en lugar de salir, ocultáis la ventana y la app sigue en el Tray. El icono debe ser pequeño (16x16 o 22x22 píxeles). En macOS, usar un icono con template para que se adapte al modo oscuro.
+
+---
+
+## Diálogos Nativos
+
+```javascript
+// Abrir archivo
+const result = await dialog.showOpenDialog(mainWindow, {
+  title: 'Abrir documento',
+  filters: [
+    { name: 'Documentos',
+      extensions: ['txt', 'md', 'json'] },
+    { name: 'Todos los archivos',
+      extensions: ['*'] }
+  ],
+  properties: ['openFile', 'multiSelections']
+});
+
+// Guardar archivo
+const result = await dialog.showSaveDialog(mainWindow, {
+  title: 'Guardar como',
+  defaultPath: 'documento.txt',
+  filters: [{ name: 'Texto',
+    extensions: ['txt', 'md'] }]
+});
+
+// Mensaje
+await dialog.showMessageBox(mainWindow, {
+  type: 'warning',
+  title: 'Cambios sin guardar',
+  message: 'Tienes cambios sin guardar.',
+  detail: '¿Deseas guardar antes de salir?',
+  buttons: ['Guardar', 'No guardar', 'Cancelar'],
+  defaultId: 0, cancelId: 2
+});
+```
+
+Note:
+Los diálogos nativos son del sistema operativo real, no HTML simulado. El usuario los reconoce y confía en ellos. `showMessageBox` devuelve el índice del botón pulsado. Los filtros de archivo limitan qué archivos se muestran en el diálogo. `properties: ['openFile']` permite seleccionar archivos; añadiendo `'openDirectory'` se seleccionan carpetas.
+
+---
+
+## Notificaciones Nativas
+
+```javascript
+const { Notification } = require('electron');
+
+function showNotification(title, body) {
+  if (Notification.isSupported()) {
+    const notification = new Notification({
+      title,
+      body,
+      icon: path.join(__dirname, 'assets/icon.png'),
+      silent: false
+    });
+    notification.on('click', () => {
+      mainWindow.show();
+      mainWindow.focus();
+    });
+    notification.show();
   }
 }
 ```
 
 Note:
-Este servicio integra todo lo aprendido en la unidad 16. La plantilla incluye: logo, datos empresa/cliente en columnas, tabla de líneas con estilos corporativos, totales calculados automáticamente, QR de verificación y datos bancarios. Se usa `Intl.NumberFormat` para formato de moneda en euros.
+Las notificaciones nativas aparecen en el Centro de Actividades (Windows), Centro de Notificaciones (macOS) o el sistema de notificaciones del entorno de escritorio (Linux). Al hacer clic en la notificación, se puede restaurar y enfocar la ventana principal. Usadlas con moderación: solo para información que requiera atención inmediata.
 
 ---
 
-## Demo: Dashboard con Chart.js y Signals
+## Ventanas Avanzadas (BrowserWindow)
+
+```javascript
+new BrowserWindow({
+  width: 1200, height: 800,
+  minWidth: 800, minHeight: 600,
+  fullscreen: false,          // Pantalla completa
+  alwaysOnTop: false,         // Siempre encima
+  transparent: false,         // Fondo transparente
+  frame: true,                // false = sin bordes (personalizado)
+  titleBarStyle: 'default',   // 'hiddenInset' en macOS
+  backgroundColor: '#ffffff', // Color mientras carga
+  show: false,                // Mostrar cuando esté lista
+  icon: path.join(__dirname, 'assets/icon.png'),
+  webPreferences: {
+    nodeIntegration: false,
+    contextIsolation: true,
+    preload: path.join(__dirname, 'preload.js'),
+    sandbox: false
+  }
+});
+
+mainWindow.once('ready-to-show', () => {
+  mainWindow.show();  // Evita flash blanco al cargar
+});
+```
+
+Note:
+`show: false` + evento `ready-to-show` evita el flash blanco al abrir la app. `frame: false` permite diseñar vuestra propia barra de título (como Spotify o VS Code con título personalizado). `transparent: true` permite ventanas no rectangulares. `titleBarStyle: 'hiddenInset'` en macOS integra los botones de tráfico de luces.
+
+---
+
+## Demo: Angular + Electron "Gestor de Notas"
 
 ```typescript
-@Component({ /* ... */ })
-export class DashboardComponent implements OnInit {
-  private dashboardService = inject(DashboardService);
-  isLoading = signal(true);
-  dashboardData = signal<any>(null);
+@Component({
+  selector: 'app-editor', standalone: true,
+  template: `
+    <div class="h-screen flex flex-col">
+      <div class="flex items-center gap-2 px-4 py-2
+                  bg-gray-100 border-b">
+        <button (click)="newFile()"
+          class="p-2 hover:bg-gray-200 rounded">📄</button>
+        <button (click)="openFile()"
+          class="p-2 hover:bg-gray-200 rounded">📂</button>
+        <button (click)="saveFile()"
+          class="p-2 hover:bg-gray-200 rounded">💾</button>
+        <span class="flex-1 text-sm text-gray-500">
+          {{ currentFilePath() || 'Sin título' }}</span>
+        @if (isModified()) {
+          <span class="text-xs text-orange-500">●</span> }
+      </div>
+      <textarea [(ngModel)]="content"
+        (input)="onContentChange()"
+        class="flex-1 p-6 resize-none font-mono"
+        placeholder="Escribe tu nota aquí..."></textarea>
+      <div class="flex items-center px-4 py-1
+                  bg-gray-50 border-t text-xs text-gray-400">
+        {{ wordCount() }} palabras | {{ platform() }}
+      </div>
+    </div>
+  `
+})
+export class EditorComponent {
+  private electronService = inject(ElectronService);
+  content = '';
+  currentFilePath = signal<string | null>(null);
+  isModified = signal(false);
+  platform = this.electronService.platform;
+  wordCount = computed(() =>
+    this.content.trim()
+      ? this.content.trim().split(/\s+/).length : 0);
 
-  kpis = computed(() => {
-    const d = this.dashboardData();
-    if (!d) return [];
-    return [
-      { label: 'Ingresos', value: formatEur(d.revenue),
-        trend: d.revenueTrend, icon: '💰' },
-      { label: 'Facturas', value: String(d.invoices),
-        trend: d.invoicesTrend, icon: '🧾' },
-      // ...
-    ];
-  });
-
-  revenueDatasets = computed(() => [{
-    label: 'Ingresos',
-    data: this.dashboardData()
-      ?.monthlyRevenue?.map(m => m.amount) ?? [],
-    borderColor: '#3b82f6', tension: 0.3, fill: true
-  }]);
-
-  categoryDatasets = computed(() => [{
-    data: this.dashboardData()
-      ?.revenueByCategory?.map(c => c.amount) ?? [],
-    backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981']
-  }]);
-
-  constructor() {
-    effect(() => { this.loadDashboardData(); });
+  async openFile() {
+    const result = await this.electronService.openFile();
+    if (result) {
+      this.content = result.content;
+      this.currentFilePath.set(result.filePath);
+      this.isModified.set(false);
+    }
   }
 
-  changeDateRange(range: string) {
-    const now = new Date();
-    let start: Date;
-    switch (range) {
-      case '7d': start = new Date(
-        now.getTime() - 7*24*60*60*1000); break;
-      case '30d': start = new Date(
-        now.getTime() - 30*24*60*60*1000); break;
-      default: start = new Date(now.getFullYear(), 0, 1);
+  async saveFile() {
+    if (this.currentFilePath()) {
+      await this.electronService.saveExistingFile(
+        this.currentFilePath()!, this.content);
+      this.isModified.set(false);
+    } else {
+      const path = await this.electronService
+        .saveFile(this.content);
+      if (path) {
+        this.currentFilePath.set(path);
+        this.isModified.set(false);
+      }
     }
-    this.dateRange.set({ start, end: now });
   }
 }
 ```
 
 Note:
-El dashboard usa `computed()` para transformar datos de la API a formatos de componentes. `effect()` recarga datos al cambiar filtros. Las KPI cards incluyen tendencia con flecha y color. Los gráficos usan el ChartWidget reutilizable de la unidad 17.
+Este componente demuestra la integración completa: el `ElectronService` abstrae toda la comunicación con Electron. Los diálogos de archivo son nativos del SO. El estado de modificación se gestiona con Signals. En navegador, `openFile()` devuelve null y se puede implementar fallback con `<input type="file">`.
 
 ---
 
-## Buenas Prácticas para el Proyecto
+## Diagrama de Integración Angular + Electron
 
-1. <mark>Empieza por el diseño, no por el código</mark> — Figma primero, siempre
-2. <mark>Un componente a la vez</mark> — implementa, documenta, verifica, siguiente
-3. <mark>Commits frecuentes y descriptivos</mark> — conventional commits: `feat:`, `fix:`, `docs:`
-4. <mark>Prueba en navegador antes que en Electron</mark> — la app debe funcionar sin Electron
-5. <mark>No dejes la accesibilidad para el final</mark> — incorpórala desde el primer componente
-6. <mark>Separa Smart (contenedores) de Dumb (presentacionales)</mark> — facilita testing y reutilización
+<div class="mermaid">
+flowchart TB
+    subgraph "Desarrollo"
+        NG["ng serve\nlocalhost:4200"]
+        EL["electron .\nCarga URL de desarrollo"]
+        NG --> EL
+    end
+    subgraph "Producción"
+        BUILD["ng build --prod\ngenera dist/"]
+        PACK["electron-builder\nempaqueta instalador"]
+        BUILD --> PACK
+    end
+    subgraph "Ejecución"
+        MAIN["Main Process\nmain.js"]
+        PRELOAD["Preload\npreload.js"]
+        RENDERER["Renderer\nAngular app"]
+        MAIN --> PRELOAD --> RENDERER
+    end
+</div>
 
 Note:
-La regla más importante: Figma primero. Un diseño bien pensado ahorra horas de refactorización. Los conventional commits (`feat: add invoice form`, `fix: dashboard date filter`) hacen el historial de git legible y profesional. La app debe funcionar en `ng serve` sin Electron; Electron es una capa extra.
+En desarrollo, Electron carga `http://localhost:4200` (hot reload incluido). En producción, carga `dist/index.html` desde el sistema de archivos. El Main Process se comunica con el Renderer a través del Preload usando IPC. Esta arquitectura permite desarrollar y probar la app en el navegador, y luego empaquetarla para escritorio.
 
 ---
 
-## Errores Frecuentes en el Proyecto
+## Actividad Guiada 1: Tu Primera App Angular + Electron
 
-1. <mark>Empezar a programar sin Figma</mark> — inconsistencia visual, pérdida de tiempo
-2. <mark>Usar `any` en servicios y modelos</mark> — anula TypeScript, errores en runtime
-3. <mark>Componentes gigantes (God Components)</mark> — 500 líneas, difícil mantener
-4. <mark>No destruir instancias Chart.js</mark> — fuga de memoria en dashboard
-5. <mark>Ignorar estados de carga/vacío/error</mark> — pantalla en blanco = mala UX
-6. <mark>Hardcodear colores en vez de usar @theme</mark> — inconsistencia al cambiar tema
+**⏱️ Tiempo**: 90 minutos | **👥 Agrupamiento**: Parejas
+
+**🎯 Objetivo**: Configurar un proyecto Angular con Electron desde cero
+
+1. `ng new demo-electron --standalone`
+2. Instalar `electron`, `concurrently`, `wait-on`, `cross-env`
+3. Crear `main.js` con BrowserWindow y seguridad configurada
+4. Crear `preload.js` con `contextBridge` (mínimo 2 métodos)
+5. Implementar manejadores IPC en `main.js`
+6. Crear `ElectronService` que detecte entorno Electron
+7. Modificar `AppComponent` para mostrar plataforma
+8. Configurar scripts `electron:dev` en package.json
+9. Ejecutar `npm run electron:dev` y verificar
 
 Note:
-El error 1 es el más común y el más costoso. El error 3 (God Components) se evita con la arquitectura feature-based y separando Smart/Dumb. El error 4 causa que el dashboard se ralentice tras varias navegaciones. El error 5 hace que la app parezca rota cuando tarda en cargar o no hay datos.
+Esta actividad es fundamental: sienta las bases de todo el desarrollo con Electron. El alumno debe comprender el flujo completo: main.js → preload.js → IPC → ElectronService → Componente. Se evalúa que la app funcione tanto en navegador como en ventana nativa.
 
 ---
 
-## Resumen del Proyecto Final
+## Actividad Guiada 2: Sistema de Archivos y Diálogos
 
-- <mark>GesFlow</mark>: sistema de gestión empresarial integral (clientes, facturas, productos, dashboard)
-- <mark>9 fases</mark> en 40 horas: diseño → configuración → DS → layout → features → UX → responsive → Electron → docs
-- <mark>Tecnologías</mark>: Angular 18+, Tailwind CSS 4, Figma, Storybook, Chart.js, PDFMake, Electron
-- <mark>20 requisitos técnicos</mark> obligatorios evaluados con rúbrica detallada
-- <mark>6 entregables</mark>: código, Figma, Storybook, instaladores, memoria, README
+**⏱️ Tiempo**: 60 minutos | **👥 Agrupamiento**: Individual
+
+1. Ampliar `preload.js` con `openFileDialog`, `saveFileDialog`, `readFile`, `writeFile`
+2. Ampliar `main.js` con manejadores IPC para diálogos y fs
+3. Añadir métodos `openFile()` y `saveFile()` en `ElectronService`
+4. Crear componente `TextEditorComponent` con textarea + botones Abrir/Guardar
+5. Probad abriendo un `.txt`, modificándolo y guardándolo
 
 Note:
-GesFlow es vuestra carta de presentación como desarrolladores de interfaces. Un proyecto bien ejecutado demuestra que domináis el stack completo: desde el diseño en Figma hasta el instalador de escritorio. Es el tipo de proyecto que se pone en el portfolio y se enseña en entrevistas de trabajo.
+Aquí el alumno experimenta la diferencia real entre una app web y una de escritorio: diálogos nativos del SO en lugar de `<input type="file">` HTML, acceso completo al sistema de archivos en lugar de la sandbox del navegador.
+
+---
+
+## Actividad Guiada 3: Menú Nativo y Bandeja del Sistema
+
+**⏱️ Tiempo**: 75 minutos | **👥 Agrupamiento**: Parejas
+
+1. Crear plantilla de menú: Archivo, Edición, Ver, Ayuda
+2. Asignar atajos de teclado: `CmdOrCtrl+N`, `CmdOrCtrl+O`, `CmdOrCtrl+S`
+3. Comunicar menú → renderer vía `webContents.send('menu:action')`
+4. Exponer `onMenuAction(callback)` en preload
+5. Suscribirse en Angular y ejecutar acciones
+6. Añadir icono Tray con menú contextual (Mostrar ventana, Salir)
+7. Probar atajos de teclado y bandeja
+
+Note:
+Esta actividad completa la experiencia de escritorio. El menú nativo y la bandeja del sistema son lo que los usuarios esperan de una aplicación de escritorio "de verdad". Los atajos de teclado aumentan la productividad del usuario experto.
+
+---
+
+## Buenas Prácticas
+
+1. <mark>Seguridad primero</mark>: `nodeIntegration: false`, `contextIsolation: true`, `contextBridge`
+2. <mark>Main Process ligero</mark>: solo orquestar; tareas pesadas → Web Workers o child_process
+3. <mark>Validar datos IPC</mark>: nunca confiéis en datos del renderer sin validar
+4. <mark>Diseñar para offline</mark>: almacenar localmente, cachear, sincronizar cuando haya red
+5. <mark>Respetar convenciones de cada SO</mark>: menús, atajos, comportamiento al cerrar ventanas
+6. <mark>Auto-actualización desde el día 1</mark>: `electron-updater` evita versiones obsoletas
+
+Note:
+La seguridad no es negociable. Un XSS en Electron es catastrófico. El Main Process debe ser ligero: si se bloquea, toda la app deja de responder. Las apps de escritorio no se actualizan solas como las webs: necesitan un mecanismo explícito de actualización.
+
+---
+
+## Errores Frecuentes
+
+1. <mark>`nodeIntegration: true`</mark> — error de seguridad gravísimo en producción
+2. <mark>Exponer `ipcRenderer` directamente</mark> en vez de usar `contextBridge`
+3. <mark>Cargar contenido remoto sin CSP</mark> — XSS → acceso total al SO del usuario
+4. <mark>No manejar `window-all-closed` en macOS</mark> — la app no se cierra correctamente
+5. <mark>`fs.readFileSync` para archivos grandes</mark> — bloquea el Main Process
+6. <mark>No limpiar listeners IPC</mark> — fugas de memoria y callbacks múltiples al recargar
+
+Note:
+El error 1 es el más grave: con `nodeIntegration: true`, cualquier script malicioso puede ejecutar código Node.js arbitrario. El error 6 es sutil: en desarrollo con hot reload, cada recarga crea nuevos listeners sin eliminar los anteriores, causando comportamientos impredecibles.
+
+---
+
+## Resumen
+
+- <mark>Arquitectura</mark>: Main Process (Node.js) + Renderer (Chromium/Angular) + Preload (puente)
+- <mark>IPC</mark>: `ipcMain.handle` / `ipcRenderer.invoke` para comunicación segura
+- <mark>Seguridad</mark>: 3 reglas no negociables (nodeIntegration:false, contextIsolation:true, contextBridge)
+- <mark>Integración Angular</mark>: `ElectronService` con detección de entorno
+- <mark>APIs nativas</mark>: fs, dialog, Menu, Tray, Notification, globalShortcut, shell
+- <mark>Casos reales</mark>: VS Code, Discord, Slack, Figma, Postman, Obsidian
+
+Note:
+Electron os permite llevar vuestras habilidades de desarrollo web al escritorio. La clave es entender la arquitectura de procesos y aplicar rigurosamente las medidas de seguridad. Con esto, podéis crear aplicaciones que compitan con las nativas tradicionales.
 
 ---
 
 ## Próximos Pasos
 
-1. 🚀 <mark>Empezad hoy mismo</mark> con el diseño en Figma
-2. No subestiméis el tiempo: 40 horas pasan muy rápido
-3. Priorizad funcionalidad sobre perfección
-4. Pedid feedback a compañeros y profesor regularmente
-5. Disfrutad del proceso: estáis construyendo un producto real
+1. **Unidad 19**: Empaquetado y Distribución — electron-builder, instaladores, auto-update, CI/CD
+2. **Unidad 20**: Proyecto Final "GesFlow" — integraréis Electron para la versión de escritorio con menú, diálogos y notificaciones
 
-**📚 Recursos**:
-- Angular Docs: https://angular.dev/
-- Tailwind CSS 4: https://tailwindcss.com/docs/theme
-- Chart.js: https://www.chartjs.org/docs/
-- PDFMake Playground: http://pdfmake.org/playground.html
+**📚 Para profundizar**:
 - Electron Docs: https://www.electronjs.org/docs/
-- electron-builder: https://www.electron.build/
+- Electron Security Checklist: https://www.electronjs.org/docs/latest/tutorial/security
+- Electron API Demos (app descargable interactiva)
+- Electron Fiddle (prototipado rápido): https://www.electronjs.org/fiddle
 
 Note:
-El proyecto final es la culminación de todo el módulo. Confiad en lo que habéis aprendido en las 19 unidades anteriores. Empezad por Figma hoy mismo. Organizad vuestro tiempo con la planificación diaria. Preguntad dudas pronto, no esperéis al último día. ¡Mucha suerte y a por ello!
+En la unidad 19 aprenderéis a empaquetar vuestra app en instaladores profesionales para Windows, macOS y Linux, con firma de código, auto-actualizaciones y CI/CD. En el proyecto final, GesFlow tendrá versión de escritorio con todas las funcionalidades nativas que hemos aprendido.
 
 ---
 
-## ¡Manos a la Obra!
+## Anexo: Opciones Avanzadas de BrowserWindow
 
-# 🚀 GesFlow
+```javascript
+new BrowserWindow({
+  // Ventanas sin bordes (personalizadas)
+  frame: false,
+  titleBarStyle: 'hidden',   // macOS
+  // Ventanas transparentes
+  transparent: true,
+  // Siempre visible
+  alwaysOnTop: true,
+  // Modo quiosco
+  kiosk: true,
+  fullscreen: true,
+  // Efectos visuales macOS
+  vibrancy: 'ultra-dark',    // Desenfoque de fondo
+  // Múltiples pantallas
+  x: 0, y: 0                // Posición inicial
+});
+```
 
-### Sistema de Gestión Empresarial Integral
-
-**Angular + Electron + Figma + Storybook + Chart.js + PDFMake**
+Note:
+Estas opciones permiten crear experiencias muy pulidas. `transparent: true` + `frame: false` permite ventanas con formas personalizadas. `vibrancy` es un efecto de desenfoque tipo Frosted Glass exclusivo de macOS. `kiosk: true` bloquea la app en pantalla completa sin posibilidad de salir (para terminales de autoservicio).
 
 ---
 
-**La mejor aplicación es la que se termina.**
-*— Sabiduría del desarrollador*
+## Anexo: Comunicación entre Múltiples Ventanas
+
+```javascript
+// Main Process — Broker central
+const windows = new Map();
+
+ipcMain.on('broadcast', (event, channel, data) => {
+  windows.forEach((win, id) => {
+    if (win.webContents.id !== event.sender.id) {
+      win.webContents.send(channel, data);
+    }
+  });
+});
+
+// Preload
+contextBridge.exposeInMainWorld('electronAPI', {
+  broadcast: (channel, data) =>
+    ipcRenderer.send('broadcast', channel, data),
+  onMessage: (channel, callback) =>
+    ipcRenderer.on(channel, (e, data) => callback(data))
+});
+```
 
 Note:
-Último mensaje: la app perfecta que nunca se termina vale cero. La app funcional que se entrega a tiempo vale mucho. Priorizad terminar sobre perfeccionar. Cada funcionalidad que funciona es un punto en la rúbrica. Cada hora invertida en Figma al principio ahorra 3 horas de código después. ¡A trabajar!
+Para aplicaciones con múltiples ventanas (editor con ventanas de detalle, inspector, etc.), el Main Process actúa como broker de mensajes. Cada ventana envía mensajes al Main, que los redistribuye a las demás. Así se mantiene el estado sincronizado entre ventanas sin acoplamiento directo.
