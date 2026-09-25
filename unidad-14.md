@@ -9,7 +9,7 @@
 #### Documentación viva + Testing visual + Integración Figma
 
 Note:
-Bienvenidos a la última unidad del módulo. Storybook es la herramienta que cierra el círculo: convierte nuestro catálogo de componentes en documentación viva, testeable y compartible. Hoy aprenderéis a instalar Storybook en Angular, escribir stories CSF3, documentar con MDX, testear interacciones y publicar vuestro Design System.
+Bienvenidos a la Unidad 14. Storybook es la herramienta que cierra el círculo: convierte nuestro catálogo de componentes en documentación viva, testeable y compartible. Hoy aprenderéis a instalar Storybook en Angular, escribir stories CSF3, documentar con MDX, testear interacciones y publicar vuestro Design System.
 
 ---
 
@@ -746,8 +746,9 @@ Hemos cubierto: instalación y configuración en Angular, escritura de stories C
 
 ---
 
-## Próximos pasos tras el módulo
+## Próximos pasos
 
+- Continuar en la <mark>Unidad 15</mark>: del diseño Figma a la implementación completa (unidad integradora) <!-- .element: class="fragment" -->
 - Aplicar todo lo aprendido en el <mark>proyecto integrador</mark> <!-- .element: class="fragment" -->
 - Construir el Design System completo con Storybook <!-- .element: class="fragment" -->
 - Implementar CI/CD con Chromatic y GitHub Actions <!-- .element: class="fragment" -->
@@ -759,7 +760,7 @@ Hemos cubierto: instalación y configuración en Angular, escritura de stories C
 - [Figma Tokens](https://tokens.studio) — Sincronización diseño-código <!-- .element: class="fragment" -->
 
 Note:
-Esto no termina aquí. En el proyecto integrador aplicaréis todo: arquitectura Smart/Presentational, catálogo de componentes, formularios avanzados, Design System con tokens, y Storybook para documentación y testing. El objetivo es que entreguéis un proyecto profesional con documentación viva y testing automatizado.
+Esto no termina aquí. En la Unidad 15 recorreréis el flujo completo de diseño a implementación y aplicaréis todo: arquitectura Smart/Presentational, catálogo de componentes, formularios avanzados, Design System con tokens, y Storybook para documentación y testing. El objetivo es que entreguéis un proyecto profesional con documentación viva y testing automatizado.
 
 ---
 

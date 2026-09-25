@@ -653,9 +653,10 @@ Recordad: el dashboard es una herramienta de toma de decisiones, no un ejercicio
 
 ## Próximos Pasos
 
-1. **Unidad 18**: Aplicaciones de Escritorio con Electron
-2. Integrar el dashboard en una app nativa de escritorio
-3. **Unidad 20**: Proyecto Final "GesFlow" — implementaréis un dashboard completo con KPIs, gráficos y exportaciones
+1. **Unidad 18**: Documentación de Aplicaciones
+2. **Unidad 19**: Pruebas de Software
+3. **Unidad 20**: Aplicaciones de Escritorio con Electron — integrar el dashboard en una app nativa de escritorio
+4. **Unidad 22**: Proyecto Final "GesFlow" — implementaréis un dashboard completo con KPIs, gráficos y exportaciones
 
 **📚 Para profundizar**:
 - Chart.js Docs: https://www.chartjs.org/docs/
@@ -664,7 +665,7 @@ Recordad: el dashboard es una herramienta de toma de decisiones, no un ejercicio
 - Libro: "Information Dashboard Design" — Stephen Few
 
 Note:
-En la unidad 18 daremos el salto al escritorio con Electron. El dashboard que habéis construido se ejecutará como ventana nativa con menús, diálogos y notificaciones. En el proyecto final GesFlow, el dashboard será una de las 7 funcionalidades principales que implementaréis.
+Tras documentación (U18) y pruebas (U19), en la unidad 20 daremos el salto al escritorio con Electron. El dashboard que habéis construido se ejecutará como ventana nativa con menús, diálogos y notificaciones. En el proyecto final GesFlow (U22), el dashboard será una de las 7 funcionalidades principales que implementaréis.
 
 ---
 

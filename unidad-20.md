@@ -9,7 +9,7 @@
 
 **Angular + Electron · Main Process · IPC · Preload · Native APIs**
 
-Curso DAM — Unidad 18
+Curso DAM — Unidad 20
 
 Note:
 Bienvenidos a la unidad más transformadora del módulo. Vais a aprender a convertir vuestras aplicaciones Angular en aplicaciones de escritorio nativas para Windows, macOS y Linux. Electron es la tecnología que usan VS Code, Discord, Slack, Figma, Postman y WhatsApp Desktop.
@@ -358,7 +358,7 @@ Note:
 ```
 
 Note:
-`electron:dev` ejecuta Angular y Electron en paralelo. `wait-on` espera a que `localhost:4200` responda antes de lanzar Electron. `electron:build` compila Angular en modo producción y luego empaqueta con electron-builder (lo veremos en la unidad 19). `"main": "main.js"` le dice a Electron cuál es el punto de entrada.
+`electron:dev` ejecuta Angular y Electron en paralelo. `wait-on` espera a que `localhost:4200` responda antes de lanzar Electron. `electron:build` compila Angular en modo producción y luego empaqueta con electron-builder (lo veremos en la unidad 21). `"main": "main.js"` le dice a Electron cuál es el punto de entrada.
 
 ---
 
@@ -783,8 +783,8 @@ Electron os permite llevar vuestras habilidades de desarrollo web al escritorio.
 
 ## Próximos Pasos
 
-1. **Unidad 19**: Empaquetado y Distribución — electron-builder, instaladores, auto-update, CI/CD
-2. **Unidad 20**: Proyecto Final "GesFlow" — integraréis Electron para la versión de escritorio con menú, diálogos y notificaciones
+1. **Unidad 21**: Empaquetado y Distribución — electron-builder, instaladores, auto-update, CI/CD
+2. **Unidad 22**: Proyecto Final "GesFlow" — integraréis Electron para la versión de escritorio con menú, diálogos y notificaciones
 
 **📚 Para profundizar**:
 - Electron Docs: https://www.electronjs.org/docs/
@@ -793,7 +793,7 @@ Electron os permite llevar vuestras habilidades de desarrollo web al escritorio.
 - Electron Fiddle (prototipado rápido): https://www.electronjs.org/fiddle
 
 Note:
-En la unidad 19 aprenderéis a empaquetar vuestra app en instaladores profesionales para Windows, macOS y Linux, con firma de código, auto-actualizaciones y CI/CD. En el proyecto final, GesFlow tendrá versión de escritorio con todas las funcionalidades nativas que hemos aprendido.
+En la unidad 21 aprenderéis a empaquetar vuestra app en instaladores profesionales para Windows, macOS y Linux, con firma de código, auto-actualizaciones y CI/CD. En el proyecto final (Unidad 22), GesFlow tendrá versión de escritorio con todas las funcionalidades nativas que hemos aprendido.
 
 ---
 

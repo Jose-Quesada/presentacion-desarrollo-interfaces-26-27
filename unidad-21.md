@@ -9,7 +9,7 @@
 
 **electron-builder · Instaladores · Code Signing · Auto-update · CI/CD**
 
-Curso DAM — Unidad 19
+Curso DAM — Unidad 21
 
 Note:
 En esta unidad aprenderéis a transformar vuestro código en un producto que los usuarios puedan instalar. Cubriremos electron-builder, formatos de instalador por plataforma, firma de código, auto-actualizaciones y pipelines CI/CD con GitHub Actions.
@@ -539,7 +539,7 @@ Este pipeline cubre el ciclo completo. Cada paso está automatizado. La clave es
 
 **⏱️ Tiempo**: 90 minutos | **👥 Agrupamiento**: Parejas
 
-1. Parte del proyecto Angular + Electron de la unidad 18
+1. Parte del proyecto Angular + Electron de la unidad 20
 2. Instala electron-builder
 3. Crea icono 1024x1024 y genera formatos con electron-icon-builder
 4. Configura campo `"build"` en package.json para tu plataforma
@@ -610,7 +610,7 @@ El empaquetado es la última milla del desarrollo. Una app excelente con un inst
 
 ## Próximos Pasos
 
-1. **Unidad 20**: Proyecto Final "GesFlow" — integraréis todo: Figma, Angular, Chart.js, PDFMake, Electron y electron-builder
+1. **Unidad 22**: Proyecto Final "GesFlow" — integraréis todo: Figma, Angular, Chart.js, PDFMake, Electron y electron-builder
 2. Vuestro proyecto final debe generar instaladores funcionales para al menos 1 plataforma
 
 **📚 Para profundizar**:
@@ -620,7 +620,7 @@ El empaquetado es la última milla del desarrollo. Una app excelente con un inst
 - Apple Notarization: https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution
 
 Note:
-En el proyecto final, aplicaréis TODO lo aprendido en el módulo. Vuestra app GesFlow debe compilarse con electron-builder y generar al menos un instalador funcional. El README debe documentar el proceso de build. ¡Es la culminación de 2 semanas de trabajo intensivo!
+En el proyecto final (Unidad 22), aplicaréis TODO lo aprendido en el módulo. Vuestra app GesFlow debe compilarse con electron-builder y generar al menos un instalador funcional. El README debe documentar el proceso de build. ¡Es la culminación del módulo!
 
 ---
 

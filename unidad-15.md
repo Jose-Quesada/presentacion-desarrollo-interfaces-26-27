@@ -8,7 +8,7 @@ CFGS Desarrollo de Aplicaciones Multiplataforma (DAM)
 Curso 2025/2026
 
 Note:
-Bienvenidos a la unidad final. Aquí converge todo lo aprendido: Figma (U3), Layouts (U4), Angular + Tailwind + Storybook (U2). Vamos a recorrer el flujo profesional completo: inspeccionar un diseño en Figma, extraer design tokens, configurar Tailwind @theme, organizar componentes con Atomic Design, implementarlos, documentarlos y construir pantallas completas. Esta unidad es el 40% de la evaluación del módulo. Pregunta: ¿quién tiene ya su entorno de la Unidad 2 funcionando?
+Bienvenidos a la Unidad 15, la unidad integradora del módulo. Aquí converge todo lo aprendido: Figma (U4), Layouts (U5) y el ecosistema Angular + Tailwind + Storybook (U9). Vamos a recorrer el flujo profesional completo: inspeccionar un diseño en Figma, extraer design tokens, configurar Tailwind @theme, organizar componentes con Atomic Design, implementarlos, documentarlos y construir pantallas completas. Pregunta: ¿quién tiene ya su entorno de la Unidad 9 funcionando?
 
 ---
 
@@ -632,6 +632,8 @@ Esta unidad resume todo el módulo. Si domináis estas 8 fases, podéis enfrenta
 
 <span class="fragment">📌 <mark>Evaluación</mark>: La Actividad 5 puede usarse como proyecto de evaluación final</span>
 
+<span class="fragment">📌 <mark>Unidad 16</mark>: Generación de Informes y Documentos — PDFMake, jsPDF, pdf-lib y exportación de datos</span>
+
 Note:
 Cinco actividades de dificultad creciente. La Actividad 3 es el flujo completo aplicado a una app pequeña (biblioteca personal). La Actividad 5 es el proyecto final del módulo: una app de gestión de proyectos tipo Jira con 15+ componentes, diseño responsive, drag & drop y despliegue. Planificad bien el tiempo.
 
@@ -645,12 +647,12 @@ Cinco actividades de dificultad creciente. La Actividad 3 es el flujo completo a
 
 <br>
 
-**¡Enhorabuena!** Habéis completado el módulo de Desarrollo de Interfaces 🎯
+**¡Enhorabuena!** Habéis completado la unidad integradora del módulo 🎯
 
 </div>
 
 Note:
-Última sesión del módulo. Resolved todas las dudas pendientes. La Actividad 5 (proyecto final) es vuestra oportunidad de demostrar todo lo aprendido. Poned especial atención a: fidelidad al diseño Figma, tipado TypeScript sin any, cobertura de estados (loading/empty/error), y documentación en Storybook. ¡Buen trabajo!
+Cerramos la unidad integradora del módulo. Resolved todas las dudas pendientes. La Actividad 5 es vuestra oportunidad de demostrar todo lo aprendido (puede usarse como proyecto de evaluación final). Poned especial atención a: fidelidad al diseño Figma, tipado TypeScript sin any, cobertura de estados (loading/empty/error), y documentación en Storybook. A continuación pasaremos a generación de informes (U16) y dashboards (U17), el bloque de escritorio con Electron (U20-U21) y el proyecto final GesFlow (U22). ¡Buen trabajo!
 
 ---
 

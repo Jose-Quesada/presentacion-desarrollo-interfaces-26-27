@@ -8,7 +8,7 @@ CFGS Desarrollo de Aplicaciones Multiplataforma (DAM)
 Curso 2025/2026
 
 Note:
-Bienvenidos a la unidad de Figma. Esta herramienta ha sustituido a Sketch y Adobe XD como el estándar de la industria. Vais a aprender a diseñar interfaces, crear sistemas de diseño y preparar handoff para desarrollo. Todo lo que diseñéis aquí lo implementaréis en Angular + Tailwind en las Unidades 4 y 5. Pregunta: ¿quién ha usado ya Figma aunque sea para abrir un archivo?
+Bienvenidos a la unidad de Figma. Esta herramienta ha sustituido a Sketch y Adobe XD como el estándar de la industria. Vais a aprender a diseñar interfaces, crear sistemas de diseño y preparar handoff para desarrollo. Todo lo que diseñéis aquí lo implementaréis en Angular + Tailwind en la Unidad 5 (layouts) y en la Unidad 15 (del diseño a la implementación). Pregunta: ¿quién ha usado ya Figma aunque sea para abrir un archivo?
 
 ---
 
@@ -336,7 +336,7 @@ Estos plugins aceleran el flujo de trabajo. Iconify es imprescindible para icono
 <span class="fragment">6. <mark>Combine as variants</mark> → Component Set completo</span>
 
 Note:
-Este es el "Hola Mundo" del diseño de componentes. Lo haremos juntos en el aula (50 min). El resultado: un component set profesional con 4 variantes × 3 tamaños × 5 estados = 60 combinaciones. Luego lo implementaremos en Angular + Tailwind en la Unidad 5. Pregunta: ¿qué atajo crea un componente? (Ctrl+Alt+K)
+Este es el "Hola Mundo" del diseño de componentes. Lo haremos juntos en el aula (50 min). El resultado: un component set profesional con 4 variantes × 3 tamaños × 5 estados = 60 combinaciones. Luego lo implementaremos en Angular + Tailwind en la Unidad 15. Pregunta: ¿qué atajo crea un componente? (Ctrl+Alt+K)
 
 ---
 
@@ -486,7 +486,7 @@ El error #1 es el más común entre principiantes: posicionar todo con X/Y absol
 <span class="fragment">✅ <mark>Handoff</mark>: proceso de entrega del diseño al desarrollo</span>
 
 Note:
-Resumen de las 6 competencias principales. En la Unidad 4 nos centraremos en layouts con Flexbox y Grid. En la Unidad 5 cerraremos el ciclo: tomaremos diseños de Figma y los implementaremos completamente en Angular + Tailwind + Storybook. Pregunta: ¿cuál de estas competencias os parece más útil como desarrolladores?
+Resumen de las 6 competencias principales. En la Unidad 5 nos centraremos en layouts con Flexbox y Grid. En la Unidad 15 cerraremos el ciclo: tomaremos diseños de Figma y los implementaremos completamente en Angular + Tailwind + Storybook. Pregunta: ¿cuál de estas competencias os parece más útil como desarrolladores?
 
 ---
 
@@ -498,12 +498,12 @@ Resumen de las 6 competencias principales. En la Unidad 4 nos centraremos en lay
 
 <span class="fragment">📌 <mark>Actividad 3</mark>: Sistema de Design Tokens completo con Light/Dark</span>
 
-<span class="fragment">📌 <mark>Unidad 4</mark>: Layouts modernos con Flexbox y CSS Grid en Tailwind</span>
+<span class="fragment">📌 <mark>Unidad 5</mark>: Layouts modernos con Flexbox y CSS Grid en Tailwind</span>
 
-<span class="fragment">📌 <mark>Unidad 5</mark>: Del diseño Figma a la implementación Angular completa</span>
+<span class="fragment">📌 <mark>Unidad 15</mark>: Del diseño Figma a la implementación Angular completa</span>
 
 Note:
-Tres actividades obligatorias para esta unidad. La Actividad 3 es la más importante: los tokens que defináis aquí serán los que uséis en la Unidad 5 para configurar Tailwind @theme. La Unidad 4 se centra en layouts (Flexbox y Grid con Tailwind). En la Unidad 5 juntaremos todo.
+Tres actividades obligatorias para esta unidad. La Actividad 3 es la más importante: los tokens que defináis aquí serán los que uséis en la Unidad 6 para configurar Tailwind @theme. La Unidad 5 se centra en layouts (Flexbox y Grid con Tailwind). En la Unidad 15 juntaremos todo.
 
 ---
 
@@ -515,12 +515,12 @@ Tres actividades obligatorias para esta unidad. La Actividad 3 es la más import
 
 <br>
 
-**Próxima sesión:** Unidad 4 · Layouts Modernos para Interfaces Web
+**Próxima sesión:** Unidad 5 · Layouts Modernos para Interfaces Web
 
 </div>
 
 Note:
-Recordad los 3 atajos clave: Shift+A (Auto Layout), Ctrl+Alt+K (Componente), Shift+D (Dev Mode). Son los que más usaréis. La Unidad 4 aplica todo lo aprendido sobre layouts: pasaremos de diseñarlos en Figma a implementarlos con Tailwind.
+Recordad los 3 atajos clave: Shift+A (Auto Layout), Ctrl+Alt+K (Componente), Shift+D (Dev Mode). Son los que más usaréis. La Unidad 5 aplica todo lo aprendido sobre layouts: pasaremos de diseñarlos en Figma a implementarlos con Tailwind.
 
 ---
 

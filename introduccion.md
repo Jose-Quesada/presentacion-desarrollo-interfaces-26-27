@@ -757,7 +757,7 @@ Esto es una demo rápida del modelo de reactividad que usaremos en Angular. Sign
 </span>
 
 Note:
-`computed()` es magia pura: definís una relación y Angular se encarga de mantenerla actualizada. En la unidad 6 profundizaremos en esto.
+`computed()` es magia pura: definís una relación y Angular se encarga de mantenerla actualizada. En la unidad 10 (arquitectura Angular) profundizaremos en esto.
 
 ---
 
@@ -864,7 +864,7 @@ Estos 6 conceptos resumen la unidad. Si os lleváis solo una idea hoy, que sea e
 <div style="font-size: 1.5rem; margin-top: 2rem;">
 
 Desarrollo de Interfaces · Unidad 1  
-<small>0488 · DAM · Curso 2025/2026</small>
+<small>0488 · DAM</small>
 
 </div>
 

@@ -755,7 +755,7 @@ Note:
 
 ## 🚀 Próximos Pasos
 
-**Unidad 15: Responsive Design en Aplicaciones Angular**
+**Unidad 8: Responsive Design en Aplicaciones Angular**
 
 - Mobile First aplicado a apps de gestión
 - Breakpoints de Tailwind con visualización gráfica
@@ -770,4 +770,4 @@ Note:
 - Comparar vuestro código con Tailwind UI (referencia profesional)
 
 Note:
-La unidad 15 cierra el círculo: ahora que sabemos construir componentes, vamos a hacer que funcionen en cualquier dispositivo. Mobile-first desde el principio. Veremos cómo la sidebar se transforma entre móvil, tablet y desktop, y cómo usar `BreakpointObserver` cuando necesitamos lógica TypeScript condicionada por el tamaño de pantalla.
+La unidad 8 cierra el círculo: ahora que sabemos construir componentes, vamos a hacer que funcionen en cualquier dispositivo. Mobile-first desde el principio. Veremos cómo la sidebar se transforma entre móvil, tablet y desktop, y cómo usar `BreakpointObserver` cuando necesitamos lógica TypeScript condicionada por el tamaño de pantalla.

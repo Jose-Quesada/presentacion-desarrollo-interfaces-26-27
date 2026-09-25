@@ -31,6 +31,9 @@ Estos 6 objetivos son el esqueleto de la unidad. El más importante es el primer
 
 ## 🤔 Motivación: ¿Por qué UX?
 
+
+<div style="font-size: 1.5rem; line-height: 1.4; text-align: left;">
+
 | Sin UX | Con UX |
 |--------|--------|
 | ❌ "A mí me gusta así" | ✅ Decisión basada en evidencia |
@@ -39,6 +42,7 @@ Estos 6 objetivos son el esqueleto de la unidad. El más importante es el primer
 | ❌ Rediseños constantes | ✅ Iteraciones informadas |
 
 <mark>El coste de arreglar un problema de UX tras el lanzamiento es 10x mayor que durante el diseño</mark>
+</div>
 
 Note:
 Este cuadro resume por qué la UX no es opcional. Un dato: según el informe de Nielsen Norman Group, el coste de corregir un problema de usabilidad en producción es 10 veces superior a corregirlo en fase de diseño. En aplicaciones de gestión, cada minuto de confusión del administrativo es dinero perdido para la empresa. Pregunta al aula: ¿habéis tenido que corregir algo ya desplegado que era confuso? ¿Cuánto costó?
@@ -147,6 +151,23 @@ Sin feedback, el usuario hace doble clic y genera registros duplicados. Es uno d
 
 ---
 
+## ① Visibilidad del Estado del Sistema
+
+<mark>La interfaz debe informar qué está ocurriendo en cada momento</mark>
+
+<div class="fragment">
+<img src="./img/01/visibilidad.webp" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">en todo momento el usuario está informado del proceso de subida de cada uno de los archivos</p>
+</div>
+
+
+
+
+Note:
+Sin feedback, el usuario hace doble clic y genera registros duplicados. Es uno de los bugs más comunes en aplicaciones de gestión. La solución es sencilla: loading state + disable button + toast de confirmación. En Angular 17+ con señales, `isLoading()` se actualiza automáticamente y la UI reacciona. Pregunta: ¿qué aplicación usáis que no muestra feedback al guardar? ¿Qué hacéis vosotros cuando no veis respuesta?
+
+---
+
 ## ② Relación Sistema-Mundo Real
 
 
@@ -168,6 +189,22 @@ El error "foreign key constraint" es real: lo he visto en aplicaciones de gesti�
 
 ---
 
+## ② Relación Sistema-Mundo Real
+
+
+
+<mark>Habla el idioma del usuario, no jerga técnica</mark>
+
+<div class="fragment">
+<img src="./img/01/relación-sistema-mundo-real.webp" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">la app de brújula de iOS está diseñada para parecerse a una brújula de verdad. De esta manera el usuario puede aplicar lo que ya sabe por su experiencia en el mundo real sobre cómo funciona el objeto y no tiene que aprender algo nuevo antes de usarla</p>
+</div>
+Note:
+El error "foreign key constraint" es real: lo he visto en aplicaciones de gestión. La administrativa no sabe qué es una foreign key ni debería saberlo. Nuestra responsabilidad es traducir los errores técnicos a mensajes accionables. Regla práctica: leed cada texto de la interfaz y preguntad "¿mi madre entendería esto?". Si la respuesta es no, reescribidlo.
+
+
+---
+
 ## ③ Control y Libertad del Usuario
 
 <mark>Proporciona salidas de emergencia claras</mark>
@@ -180,6 +217,21 @@ El error "foreign key constraint" es real: lo he visto en aplicaciones de gesti�
 
 Note:
 La heurística 3 es la "salida de emergencia". En Angular, los guardias `canDeactivate` son perfectos para preguntar "¿Descartar cambios?" al abandonar un formulario. Las acciones destructivas deben ser reversibles siempre que sea posible. Gmail es el ejemplo canónico: "eliminar" es archivar, y tienes unos segundos para deshacer. Pregunta: ¿qué aplicación usáis que NO tiene botón de cancelar o atrás?
+
+---
+
+## ③ Control y Libertad del Usuario
+
+<mark>Proporciona salidas de emergencia claras</mark>
+
+<div class="fragment">
+<img src="./img/01/control-libertad.webp" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">el usuario cuenta con la opción para poder deshacer el paso que acaba de realizar</p>
+</div>
+
+Note:
+La heurística 3 es la "salida de emergencia". En Angular, los guardias `canDeactivate` son perfectos para preguntar "¿Descartar cambios?" al abandonar un formulario. Las acciones destructivas deben ser reversibles siempre que sea posible. Gmail es el ejemplo canónico: "eliminar" es archivar, y tienes unos segundos para deshacer. Pregunta: ¿qué aplicación usáis que NO tiene botón de cancelar o atrás?
+
 
 ---
 
@@ -199,7 +251,22 @@ export class ButtonComponent {
 ```
 
 Note:
-La consistencia reduce carga cognitiva. Si el usuario aprende que el botón azul guarda, espera que todos los botones azules guarden. En Tailwind + Angular, la solución es un Design System de componentes: un solo componente Button con variantes. No 7 botones diferentes implementados por 7 desarrolladores. Esto es lo que veremos en la unidad 14.
+La consistencia reduce carga cognitiva. Si el usuario aprende que el botón azul guarda, espera que todos los botones azules guarden. En Tailwind + Angular, la solución es un Design System de componentes: un solo componente Button con variantes. No 7 botones diferentes implementados por 7 desarrolladores. Esto es lo que veremos en la unidad 13.
+
+
+---
+
+## ④ Consistencia y Estándares
+
+<div class="fragment">
+<img src="./img/01/consistencia-estandares.png" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">El icono de la lupa y del menú, por ejemplo, son (casi) universalmente reconocidos y no tendría sentido usar otros que los usuarios no entenderían.</p>
+</div>
+
+Note:
+La consistencia reduce carga cognitiva. Si el usuario aprende que el botón azul guarda, espera que todos los botones azules guarden. En Tailwind + Angular, la solución es un Design System de componentes: un solo componente Button con variantes. No 7 botones diferentes implementados por 7 desarrolladores. Esto es lo que veremos en la unidad 13.
+
+
 
 ---
 
@@ -212,6 +279,20 @@ La consistencia reduce carga cognitiva. Si el usuario aprende que el botón azul
 - **Input masks** para DNI, IBAN, teléfono
 - **Select** en lugar de input cuando el dominio es finito
 - Confirmar solo acciones <mark>irreversibles</mark>
+
+Note:
+"Prevention over cure". Angular Reactive Forms con validadores que se ejecutan en blur y deshabilitan el submit es la implementación canónica. Las máscaras de input (ngx-mask) evitan que el usuario pueda teclear un DNI con formato incorrecto. Cuidado con abusar de los diálogos de confirmación: fatiga de confirmación = el usuario hace clic en "Sí" sin leer.
+
+---
+
+## ⑤ Prevención de Errores
+
+<mark>Mejor que un buen mensaje de error es evitar que ocurra</mark>
+
+<div class="fragment">
+<img src="./img/01/prevención-errores.png" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">La pantalla de selección de destinos de Ryanair no permite a los usuarios seleccionar un país al que no se pueda volar desde el origen seleccionado.</p>
+</div>
 
 Note:
 "Prevention over cure". Angular Reactive Forms con validadores que se ejecutan en blur y deshabilitan el submit es la implementación canónica. Las máscaras de input (ngx-mask) evitan que el usuario pueda teclear un DNI con formato incorrecto. Cuidado con abusar de los diálogos de confirmación: fatiga de confirmación = el usuario hace clic en "Sí" sin leer.
@@ -233,6 +314,21 @@ La memoria de trabajo humana es limitada (7±2 elementos). Cada cosa que obligam
 
 ---
 
+## ⑥ Reconocimiento antes que Recuerdo
+
+<mark>Minimiza la carga de memoria del usuario</mark>
+
+<div class="fragment">
+<img src="./img/01/reconocimiento.png" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">El listado de álbumes de Spotify enseña también la miniatura de la portada para que sea más fácil reconocer los discos y uno no tenga que leer los títulos cada vez que quiere escuchar algo.</p>
+</div>
+
+Note:
+La memoria de trabajo humana es limitada (7±2 elementos). Cada cosa que obligamos al usuario a recordar es una oportunidad de error. En Angular, un servicio de historial con localStorage permite persistir búsquedas recientes. Los placeholders NO sustituyen labels: desaparecen al escribir y el usuario pierde la referencia. Pregunta: ¿qué aplicación os hace recordar cosas que debería mostrar?
+
+---
+
+
 ## ⑦ Flexibilidad y Eficiencia de Uso
 
 Dos perfiles: <mark>novato</mark> (menús visibles) y <mark>experto</mark> (atajos)
@@ -241,6 +337,21 @@ Dos perfiles: <mark>novato</mark> (menús visibles) y <mark>experto</mark> (ataj
 - **Personalización**: columnas visibles, orden del menú, tamaño de fuente
 - **Acciones por lotes**: selección múltiple + operación masiva
 - **Plantillas guardadas** para formularios recurrentes
+
+Note:
+La misma app sirve al becario que acaba de llegar y al administrativo que lleva 15 años. El experto necesita atajos; el novato necesita guía visual. Angular CDK proporciona utilidades de teclado. En aplicaciones de gestión, los atajos multiplican la productividad. Ejemplo: un administrativo procesa 200 facturas al día. Si cada atajo ahorra 1 segundo, son 3 minutos al día, 1 hora al mes.
+
+---
+
+
+## ⑦ Flexibilidad y Eficiencia de Uso
+
+Dos perfiles: <mark>novato</mark> (menús visibles) y <mark>experto</mark> (atajos)
+
+<div class="fragment">
+<img src="./img/01/flexibilidad-eficiencia.webp" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">Los muchos filtros de Amazon son un buen ejemplo de este heurístico. Los usuarios pueden encontrar el producto que desean de muchas maneras distintas según sus necesidades, sus prioridades y su manera de navegar.</p>
+</div>
 
 Note:
 La misma app sirve al becario que acaba de llegar y al administrativo que lleva 15 años. El experto necesita atajos; el novato necesita guía visual. Angular CDK proporciona utilidades de teclado. En aplicaciones de gestión, los atajos multiplican la productividad. Ejemplo: un administrativo procesa 200 facturas al día. Si cada atajo ahorra 1 segundo, son 3 minutos al día, 1 hora al mes.
@@ -261,6 +372,21 @@ Note:
 El minimalismo no es quitar funcionalidad, es priorizarla. En Tailwind: un uso generoso de padding y gap, jerarquía tipográfica clara con un solo título grande, colores sobrios para el cromo de la interfaz y colores intensos solo para acciones y alertas. El error del novato: rellenar cada píxel con información. El espacio en blanco no está vacío: guía la mirada.
 
 ---
+
+## ⑧ Diseño Estético y Minimalista
+
+<mark>Cada elemento extra compite por la atención</mark>
+
+<div class="fragment">
+<img src="./img/01/estético-minimalista.png" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">En la versión de Google Maps de la imagen de arriba podemos ver cómo las distintas opciones de la app están o ocultas en los menús o en áreas menos visibles de la interfaz. La gran mayoría del espacio está ocupado por el mapa, que es el elemento que realmente importa. Versiones sucesivas han ido añadiendo más elementos, haciendo la interfaz un poco más compleja, probablemente debido al hecho que el uso que hacen los usuarios de Maps ha ido evolucionado con el tiempo.</p>
+</div>
+
+Note:
+El minimalismo no es quitar funcionalidad, es priorizarla. En Tailwind: un uso generoso de padding y gap, jerarquía tipográfica clara con un solo título grande, colores sobrios para el cromo de la interfaz y colores intensos solo para acciones y alertas. El error del novato: rellenar cada píxel con información. El espacio en blanco no está vacío: guía la mirada.
+
+---
+
 
 ## ⑨ Ayudar a Reconocer Errores
 
@@ -287,6 +413,20 @@ Tres partes del buen mensaje de error: qué pasó, por qué pasó, qué hacer. E
 
 ---
 
+## ⑨ Ayudar a Reconocer Errores
+
+<mark>Error en lenguaje llano + causa + solución</mark>
+
+<div class="fragment">
+<img src="./img/01/reconocer-diagnosticar.webp" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">Los mensajes de error tienen que indicar claramente los errores, sus causas y cómo subsanarlos. Mensajes específicos como “Insertar una contraseña de por lo menos 8 caracteres” son siempre preferibles que mensajes genéricos como “contraseña no válida” En la imagen de la derecha, el sistema no se limita a indicar que los servicios de localización están desactivados, sino también enseña un acceso directo para activarlos.</p>
+</div>
+Note:
+Tres partes del buen mensaje de error: qué pasó, por qué pasó, qué hacer. En Angular, los mensajes de error deben estar asociados al campo con `aria-describedby`. El mensaje aparece junto al campo, en tiempo real (al perder el foco), no en un listado genérico al final del formulario. Esto es tanto UX como accesibilidad (WCAG 3.3.1 y 3.3.3).
+
+---
+
+
 ## ⑩ Ayuda y Documentación
 
 <mark>Ideal: que no se necesite. Realista: que esté a mano</mark>
@@ -299,6 +439,36 @@ Tres partes del buen mensaje de error: qué pasó, por qué pasó, qué hacer. E
 
 Note:
 La ayuda ideal es la que no se necesita porque la interfaz es clara. En sistemas complejos (ERP, software médico), cierta ayuda es inevitable. La clave: que esté donde el usuario la necesita, no en un manual PDF de 300 páginas. Angular CDK proporciona tooltips accesibles. Ejemplo: junto a "Tipo de IVA" un icono ℹ️ con tooltip explicando cada opción.
+
+---
+
+## ⑩ Ayuda y Documentación
+
+<mark>Ideal: que no se necesite. Realista: que esté a mano</mark>
+
+<div class="fragment">
+<img src="./img/01/ayuda-documentacion.webp" alt="CLI" style="max-width: 100%; max-height: 25vh; object-fit: contain; border-radius: 8px;">
+<p class="mini">La app de AirBnB pone a disposición de los usuarios distintas opciones de ayuda y contacto.</p>
+</div>
+
+Note:
+La ayuda ideal es la que no se necesita porque la interfaz es clara. En sistemas complejos (ERP, software médico), cierta ayuda es inevitable. La clave: que esté donde el usuario la necesita, no en un manual PDF de 300 páginas. Angular CDK proporciona tooltips accesibles. Ejemplo: junto a "Tipo de IVA" un icono ℹ️ con tooltip explicando cada opción.
+
+---
+
+## 🎨 Leyes de Gestalt Aplicadas a Interfaces
+
+<div class="fragment">
+<img src="./img/01/gestalt.png" alt="CLI" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px;">
+</div>
+
+---
+
+## 🎨 Leyes de Gestalt Aplicadas a Interfaces
+
+<div class="fragment">
+<img src="./img/01/leyes-gestalt.webp" alt="CLI" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px;">
+</div>
 
 ---
 
@@ -318,18 +488,87 @@ graph LR
 Note:
 Las leyes de Gestalt explican cómo percibimos patrones. Proximidad: los campos de una misma sección deben estar juntos y separados de otras secciones. Similitud: todos los botones de acción secundaria deben verse igual. Cierre: un icono de lupa no necesita ser una lupa completa, el cerebro completa la forma. Figura-fondo: por eso los modales funcionan con overlay oscuro.
 
+
 ---
 
-## 🎨 Leyes de Gestalt Aplicadas a Interfaces
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
 
-<div class="fragment">
-<img src="./img/01/teoria-de-la-gestalt-psicologia-percepcion-visual-01.png" alt="TUI" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px;">
+<div style="text-align: left;">
+
+1. **¿Qué es?**
+- Representación visual de la secuencia de pasos para completar una tarea en la app
+- Ahorra días de desarrollo y rediseño (1 hora en pizarra = días de trabajo evitados)
+
+</div>
+---
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div style="text-align: left;">
+
+2. **¿Qué debe documentar cada flujo?**
+- **Happy path**: camino ideal donde todo sale bien
+- **Edge cases**: situaciones límite o poco frecuentes
+- **Estados de error**: qué ocurre cuando algo falla
 </div>
 
-Note:
-Las leyes de Gestalt explican cómo percibimos patrones. Proximidad: los campos de una misma sección deben estar juntos y separados de otras secciones. Similitud: todos los botones de acción secundaria deben verse igual. Cierre: un icono de lupa no necesita ser una lupa completa, el cerebro completa la forma. Figura-fondo: por eso los modales funcionan con overlay oscuro.
+---
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div style="text-align: left;">
+
+3. **Ejemplos clave**
+- **Registro**: bienvenida → formulario → validación → envío → confirmación/verificación por email → acceso
+    - Edge: email duplicado, usuario no disponible, servidor caído, email caducado
+</div>
 
 ---
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div style="text-align: left;">
+
+3. **Ejemplos clave**
+- **Compra e-commerce**: búsqueda → detalle → carrito → envío → pago → confirmación → número de pedido
+    - Edge: producto agotado, error de pago, sesión expirada, descuento vencido
+</div>
+---
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div style="text-align: left;">
+
+3. **Ejemplos clave**
+
+- **Recuperar contraseña**: login → solicitar email → enlace temporal → nueva contraseña → login
+    - Edge: email no registrado, enlace/token expirado, contraseña igual a la anterior
+</div>
+
+---
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div style="text-align: left;">
+
+4. **Herramientas**
+- Pizarra con cajas y flechas, hoja de cálculo, Draw.io o Miro (gratuitas)
+- No se necesitan herramientas sofisticadas
+</div>
+
+---
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div style="text-align: left;">
+
+5. **Clave final**
+- El valor está en el **razonamiento sistemático** de todos los caminos posibles **antes de escribir código**
+- En equipos ágiles: se integran a las historias de usuario y se revisan en la planificación del sprint
+</div>
+
+---
+
 
 ## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
 
@@ -351,6 +590,95 @@ Todo flujo debe documentar: happy path (verde), edge cases (amarillo) y estados 
 
 ---
 
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div class="fragment">
+<img src="./img/01/Sign_Up_User_Flow.svg" alt="CLI" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px;">
+</div>
+
+---
+
+
+## 🗺️ Flujos de Usuario: Happy Path + Edge Cases
+
+<div class="fragment">
+<img src="./img/01/Email_Sign_Up_User_Flow.svg" alt="CLI" style="max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px;">
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+<div style="text-align: left;">
+
+1. **¿Qué es?**
+- Disciplina de redactar los textos de la interfaz: botones, errores, ayuda, estados vacíos, placeholders, notificaciones
+- Textos pequeños (microcopy) con impacto enorme en la experiencia
+- Un texto confuso = abandono; un error claro = evita llamadas al soporte
+
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+<div style="text-align: left; font-size: 2rem;">
+
+2. **Botones**
+- Verbos de acción claros y específicos: **verbo** + **objeto**, en imperativo
+- "Guardar" > "OK/Aceptar"; "Enviar solicitud" > "Enviar"; "Añadir al carrito" > "Comprar"
+- Sin signos de exclamación ni ambigüedades
+- Acciones destructivas: verbo completo ("Eliminar cliente") + confirmación que reitera la acción con nombre concreto y opción clara ("Sí, eliminar" / "Cancelar")
+
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+<div style="text-align: left;">
+
+3. **Mensajes de error** (clave en software empresarial)
+- Estructura de 3 partes: **qué ocurrió** (lenguaje llano) + **por qué** + **qué puede hacer**
+- ❌ "Error de validación: el campo 'cif' no cumple el patrón"
+- ✅ "El CIF no es válido. Debe empezar por una letra y 7-8 dígitos. Revisa el formato e inténtalo de nuevo"
+
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+<div style="text-align: left;">
+
+4. **Estados vacíos** (nunca pantallas en blanco)
+- Causa confusión: ¿roto? ¿cargando? ¿sin datos?
+- 3 elementos: **título** ("Aún no tienes clientes") + **descripción** ("Crea tu primer cliente para facturar") + **CTA** ("Crear primer cliente")
+- Icono o ilustración amable
+
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+<div style="text-align: left;">
+
+5. **Placeholders vs etiquetas**
+- Toda etiqueta debe ser **visible** (el placeholder desaparece al escribir)
+- El placeholder solo para ejemplos/aclaraciones: etiqueta "Teléfono" + placeholder "Ej: 954 123 456"
+
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+<div style="text-align: left;">
+
+6. **Tono**
+- Humano, directo y adaptado al contexto (empresarial: profesional y cálido; consumo: más informal)
+- Nunca: robótico, paternalista, culpabilizador ni humorístico en errores
+
+</div>
+
+---
+
 ## ✍️ UX Writing: Microcopy Efectivo
 
 **Botones**: Verbo + objeto, imperativo, sin exclamaciones
@@ -361,22 +689,190 @@ Todo flujo debe documentar: happy path (verde), edge cases (amarillo) y estados 
 | "Enviar" | "Enviar solicitud" |
 | "Eliminar" | "Eliminar cliente" |
 
-**Mensajes de error**: <mark>Qué pasó + por qué + qué hacer</mark>
-
-**Estados vacíos**: Título descriptivo + explicación + CTA
-
-```
-📭 Aún no tienes clientes
-Crea tu primer cliente para empezar a facturar
-[➕ Crear primer cliente]
-```
 
 Note:
 El microcopy es pequeño en tamaño, enorme en impacto. Un botón "OK" no dice qué va a pasar. "Guardar cliente" sí. Los estados vacíos son el patrón más olvidado: si no hay datos, el usuario piensa que la app está rota. Decidle siempre que es normal y guiadle al siguiente paso. El tono: profesional pero humano, nunca robótico ni culpabilizador ("Has introducido mal la contraseña" → "La contraseña no coincide").
 
 ---
 
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+**Mensajes de error**: <mark>Qué pasó + por qué + qué hacer</mark>
+
+**Estados vacíos**: Título descriptivo + explicación + CTA
+
+
+Note:
+El microcopy es pequeño en tamaño, enorme en impacto. Un botón "OK" no dice qué va a pasar. "Guardar cliente" sí. Los estados vacíos son el patrón más olvidado: si no hay datos, el usuario piensa que la app está rota. Decidle siempre que es normal y guiadle al siguiente paso. El tono: profesional pero humano, nunca robótico ni culpabilizador ("Has introducido mal la contraseña" → "La contraseña no coincide").
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-se-especifico.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*Transmite un mensaje de manera eficaz utilizando la menor cantidad de palabras posible*
+</div>
+
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-evita-tecnicismos.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*Asegúrate de que tus textos están **orientados a los usuarios, no a los desarrolladores***
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-numeros-vs-palabras.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*Utiliza números para cantidades y fechas para que la información sea más fácil de entender y recordar.*
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-tono-positivo.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*Evita utilizar palabras negativas que puedan desalentar o confundir.*
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-voz-activa.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*El uso de la voz activa hace que la **comunicación sea más directa y natural***
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-añade-detalles.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*Proporciona la mayor cantidad de información posible sin abrumar al usuario.*
+</div>
+
+---
+
+## ✍️ UX Writing: Microcopy Efectivo
+
+
+<div class="fragment" style="font-size: 1.5rem">
+<img src="./img/01/ux-writing-evita-bromas.png" alt="CLI" style="max-width: 100%; max-height: 35vh; object-fit: contain; border-radius: 8px;">
+
+*El humor es subjetivo y puede no ser adecuado para todos los contextos*
+</div>
+
+---
+
 ## 🧪 Validación de UX sin ser Diseñador
+
+<div style="text-align: left; font-size: 2rem;">
+
+1. Idea principal
+
+   - Técnicas ligeras, rápidas y factibles en el ritmo de desarrollo
+   - No sustituye la investigación de UX profesional: añade una capa básica de validación que mejora la interfaz incrementalmente
+
+</div>
+
+Note:
+No necesitáis laboratorios ni eye-trackers. Con 5 compañeros, 5 minutos cada uno y una libreta de anotaciones, detectáis la mayoría de problemas. Regla de oro del test de pasillo: observar en silencio. Si el usuario pregunta "¿cómo se hace?", responded "¿dónde buscarías?". Microsoft Clarity es gratis e ilimitado: instaladlo desde el día 1.
+
+---
+
+## 🧪 Validación de UX sin ser Diseñador
+
+<div style="text-align: left; font-size: 2rem;"> 
+
+2. Test de usabilidad de pasillo (guerrilla testing)
+
+   - Pide a compañeros (que no conozcan el proyecto) que **realicen una tarea**, observando en silencio
+   - Sin laboratorios ni eye-trackers: portátil + 5 minutos + libreta
+   - 5 tests descubren la mayoría de problemas graves
+   - Clave: no ayudar → responder con "¿qué esperarías que ocurriera?" / "¿dónde buscarías esa opción?"
+
+</div>
+
+Note:
+No necesitáis laboratorios ni eye-trackers. Con 5 compañeros, 5 minutos cada uno y una libreta de anotaciones, detectáis la mayoría de problemas. Regla de oro del test de pasillo: observar en silencio. Si el usuario pregunta "¿cómo se hace?", responded "¿dónde buscarías?". Microsoft Clarity es gratis e ilimitado: instaladlo desde el día 1.
+
+---
+
+## 🧪 Validación de UX sin ser Diseñador
+
+<div style="text-align: left; font-size: 2rem;"> 
+
+3. Evaluación heurística
+
+   - Contrastar la interfaz con las **10 heurísticas de Nielsen**
+   - En equipo: revisión independiente de pantallas → anotar violaciones con gravedad 0-4 → consensuar y priorizar
+   - Para una app mediana: **una mañana** de trabajo → decenas de mejoras
+
+</div>
+
+Note:
+No necesitáis laboratorios ni eye-trackers. Con 5 compañeros, 5 minutos cada uno y una libreta de anotaciones, detectáis la mayoría de problemas. Regla de oro del test de pasillo: observar en silencio. Si el usuario pregunta "¿cómo se hace?", responded "¿dónde buscarías?". Microsoft Clarity es gratis e ilimitado: instaladlo desde el día 1.
+
+---
+
+## 🧪 Validación de UX sin ser Diseñador
+
+<div style="text-align: left; font-size: 2rem;"> 
+
+4. Dogfooding ("comer tu propia comida")
+
+   - El equipo **usa la app para sus tareas diarias** (gestor de tareas → gestionar el proyecto; tickets → soporte interno)
+   - Los problemas teóricos se vuelven **frustraciones diarias** → motivación inmediata para corregirlos
+
+</div>
+
+Note:
+No necesitáis laboratorios ni eye-trackers. Con 5 compañeros, 5 minutos cada uno y una libreta de anotaciones, detectáis la mayoría de problemas. Regla de oro del test de pasillo: observar en silencio. Si el usuario pregunta "¿cómo se hace?", responded "¿dónde buscarías?". Microsoft Clarity es gratis e ilimitado: instaladlo desde el día 1.
+
+---
+
+## 🧪 Validación de UX sin ser Diseñador
+
+<div style="text-align: left; font-size: 2rem;"> 
+
+5. Analytics y mapas de calor
+
+   - Microsoft Clarity (gratuito) o Hotjar: datos de uso reales
+   - Mapas de calor (clics, scroll, atención) + grabaciones de sesiones anónimas
+   - Revelan lo que los tests no ven: botones nunca usados, formularios abandonados, flujos alternativos improvisados 
+
+</div>
+
+Note:
+No necesitáis laboratorios ni eye-trackers. Con 5 compañeros, 5 minutos cada uno y una libreta de anotaciones, detectáis la mayoría de problemas. Regla de oro del test de pasillo: observar en silencio. Si el usuario pregunta "¿cómo se hace?", responded "¿dónde buscarías?". Microsoft Clarity es gratis e ilimitado: instaladlo desde el día 1.
+
+---
+
+## 🧪 Validación de UX sin ser Diseñador
+
+<div style="font-size: 0.75em">
 
 | Técnica | Esfuerzo | Descripción |
 |---------|----------|-------------|
@@ -386,6 +882,10 @@ El microcopy es pequeño en tamaño, enorme en impacto. Un botón "OK" no dice q
 | **Microsoft Clarity** | Gratis | Mapas de calor y grabaciones |
 
 <mark>5 tests de pasillo revelan ~85% de problemas graves de usabilidad</mark>
+
+</div>
+
+
 
 Note:
 No necesitáis laboratorios ni eye-trackers. Con 5 compañeros, 5 minutos cada uno y una libreta de anotaciones, detectáis la mayoría de problemas. Regla de oro del test de pasillo: observar en silencio. Si el usuario pregunta "¿cómo se hace?", responded "¿dónde buscarías?". Microsoft Clarity es gratis e ilimitado: instaladlo desde el día 1.
@@ -476,7 +976,7 @@ Resumen rápido de los 6 bloques. Si solo os lleváis una cosa de esta unidad: p
 
 ## 🚀 Próximos Pasos
 
-**Unidad 12: Accesibilidad Web (WCAG)**
+**Unidad 2: Accesibilidad Web (WCAG)**
 
 - Principios POUR: Perceptible, Operable, Comprensible, Robusto
 - ARIA: cuándo usarlo y cuándo no

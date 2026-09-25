@@ -9,7 +9,7 @@
 #### Smart Components, Standalone y Señales
 
 Note:
-Bienvenidos a la Unidad 6. Hoy vamos a abordar cómo estructurar aplicaciones Angular profesionales usando patrones arquitectónicos modernos. Vamos a ver Standalone Components, el patrón Smart vs Presentational, Signals, y comunicación entre componentes. Todo orientado a construir interfaces escalables y mantenibles.
+Bienvenidos a la Unidad 10. Hoy vamos a abordar cómo estructurar aplicaciones Angular profesionales usando patrones arquitectónicos modernos. Vamos a ver Standalone Components, el patrón Smart vs Presentational, Signals, y comunicación entre componentes. Todo orientado a construir interfaces escalables y mantenibles.
 
 ---
 
@@ -828,7 +828,7 @@ Hemos cubierto: Standalone Components como base, patrón Smart/Presentational pa
 
 ## Próximos pasos
 
-### Unidad 07 — Componentes Reutilizables
+### Unidad 11 — Componentes Reutilizables
 
 - Catálogo de 14 componentes UI <!-- .element: class="fragment" -->
 - Proyección de contenido con ng-content <!-- .element: class="fragment" -->

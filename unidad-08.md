@@ -8,7 +8,7 @@ Mobile First · Breakpoints Tailwind · BreakpointObserver · Dashboard Responsi
 <small>CFGS DAM · Curso 2025/26</small>
 
 Note:
-Última unidad del bloque de interfaces. Vamos a unir todo lo aprendido (UX, accesibilidad, Tailwind, componentes) y hacer que funcione en cualquier dispositivo. Del móvil al monitor 4K, pasando por tablet y ventanas de Electron. Pregunta: ¿quién ha probado su app en un móvil real?
+Cerramos el bloque de diseño y estilos. Vamos a unir todo lo aprendido (UX, accesibilidad, Tailwind, componentes) y hacer que funcione en cualquier dispositivo. Del móvil al monitor 4K, pasando por tablet y ventanas de Electron. Pregunta: ¿quién ha probado su app en un móvil real?
 
 ---
 
@@ -659,11 +659,12 @@ Hemos cubierto el responsive design desde los fundamentos (Mobile First) hasta l
 
 ## 🚀 Próximos Pasos
 
-**Fin del bloque de interfaces. Siguientes módulos:**
+**Unidad 9: Ecosistema Frontend**
 
-- **Programación de servicios y procesos** (backend con Java/Spring)
-- **Sistemas de gestión empresarial** (ERP, CRM)
-- **Proyecto integrador**: Aplicación completa con frontend Angular + Tailwind + backend
+- Entorno profesional: Node.js, npm, Angular CLI, ESLint y Prettier
+- TypeScript con tipado estático (interfaces, genéricos) en componentes Angular
+- Tailwind CSS 4 (utility-first + `@theme`) y Figma para el handoff diseño-desarrollo
+- Storybook para documentar componentes y Git/GitHub para control de versiones
 
 **Para profundizar en responsive**:
 - Instalar Responsively App (ver la app en 5 viewports a la vez)
@@ -671,4 +672,4 @@ Hemos cubierto el responsive design desde los fundamentos (Mobile First) hasta l
 - Explorar Container Queries (más allá de media queries de viewport)
 
 Note:
-Con esta unidad cerramos el bloque de desarrollo de interfaces. Ahora tenéis las herramientas para construir aplicaciones Angular profesionales: UX (unidad 11), accesibilidad (12), Tailwind (13), componentes (14) y responsive (15). El proyecto integrador del módulo pondrá todo esto en práctica. Pregunta final: ¿qué parte del desarrollo de interfaces os gustaría profundizar más?
+Con esta unidad cerramos el bloque de desarrollo de interfaces. Ahora tenéis las herramientas para construir aplicaciones Angular profesionales: UX (U1), accesibilidad (U2), Tailwind (U6), componentes (U7) y responsive (U8). El proyecto integrador del módulo pondrá todo esto en práctica. Pregunta final: ¿qué parte del desarrollo de interfaces os gustaría profundizar más?

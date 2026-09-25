@@ -590,7 +590,7 @@ Actividad práctica de debugging. Los overlays de Flexbox y Grid en Chrome DevTo
 **Duración:** 30 minutos
 
 Note:
-Esta actividad conecta directamente con las Unidades 3 y 5. Usáis la tabla de equivalencias Figma ↔ Tailwind para traducir diseños a código. Recordad: Auto Layout horizontal = flex-row, Auto Layout vertical = flex-col, gap = gap-{n}, padding = p-{n}. Pregunta: ¿cómo traduciríais un Auto Layout con space-between? (justify-between)
+Esta actividad conecta directamente con las Unidades 4 (Figma) y 15 (del diseño a la implementación). Usáis la tabla de equivalencias Figma ↔ Tailwind para traducir diseños a código. Recordad: Auto Layout horizontal = flex-row, Auto Layout vertical = flex-col, gap = gap-{n}, padding = p-{n}. Pregunta: ¿cómo traduciríais un Auto Layout con space-between? (justify-between)
 
 ---
 
@@ -647,7 +647,7 @@ El error #1 es el más común entre principiantes: `flex` solo (sin `flex-col`) 
 <span class="fragment">✅ <mark>4 layouts completos</mark>: Dashboard, SaaS, Ecommerce, Chat</span>
 
 Note:
-Resumen de las 6 competencias. Ahora tenéis las herramientas para implementar cualquier diseño de Figma como layout funcional. En la Unidad 5 usaremos estos layouts como base para construir aplicaciones completas con componentes Angular. Pregunta: ¿cuál de los 4 layouts os ha parecido más útil?
+Resumen de las 6 competencias. Ahora tenéis las herramientas para implementar cualquier diseño de Figma como layout funcional. En la Unidad 15 usaremos estos layouts como base para construir aplicaciones completas con componentes Angular. Pregunta: ¿cuál de los 4 layouts os ha parecido más útil?
 
 ---
 
@@ -661,10 +661,10 @@ Resumen de las 6 competencias. Ahora tenéis las herramientas para implementar c
 
 <span class="fragment">📌 <mark>Actividad 4</mark>: App de chat completa con 3 paneles y Signals</span>
 
-<span class="fragment">📌 <mark>Unidad 5</mark>: Del diseño Figma a la implementación Angular completa</span>
+<span class="fragment">📌 <mark>Unidad 15</mark>: Del diseño Figma a la implementación Angular completa</span>
 
 Note:
-Cuatro actividades obligatorias. La Actividad 4 (chat completo) es la más completa: integra layouts, componentes y Signals. La Unidad 5 es la culminación del módulo: tomaremos diseños de Figma y los implementaremos completamente con todo lo aprendido.
+Cuatro actividades obligatorias. La Actividad 4 (chat completo) es la más completa: integra layouts, componentes y Signals. La Unidad 15 es la culminación del módulo: tomaremos diseños de Figma y los implementaremos completamente con todo lo aprendido.
 
 ---
 
@@ -676,7 +676,7 @@ Cuatro actividades obligatorias. La Actividad 4 (chat completo) es la más compl
 
 <br>
 
-**Próxima sesión:** Unidad 5 · Del Diseño a la Implementación
+**Próxima sesión:** Unidad 6 · Tailwind CSS 4 en Desarrollo de Interfaces
 
 </div>
 

@@ -11,10 +11,10 @@
 
 **Angular 18+ · Electron · Figma · Storybook · Chart.js · PDFMake**
 
-Curso DAM — Unidad 20 · 40 horas
+Curso DAM — Unidad 22 · 40 horas
 
 Note:
-Bienvenidos al proyecto final del módulo. GesFlow integra TODOS los conocimientos de las 19 unidades anteriores en una aplicación empresarial completa. Vais a diseñar, implementar, documentar y empaquetar un producto real.
+Bienvenidos al proyecto final del módulo. GesFlow integra TODOS los conocimientos de las 21 unidades anteriores en una aplicación empresarial completa. Vais a diseñar, implementar, documentar y empaquetar un producto real.
 
 ---
 
@@ -562,7 +562,7 @@ app.whenReady().then(() => {
 ```
 
 Note:
-La integración Electron sigue el patrón de la unidad 18. Añade funcionalidades nativas: menú Archivo/Edición/Ver/Ayuda, diálogos de archivo para exportar, notificaciones para facturas vencidas. electron-builder genera instaladores para las 3 plataformas.
+La integración Electron sigue el patrón de la unidad 20. Añade funcionalidades nativas: menú Archivo/Edición/Ver/Ayuda, diálogos de archivo para exportar, notificaciones para facturas vencidas. electron-builder genera instaladores para las 3 plataformas (unidad 21).
 
 ---
 

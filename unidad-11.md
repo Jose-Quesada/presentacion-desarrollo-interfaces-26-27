@@ -9,7 +9,7 @@
 #### Catálogo UI con Angular Standalone + Tailwind + Signals
 
 Note:
-Bienvenidos a la Unidad 7. Hoy construiremos un catálogo completo de componentes UI reutilizables. Veremos cómo aplicar principios SOLID al diseño de componentes, cómo implementar accesibilidad desde el inicio, y cómo gestionar los 4 estados de interfaz de forma consistente. Al final de esta unidad tendréis una librería de componentes lista para usar en cualquier proyecto.
+Bienvenidos a la Unidad 11. Hoy construiremos un catálogo completo de componentes UI reutilizables. Veremos cómo aplicar principios SOLID al diseño de componentes, cómo implementar accesibilidad desde el inicio, y cómo gestionar los 4 estados de interfaz de forma consistente. Al final de esta unidad tendréis una librería de componentes lista para usar en cualquier proyecto.
 
 ---
 
@@ -764,7 +764,7 @@ Hemos cubierto: principios SOLID aplicados a componentes, catálogo de 14+ compo
 
 ## Próximos pasos
 
-### Unidad 08 — Formularios e Interacción
+### Unidad 12 — Formularios e Interacción
 
 - Reactive Forms en profundidad <!-- .element: class="fragment" -->
 - Validadores personalizados (DNI, IBAN, password match) <!-- .element: class="fragment" -->

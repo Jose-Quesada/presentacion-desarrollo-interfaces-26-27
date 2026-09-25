@@ -607,7 +607,7 @@ Tailwind 4 simplifica todo: sin config JS, sin content paths manuales, configura
 
 ## 🚀 Próximos Pasos
 
-**Unidad 14: Implementación de Componentes con Tailwind**
+**Unidad 7: Implementación de Componentes con Tailwind CSS**
 
 - Sistema completo de botones con variantes y tamaños
 - Cards, formularios, tablas de datos avanzadas
@@ -621,4 +621,4 @@ Tailwind 4 simplifica todo: sin config JS, sin content paths manuales, configura
 - Practicar: migrar un componente de CSS tradicional a Tailwind
 
 Note:
-En la unidad 14 pondremos en práctica todo esto construyendo componentes reales. Veremos cómo implementar botones con 5 variantes y 3 tamaños usando exclusivamente Tailwind, sin CSS personalizado. También haremos una comparativa seria: mismo componente en CSS tradicional y en Tailwind, midiendo líneas de código, mantenibilidad y tiempo de desarrollo.
+En la unidad 7 pondremos en práctica todo esto construyendo componentes reales. Veremos cómo implementar botones con 5 variantes y 3 tamaños usando exclusivamente Tailwind, sin CSS personalizado. También haremos una comparativa seria: mismo componente en CSS tradicional y en Tailwind, midiendo líneas de código, mantenibilidad y tiempo de desarrollo.

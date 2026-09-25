@@ -417,7 +417,7 @@ Adam Wathan (creador de Tailwind) recomienda usar @apply con moderación. En Ang
 <span class="fragment"><mark>Handoff</mark> diseño → desarrollo eficiente</span>
 
 Note:
-Solo un avance de Figma. La Unidad 3 está dedicada íntegramente a Figma. Por ahora, basta con entender su rol en el ecosistema: es la fuente de verdad del diseño. Los desarrolladores inspeccionan diseños en Figma, no reciben PNGs por email. En la Unidad 3 aprenderéis a crear componentes, variables y sistemas de diseño completos.
+Solo un avance de Figma. La Unidad 4 está dedicada íntegramente a Figma. Por ahora, basta con entender su rol en el ecosistema: es la fuente de verdad del diseño. Los desarrolladores inspeccionan diseños en Figma, no reciben PNGs por email. En la Unidad 4 aprenderéis a crear componentes, variables y sistemas de diseño completos.
 
 ---
 
@@ -626,7 +626,7 @@ graph LR
 </div>
 
 Note:
-Este es el flujo completo que cubre el módulo. Hoy configuramos las herramientas. En la Unidad 3 aprenderemos Figma. En la Unidad 4 dominaremos layouts. En la Unidad 5 recorreremos el flujo completo de principio a fin. Pregunta: ¿en qué fase del flujo estamos ahora mismo? (Fase 5: Configuración del proyecto)
+Este es el flujo completo que cubre el módulo. Hoy configuramos las herramientas. Ya hemos visto Figma (U4) y layouts (U5). En la Unidad 15 recorreremos el flujo completo de principio a fin. Pregunta: ¿en qué fase del flujo estamos ahora mismo? (Fase 5: Configuración del proyecto)
 
 ---
 
@@ -727,14 +727,14 @@ Resumen de las 6 tecnologías principales. Cada una resuelve una parte del probl
 
 <span class="fragment">📌 <mark>Práctica obligatoria</mark>: Actividad 2 — Implementar Badge, Avatar e Icon con Storybook</span>
 
-<span class="fragment">📌 <mark>Unidad 3</mark>: Figma en profundidad — diseño de interfaces con Auto Layout y variables</span>
+<span class="fragment">📌 <mark>Unidad 10</mark>: Arquitectura de Interfaces con Angular — standalone components, Smart vs Presentational y Signals</span>
 
-<span class="fragment">📌 <mark>Unidad 3</mark>: Creación de un sistema de diseño completo en Figma</span>
+<span class="fragment">📌 <mark>Unidad 10</mark>: Comunicación entre componentes y organización de proyectos para interfaces</span>
 
 <span class="fragment">📌 <mark>Recurso</mark>: angular.dev (documentación oficial renovada con tutoriales interactivos)</span>
 
 Note:
-Dos actividades obligatorias para esta unidad. La Actividad 1 es crítica: necesitáis el entorno funcionando para TODO el resto del módulo. La Actividad 2 es vuestra primera implementación de componentes con Angular + Tailwind + Storybook. En la Unidad 3 nos sumergimos en Figma para crear el diseño que luego implementaremos.
+Dos actividades obligatorias para esta unidad. La Actividad 1 es crítica: necesitáis el entorno funcionando para TODO el resto del módulo. La Actividad 2 es vuestra primera implementación de componentes con Angular + Tailwind + Storybook. En la Unidad 10 nos adentramos en la arquitectura Angular: componentes, comunicación entre ellos y organización de proyectos.
 
 ---
 
@@ -746,12 +746,12 @@ Dos actividades obligatorias para esta unidad. La Actividad 1 es crítica: neces
 
 <br>
 
-**Próxima sesión:** Unidad 3 · Diseño de Interfaces con Figma
+**Próxima sesión:** Unidad 10 · Arquitectura de Interfaces con Angular
 
 </div>
 
 Note:
-Espacio para dudas y preguntas. Recordad: el entorno debe estar funcionando ANTES de la próxima sesión. Si tenéis problemas, escribid en el foro o pasad por tutoría. La Unidad 3 asume que tenéis Angular + Tailwind + Storybook operativos.
+Espacio para dudas y preguntas. Recordad: el entorno debe estar funcionando ANTES de la próxima sesión. Si tenéis problemas, escribid en el foro o pasad por tutoría. La Unidad 10 asume que tenéis Angular + Tailwind + Storybook operativos.
 
 ---
 

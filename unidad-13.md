@@ -9,7 +9,7 @@
 #### Atomic Design + Design Tokens + Tailwind 4 @theme + ThemeProvider
 
 Note:
-Bienvenidos a la Unidad 9. Hoy vamos a construir un Design System completo. Veremos qué es realmente un Design System, cómo aplicar Atomic Design en Angular, cómo definir Design Tokens y sincronizarlos entre Figma y código, y cómo implementar un ThemeProvider para cambiar temas en tiempo real. Esta unidad conecta diseño y desarrollo.
+Bienvenidos a la Unidad 13. Hoy vamos a construir un Design System completo. Veremos qué es realmente un Design System, cómo aplicar Atomic Design en Angular, cómo definir Design Tokens y sincronizarlos entre Figma y código, y cómo implementar un ThemeProvider para cambiar temas en tiempo real. Esta unidad conecta diseño y desarrollo.
 
 ---
 
@@ -601,7 +601,7 @@ Button (5 variantes), Input (5 estados), Badge (5 tipos), Avatar, Skeleton
 SearchBar, DataTable, Modal, EmptyState
 
 ### Paso 5 — Documentar
-Cada componente con stories en Storybook (ver Unidad 10)
+Cada componente con stories en Storybook (ver Unidad 14)
 
 Note:
 Vamos a repasar el proceso completo. Auditoría: capturar pantallas, listar colores, detectar inconsistencias. Tokens: consolidar en una escala coherente. Componentes: construir desde átomos hacia organismos. Documentación: Storybook con todas las variantes y estados. Este proceso se itera: el Design System es un producto vivo.
@@ -677,7 +677,7 @@ Hemos cubierto la construcción completa de un Design System: Atomic Design como
 
 ## Próximos pasos
 
-### Unidad 10 — Storybook
+### Unidad 14 — Storybook
 
 - Instalación y configuración en proyecto Angular <!-- .element: class="fragment" -->
 - Stories CSF3 para todos los componentes <!-- .element: class="fragment" -->
@@ -687,7 +687,7 @@ Hemos cubierto la construcción completa de un Design System: Atomic Design como
 - Publicación y despliegue <!-- .element: class="fragment" -->
 
 Note:
-En la última unidad del módulo aprenderemos a documentar profesionalmente nuestro Design System con Storybook. Veremos cómo escribir stories CSF3, documentación MDX, testing de interacciones con play functions, y cómo integrar Chromatic para detectar regresiones visuales automáticamente.
+En la Unidad 14 aprenderemos a documentar profesionalmente nuestro Design System con Storybook. Veremos cómo escribir stories CSF3, documentación MDX, testing de interacciones con play functions, y cómo integrar Chromatic para detectar regresiones visuales automáticamente.
 
 ---
 

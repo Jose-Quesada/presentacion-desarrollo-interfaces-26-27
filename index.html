@@ -153,53 +153,53 @@
             const units = [
                 'introduccion.md',
                 'unidad-01.md', 
-                // 'unidad-02.md', 
-                // 'unidad-03.md', 
-                // 'unidad-04.md',
-                // 'unidad-05.md', 
-                // 'unidad-06.md', 
-                // 'unidad-07.md', 
-                // 'unidad-08.md',
-                // 'unidad-09.md', 
-                // 'unidad-10.md', 
-                // 'unidad-11.md', 
-                // 'unidad-12.md',
-                // 'unidad-13.md', 
-                // 'unidad-14.md', 
-                // 'unidad-15.md', 
-                // 'unidad-16.md',
-                // 'unidad-17.md', 
-                // 'unidad-18.md', 
-                // 'unidad-19.md', 
-                // 'unidad-20.md',
-                // 'unidad-21.md', 
-                // 'unidad-22.md'
+                 'unidad-02.md', 
+                 'unidad-03.md', 
+                 'unidad-04.md',
+                 'unidad-05.md', 
+                 'unidad-06.md', 
+                 'unidad-07.md', 
+                 'unidad-08.md',
+                 'unidad-09.md', 
+                 'unidad-10.md', 
+                 'unidad-11.md', 
+                 'unidad-12.md',
+                 'unidad-13.md', 
+                 'unidad-14.md', 
+                 'unidad-15.md', 
+                 'unidad-16.md',
+                 'unidad-17.md', 
+                 'unidad-18.md', 
+                 'unidad-19.md', 
+                 'unidad-20.md',
+                 'unidad-21.md', 
+                 'unidad-22.md'
             ];
 
             const unitLabels = {
                 'introduccion.md': 'Introducción',
                 'unidad-01.md': 'U1 · UX para desarrolladores',
-                // 'unidad-02.md': 'U2 · Accesibilidad (WCAG)',
-                // 'unidad-03.md': 'U3 · Interfaces naturales',
-                // 'unidad-04.md': 'U4 · Figma',
-                // 'unidad-05.md': 'U5 · Layouts modernos',
-                // 'unidad-06.md': 'U6 · Tailwind CSS 4',
-                // 'unidad-07.md': 'U7 · Componentes con Tailwind',
-                // 'unidad-08.md': 'U8 · Responsive design',
-                // 'unidad-09.md': 'U9 · Ecosistema frontend',
-                // 'unidad-10.md': 'U10 · Angular',
-                // 'unidad-11.md': 'U11 · Componentes reutilizables',
-                // 'unidad-12.md': 'U12 · Formularios e interacción',
-                // 'unidad-13.md': 'U13 · Design systems',
-                // 'unidad-14.md': 'U14 · Storybook',
-                // 'unidad-15.md': 'U15 · Del diseño a la implementación',
-                // 'unidad-16.md': 'U16 · Informes y documentos',
-                // 'unidad-17.md': 'U17 · Dashboards y datos',
-                // 'unidad-18.md': 'U18 · Documentación',
-                // 'unidad-19.md': 'U19 · Pruebas de software',
-                // 'unidad-20.md': 'U20 · Electron',
-                // 'unidad-21.md': 'U21 · Empaquetado y distribución',
-                // 'unidad-22.md': 'U22 · Proyecto final'
+                 'unidad-02.md': 'U2 · Accesibilidad (WCAG)',
+                 'unidad-03.md': 'U3 · Interfaces naturales',
+                 'unidad-04.md': 'U4 · Figma',
+                 'unidad-05.md': 'U5 · Layouts modernos',
+                 'unidad-06.md': 'U6 · Tailwind CSS 4',
+                 'unidad-07.md': 'U7 · Componentes con Tailwind',
+                 'unidad-08.md': 'U8 · Responsive design',
+                 'unidad-09.md': 'U9 · Ecosistema frontend',
+                 'unidad-10.md': 'U10 · Angular',
+                 'unidad-11.md': 'U11 · Componentes reutilizables',
+                 'unidad-12.md': 'U12 · Formularios e interacción',
+                 'unidad-13.md': 'U13 · Design systems',
+                 'unidad-14.md': 'U14 · Storybook',
+                 'unidad-15.md': 'U15 · Del diseño a la implementación',
+                 'unidad-16.md': 'U16 · Informes y documentos',
+                 'unidad-17.md': 'U17 · Dashboards y datos',
+                 'unidad-18.md': 'U18 · Documentación',
+                 'unidad-19.md': 'U19 · Pruebas de software',
+                 'unidad-20.md': 'U20 · Electron',
+                 'unidad-21.md': 'U21 · Empaquetado y distribución',
+                 'unidad-22.md': 'U22 · Proyecto final'
             };
 
             mermaid.initialize({
@@ -274,6 +274,7 @@
 
             themeSel.addEventListener('change', function () {
                 var md = params.get('md') || units[0];
+                applyTheme(this.value);
                 window.location.href = buildUrl(md, this.value);
             });
 

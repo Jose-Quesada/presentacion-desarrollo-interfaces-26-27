@@ -9,7 +9,7 @@
 #### Reactive Forms + Validación + UX + Micro-interacciones
 
 Note:
-Bienvenidos a la Unidad 8. Los formularios son el punto de fricción más crítico entre el usuario y la aplicación. Un formulario mal diseñado pierde usuarios; uno bien diseñado los convierte. Hoy veremos Reactive Forms en profundidad, validadores personalizados, UX avanzada y micro-interacciones que marcan la diferencia.
+Bienvenidos a la Unidad 12. Los formularios son el punto de fricción más crítico entre el usuario y la aplicación. Un formulario mal diseñado pierde usuarios; uno bien diseñado los convierte. Hoy veremos Reactive Forms en profundidad, validadores personalizados, UX avanzada y micro-interacciones que marcan la diferencia.
 
 ---
 
@@ -843,7 +843,7 @@ Hemos cubierto: Reactive Forms como base (FormControl/FormGroup/FormArray), esta
 
 ## Próximos pasos
 
-### Unidad 09 — Design Systems
+### Unidad 13 — Design Systems
 
 - Atomic Design: átomos → moléculas → organismos <!-- .element: class="fragment" -->
 - Design Tokens: colores, tipografía, espaciado, sombras <!-- .element: class="fragment" -->

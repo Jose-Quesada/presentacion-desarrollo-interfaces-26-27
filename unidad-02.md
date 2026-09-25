@@ -529,12 +529,12 @@ Resumen POUR + ARIA + herramientas. La accesibilidad no se audita al final: se c
 
 ## 🚀 Próximos Pasos
 
-**Unidad 13: Tailwind CSS 4 en Desarrollo de Interfaces**
+**Unidad 3: Interfaces Naturales (NUI)**
 
-- Filosofía utility-first vs CSS tradicional
-- Configuración `@theme` con colores oklch
-- Clases clave: layout, colores, tipografía, estados, responsive
-- Técnicas avanzadas: valores arbitrarios, `peer`, `group`, `has-*`
+- De la GUI a la NUI: modalidades (voz, gestos, cuerpo, RA/RV)
+- Reconocimiento de voz con Web Speech API (`SpeechRecognition`)
+- Detección de movimiento corporal con TensorFlow.js y MediaPipe
+- Realidad aumentada en la web con WebXR + Three.js
 
 **Para profundizar**:
 - Instalar axe DevTools en vuestro navegador hoy mismo
@@ -542,4 +542,4 @@ Resumen POUR + ARIA + herramientas. La accesibilidad no se audita al final: se c
 - Leer: WAI-ARIA Authoring Practices Guide
 
 Note:
-La unidad 13 entra en Tailwind CSS 4, que usaremos para implementar componentes visualmente consistentes. Veremos cómo Tailwind ayuda con la accesibilidad (clases `sr-only`, `focus-visible:ring`, `aria-*`). Tarea: instalad axe DevTools ahora y auditad vuestra app. En 2 minutos veréis problemas que no sabíais que existían.
+La unidad 3 entra en las interfaces naturales de usuario (NUI): voz, gestos y movimiento corporal. Veremos cómo la accesibilidad que hemos trabajado aquí se aplica a modalidades con mayor tasa de error, manteniendo siempre una alternativa por teclado. Tarea: instalad axe DevTools ahora y auditad vuestra app. En 2 minutos veréis problemas que no sabíais que existían.
